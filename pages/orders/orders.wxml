@@ -23,14 +23,26 @@
   </view>
 
   <!-- Tab 切换 -->
-  <view class="tabs">
+  <view class="tabs" wx:if="{{!selectMode}}">
     <text class="tab-item {{currentTab === 'all' ? 'active' : ''}}" bindtap="switchTab" data-tab="all">全部</text>
     <text class="tab-item {{currentTab === 'pending' ? 'active' : ''}}" bindtap="switchTab" data-tab="pending">待处理</text>
     <text class="tab-item {{currentTab === 'completed' ? 'active' : ''}}" bindtap="switchTab" data-tab="completed">已完成</text>
   </view>
 
+  <!-- 选择模式顶部栏 -->
+  <view class="select-bar" wx:else>
+    <view class="select-left">
+      <view class="checkbox-wrap {{isAllSelected ? 'checked' : ''}}" bindtap="onToggleSelectAll">
+        <text class="{{isAllSelected ? 'check-icon' : 'uncheck-icon'}}">{{isAllSelected ? '✓' : '○'}}</text>
+        <text class="select-all-text">全选</text>
+      </view>
+      <text class="select-count">已选 {{selectedIds.length}} 项</text>
+    </view>
+    <text class="cancel-select" bindtap="onCancelSelect">取消</text>
+  </view>
+
   <!-- 订单列表 -->
-  <scroll-view scroll-y class="order-list" enhanced show-scrollbar="{{false}}">
+  <scroll-view scroll-y class="order-list {{selectMode ? 'in-select-mode' : ''}}" enhanced show-scrollbar="{{false}}">
     <!-- 空状态 -->
     <view class="empty-orders" wx:if="{{displayOrders.length === 0}}">
       <text class="empty-icon-2">📋</text>
@@ -39,9 +51,22 @@
     </view>
 
     <!-- 订单卡片 -->
-    <view class="order-card" wx:for="{{displayOrders}}" wx:key="orderId">
-      <!-- 卡片主体（点击进入详情） -->
-      <view class="oc-body" bindtap="onOrderTap" data-id="{{item.orderId}}">
+    <view
+      class="order-card {{selectedIds.indexOf(item.orderId) > -1 ? 'card-selected' : ''}} {{selectMode ? 'card-selectable' : ''}}"
+      wx:for="{{displayOrders}}"
+      wx:key="orderId"
+      bindlongpress="onLongPressCard"
+      data-id="{{item.orderId}}"
+    >
+      <!-- 选择模式下的复选框 -->
+      <view class="card-checkbox-area" wx:if="{{selectMode}}" catchtap="onToggleItem" data-id="{{item.orderId}}">
+        <view class="checkbox-box {{selectedIds.indexOf(item.orderId) > -1 ? 'checked' : ''}}">
+          <text>{{selectedIds.indexOf(item.orderId) > -1 ? '✓' : ''}}</text>
+        </view>
+      </view>
+
+      <!-- 卡片主体（非选择模式下点击进入详情） -->
+      <view class="oc-body" bindtap="{{selectMode ? 'onToggleItem' : 'onOrderTap'}}" data-id="{{item.orderId}}">
         <view class="oc-header">
           <view class="oc-left">
             <text class="oc-id">{{item.orderId}}</text>
@@ -63,16 +88,24 @@
 
         <view class="oc-footer">
           <text class="oc-count">共 {{item.totalCount}} 份</text>
-          <text class="oc-price">¥{{item.priceText}}</text>
+          <view class="oc-footer-right">
+            <text class="oc-price">¥{{item.priceText}}</text>
+            <text class="oc-delete-btn" catchtap="onDeleteOrder" data-id="{{item.orderId}}" wx:if="{{!selectMode}}">删除</text>
+          </view>
         </view>
-      </view>
-
-      <!-- 删除按钮 -->
-      <view class="oc-delete" catchtap="onDeleteOrder" data-id="{{item.orderId}}">
-        🗑 删除订单
       </view>
     </view>
   </scroll-view>
 
-  <view class="bottom-space"></view>
+  <!-- 批量操作底部栏 -->
+  <view class="batch-bar" wx:if="{{selectMode && selectedIds.length > 0}}">
+    <view class="batch-btn batch-complete" bindtap="onBatchComplete">
+      ✅ 批量完成 ({{selectedIds.length}})
+    </view>
+    <view class="batch-btn batch-delete" bindtap="onBatchDelete">
+      🗑 批量删除 ({{selectedIds.length}})
+    </view>
+  </view>
+
+  <view class="bottom-space {{selectMode ? 'with-batch' : ''}}"></view>
 </view>

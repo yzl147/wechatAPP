@@ -74,10 +74,81 @@
   border-radius: 3rpx;
 }
 
+/* 选择模式顶部栏 */
+.select-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 28rpx;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.select-left {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.checkbox-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 4rpx 10rpx;
+  border-radius: 30rpx;
+}
+
+.check-icon {
+  width: 36rpx;
+  height: 36rpx;
+  line-height: 34rpx;
+  text-align: center;
+  background: #fff;
+  color: #667eea;
+  border-radius: 50%;
+  font-size: 22rpx;
+  font-weight: bold;
+}
+
+.uncheck-icon {
+  font-size: 34rpx;
+  color: rgba(255,255,255,0.7);
+}
+
+.select-all-text {
+  font-size: 26rpx;
+  color: #fff;
+  font-weight: 600;
+}
+
+.checkbox-wrap.checked .select-all-text { opacity: 1; }
+
+.select-count {
+  font-size: 24rpx;
+  color: rgba(255,255,255,0.85);
+  background: rgba(255,255,255,0.15);
+  padding: 4rpx 16rpx;
+  border-radius: 20rpx;
+}
+
+.cancel-select {
+  font-size: 26rpx;
+  color: #fff;
+  padding: 8rpx 24rpx;
+  background: rgba(255,255,255,0.2);
+  border-radius: 30rpx;
+}
+
 /* 订单列表 */
 .order-list {
   height: calc(100vh - 320rpx);
   padding: 0 20rpx;
+}
+
+.order-list.in-select-mode {
+  height: calc(100vh - 380rpx);
 }
 
 /* 空状态 */
@@ -112,6 +183,64 @@
   padding: 24rpx;
   margin-bottom: 16rpx;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.03);
+  display: flex;
+  transition: all 0.15s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 选择模式下可点击的卡片 */
+.order-card.card-selectable::before {
+  content: '长按选择';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26rpx;
+  color: rgba(102,126,234,0.25);
+  letter-spacing: 2rpx;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.order-card.card-selected {
+  background: #f0eeff;
+  box-shadow: 0 4rpx 16rpx rgba(102,126,234,0.18);
+  border: 2rpx solid rgba(102,126,234,0.5);
+}
+
+/* 复选框区域 */
+.card-checkbox-area {
+  display: flex;
+  align-items: center;
+  padding-right: 14rpx;
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+.checkbox-box {
+  width: 40rpx;
+  height: 40rpx;
+  line-height: 38rpx;
+  text-align: center;
+  border-radius: 50%;
+  border: 2rpx solid #ccc;
+  font-size: 24rpx;
+  color: transparent;
+  transition: all 0.15s ease;
+}
+
+.checkbox-box.checked {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-color: #667eea;
+  color: #fff;
+  font-weight: bold;
 }
 
 .oc-header {
@@ -119,6 +248,8 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16rpx;
+  z-index: 1;
+  position: relative;
 }
 
 .oc-left {
@@ -161,6 +292,8 @@
   border-radius: 10rpx;
   padding: 16rpx;
   margin-bottom: 12rpx;
+  z-index: 1;
+  position: relative;
 }
 
 .oc-item-row {
@@ -192,6 +325,14 @@
   align-items: center;
   border-top: 1rpx solid #f0f0f0;
   padding-top: 14rpx;
+  z-index: 1;
+  position: relative;
+}
+
+.oc-footer-right {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
 }
 
 .oc-count {
@@ -205,23 +346,60 @@
   color: #ff6b35;
 }
 
-/* 卡片主体 */
+/* 内联删除小按钮 */
+.oc-delete-btn {
+  font-size: 22rpx;
+  color: #e74c3c;
+  padding: 4rpx 14rpx;
+  border: 1rpx solid #f5c6cb;
+  border-radius: 20rpx;
+  background: #fef5f5;
+}
 .oc-body {
   padding-bottom: 8rpx;
+  flex: 1;
+  z-index: 1;
+  position: relative;
 }
 
-/* 删除按钮 */
-.oc-delete {
-  border-top: 1rpx dashed #eee;
+/* 批量操作底部栏 */
+.batch-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 16rpx 32rpx;
+  padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
+  background: #fff;
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.08);
+  z-index: 100;
+}
+
+.batch-btn {
   text-align: center;
-  padding: 16rpx 0;
-  font-size: 24rpx;
-  color: #e74c3c;
-  background: #fef5f5;
-  margin: 0 -20rpx -20rpx -20rpx;
-  border-radius: 0 0 20rpx 20rpx;
+  font-size: 28rpx;
+  font-weight: 700;
+  padding: 22rpx 40rpx;
+  border-radius: 44rpx;
+  color: #fff;
+  min-width: 280rpx;
+}
+
+.batch-complete {
+  background: linear-gradient(135deg, #26de81, #20bf6b);
+}
+
+.batch-delete {
+  background: linear-gradient(135deg, #ff6b6b, #e74c3c);
 }
 
 .bottom-space {
   height: 60rpx;
+}
+
+.bottom-space.with-batch {
+  height: 140rpx;
 }
