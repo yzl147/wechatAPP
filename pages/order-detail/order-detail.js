@@ -80,6 +80,26 @@ Page({
     })
   },
 
+  // 删除当前订单
+  onDeleteOrder() {
+    const order = this.data.order
+    const dishNames = (order && order.items) ? order.items.map(i => i.name).join('、') : ''
+    wx.showModal({
+      title: '确认删除',
+      content: `确定要删除订单 ${order.orderId} 吗？\n（${dishNames}）`,
+      confirmColor: '#e74c3c',
+      success: (res) => {
+        if (res.confirm) {
+          orderUtil.deleteOrder(order.orderId)
+          wx.showToast({ title: '已删除', icon: 'none' })
+          setTimeout(() => {
+            wx.switchTab({ url: '/pages/orders/orders' })
+          }, 800)
+        }
+      }
+    })
+  },
+
   // 继续点餐
   goToIndex() {
     wx.switchTab({

@@ -60,5 +60,24 @@ Page({
     wx.navigateTo({
       url: `/pages/order-detail/order-detail?orderId=${id}&fromHistory=true`
     })
+  },
+
+  // 删除订单
+  onDeleteOrder(e) {
+    const orderId = e.currentTarget.dataset.id
+    const order = this.data.allOrders.find(o => o.orderId === orderId)
+    const dishNames = (order && order.items) ? order.items.map(i => i.name).join('、') : ''
+    wx.showModal({
+      title: '确认删除',
+      content: `确定要删除订单 ${orderId} 吗？\n（${dishNames}）`,
+      confirmColor: '#e74c3c',
+      success: (res) => {
+        if (res.confirm) {
+          orderUtil.deleteOrder(orderId)
+          this.loadOrders()
+          wx.showToast({ title: '已删除', icon: 'none' })
+        }
+      }
+    })
   }
 })

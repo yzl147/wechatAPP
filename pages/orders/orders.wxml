@@ -39,29 +39,37 @@
     </view>
 
     <!-- 订单卡片 -->
-    <view class="order-card" wx:for="{{displayOrders}}" wx:key="orderId" bindtap="onOrderTap" data-id="{{item.orderId}}">
-      <view class="oc-header">
-        <view class="oc-left">
-          <text class="oc-id">{{item.orderId}}</text>
-          <text class="oc-time">{{formatTime(item.orderTime)}}</text>
+    <view class="order-card" wx:for="{{displayOrders}}" wx:key="orderId">
+      <!-- 卡片主体（点击进入详情） -->
+      <view class="oc-body" bindtap="onOrderTap" data-id="{{item.orderId}}">
+        <view class="oc-header">
+          <view class="oc-left">
+            <text class="oc-id">{{item.orderId}}</text>
+            <text class="oc-time">{{formatTime(item.orderTime)}}</text>
+          </view>
+          <view class="oc-status {{item.status}}">
+            {{item.status === 'pending' ? '待处理' : '已完成'}}
+          </view>
         </view>
-        <view class="oc-status {{item.status}}">
-          {{item.status === 'pending' ? '待处理' : '已完成'}}
+
+        <!-- 商品摘要行 -->
+        <view class="oc-items">
+          <view class="oc-item-row" wx:for="{{item.items}}" wx:for-item="food" wx:for-index="fidx" wx:key="id">
+            <text class="oci-icon">{{food.icon}}</text>
+            <text class="oci-name">{{food.name}}</text>
+            <text class="oci-qty">x{{food.quantity}}</text>
+          </view>
+        </view>
+
+        <view class="oc-footer">
+          <text class="oc-count">共 {{item.totalCount}} 份</text>
+          <text class="oc-price">¥{{item.priceText}}</text>
         </view>
       </view>
 
-      <!-- 商品摘要行 -->
-      <view class="oc-items">
-        <view class="oc-item-row" wx:for="{{item.items}}" wx:for-item="food" wx:for-index="fidx" wx:key="id">
-          <text class="oci-icon">{{food.icon}}</text>
-          <text class="oci-name">{{food.name}}</text>
-          <text class="oci-qty">x{{food.quantity}}</text>
-        </view>
-      </view>
-
-      <view class="oc-footer">
-        <text class="oc-count">共 {{item.totalCount}} 份</text>
-        <text class="oc-price">¥{{item.priceText}}</text>
+      <!-- 删除按钮 -->
+      <view class="oc-delete" catchtap="onDeleteOrder" data-id="{{item.orderId}}">
+        🗑 删除订单
       </view>
     </view>
   </scroll-view>

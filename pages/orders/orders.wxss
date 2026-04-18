@@ -205,6 +205,23 @@
   color: #ff6b35;
 }
 
+/* 卡片主体 */
+.oc-body {
+  padding-bottom: 8rpx;
+}
+
+/* 删除按钮 */
+.oc-delete {
+  border-top: 1rpx dashed #eee;
+  text-align: center;
+  padding: 16rpx 0;
+  font-size: 24rpx;
+  color: #e74c3c;
+  background: #fef5f5;
+  margin: 0 -20rpx -20rpx -20rpx;
+  border-radius: 0 0 20rpx 20rpx;
+}
+
 .bottom-space {
   height: 60rpx;
 }

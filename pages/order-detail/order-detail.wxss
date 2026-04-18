@@ -272,6 +272,17 @@
   border-radius: 44rpx;
 }
 
+.btn-delete {
+  flex: 1;
+  text-align: center;
+  background: linear-gradient(135deg, #ff6b6b, #e74c3c);
+  color: #fff;
+  font-size: 28rpx;
+  font-weight: 600;
+  padding: 24rpx 0;
+  border-radius: 44rpx;
+}
+
 .btn-secondary {
   flex: 1;
   text-align: center;
