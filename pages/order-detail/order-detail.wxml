@@ -1,81 +1,91 @@
-<scroll-view scroll-y class="detail-page" enhanced show-scrollbar="{{false}}">
-  <!-- 订单状态 -->
-  <view class="status-section" style="background: {{order.status === 'pending' ? 'linear-gradient(135deg, #ff6b35, #ff4500)' : 'linear-gradient(135deg, #26de81, #20bf6b)'}};">
-    <text class="status-icon">{{order.status === 'pending' ? '📋' : '✅'}}</text>
-    <text class="status-text">{{order.status === 'pending' ? '待处理' : '已完成'}}</text>
-    <text class="order-id">订单号: {{order.orderId}}</text>
-    <text class="order-time">{{formatTime(order.orderTime)}}</text>
+<view class="detail-page">
+  <!-- 订单不存在 -->
+  <view class="empty-order" wx:if="{{!order}}">
+    <text class="empty-icon">📋</text>
+    <text class="empty-text">订单不存在</text>
+    <view class="btn-back" bindtap="goToIndex">返回首页</view>
   </view>
 
-  <!-- 消息推送卡片（模拟商家通知） -->
-  <view class="section push-card" wx:if="{{showPush}}">
-    <view class="push-header">
-      <text class="push-title">🔔 {{order.pushMessage.title}}</text>
-      <text class="push-close" bindtap="onClosePush">×</text>
-    </view>
-    <view class="push-body">
-      <text class="push-content">{{order.pushMessage.content}}</text>
-    </view>
-    <view class="push-footer">
-      <text class="push-summary">{{order.pushMessage.summary}}</text>
-    </view>
-  </view>
-
-  <!-- 商品明细 -->
-  <view class="section">
-    <view class="section-header">
-      <view class="section-title-bar"></view>
-      <text class="section-title">🛒 商品明细</text>
+  <!-- 订单内容 -->
+  <block wx:else>
+    <!-- 订单状态 -->
+    <view class="status-section" style="background: {{order.status === 'pending' ? 'linear-gradient(135deg, #ff6b35, #ff4500)' : 'linear-gradient(135deg, #26de81, #20bf6b)'}};">
+      <text class="status-icon">{{order.status === 'pending' ? '📋' : '✅'}}</text>
+      <text class="status-text">{{order.status === 'pending' ? '待处理' : '已完成'}}</text>
+      <text class="order-id">订单号: {{order.orderId}}</text>
+      <text class="order-time">{{formatTime(order.orderTime)}}</text>
     </view>
 
-    <view class="item-list">
-      <view class="order-item" wx:for="{{order.items}}" wx:key="id">
-        <view class="oi-icon-wrap" style="background: {{item.bgStyle}};">
-          <text class="oi-icon">{{item.icon}}</text>
+    <!-- 消息推送卡片（模拟商家通知） -->
+    <view class="section push-card" wx:if="{{showPush}}">
+      <view class="push-header">
+        <text class="push-title">🔔 {{order.pushMessage.title}}</text>
+        <text class="push-close" bindtap="onClosePush">×</text>
+      </view>
+      <view class="push-body">
+        <text class="push-content">{{order.pushMessage.content}}</text>
+      </view>
+      <view class="push-footer">
+        <text class="push-summary">{{order.pushMessage.summary}}</text>
+      </view>
+    </view>
+
+    <!-- 商品明细 -->
+    <view class="section">
+      <view class="section-header">
+        <view class="section-title-bar"></view>
+        <text class="section-title">🛒 商品明细</text>
+      </view>
+
+      <view class="item-list">
+        <view class="order-item" wx:for="{{order.items}}" wx:key="id">
+          <view class="oi-icon-wrap" style="background: {{item.bgStyle}};">
+            <text class="oi-icon">{{item.icon}}</text>
+          </view>
+          <view class="oi-info">
+            <text class="oi-name">{{item.name}}</text>
+            <text class="oi-spec">¥{{item.price}} x{{item.quantity}}</text>
+          </view>
+          <text class="oi-subtotal">¥{{item.subtotalText}}</text>
         </view>
-        <view class="oi-info">
-          <text class="oi-name">{{item.name}}</text>
-          <text class="oi-spec">¥{{item.price}} x{{item.quantity}}</text>
+      </view>
+
+      <!-- 价格汇总 -->
+      <view class="price-summary">
+        <view class="ps-row">
+          <text class="ps-label">商品数量</text>
+          <text class="ps-value">共 {{order.totalCount}} 份</text>
         </view>
-        <text class="oi-subtotal">¥{{item.subtotalText}}</text>
+        <view class="ps-row ps-total">
+          <text class="ps-label">实付金额</text>
+          <text class="ps-value total-amount">¥{{order.priceText}}</text>
+        </view>
       </view>
     </view>
 
-    <!-- 价格汇总 -->
-    <view class="price-summary">
-      <view class="ps-row">
-        <text class="ps-label">商品数量</text>
-        <text class="ps-value">共 {{order.totalCount}} 份</text>
+    <!-- 备注 -->
+    <view class="section" wx:if="{{order.remark}}">
+      <view class="section-header">
+        <view class="section-title-bar remark-bar"></view>
+        <text class="section-title">📝 备注</text>
       </view>
-      <view class="ps-row ps-total">
-        <text class="ps-label">实付金额</text>
-        <text class="ps-value total-amount">¥{{order.priceText}}</text>
+      <text class="remark-text">{{order.remark}}</text>
+    </view>
+
+    <!-- 操作按钮 -->
+    <view class="action-area">
+      <!-- 待处理时显示"标记完成"按钮 -->
+      <view class="btn-complete" bindtap="onCompleteOrder" wx:if="{{order.status === 'pending'}}">
+        ✅ 标记为已完成
+      </view>
+      <view class="btn-primary" bindtap="onViewOrders">
+        查看订单历史
+      </view>
+      <view class="btn-secondary" bindtap="goToIndex" wx:if="{{!fromHistory}}">
+        继续点餐
       </view>
     </view>
-  </view>
-
-  <!-- 备注 -->
-  <view class="section" wx:if="{{order.remark}}">
-    <view class="section-header">
-      <view class="section-title-bar remark-bar"></view>
-      <text class="section-title">📝 备注</text>
-    </view>
-    <text class="remark-text">{{order.remark}}</text>
-  </view>
-
-  <!-- 操作按钮 -->
-  <view class="action-area">
-    <!-- 待处理时显示"标记完成"按钮 -->
-    <view class="btn-complete" bindtap="onCompleteOrder" wx:if="{{order.status === 'pending'}}">
-      ✅ 标记为已完成
-    </view>
-    <view class="btn-primary" bindtap="onViewOrders">
-      查看订单历史
-    </view>
-    <view class="btn-secondary" bindtap="goToIndex" wx:if="{{!fromHistory}}">
-      继续点餐
-    </view>
-  </view>
+  </block>
 
   <view class="bottom-space"></view>
-</scroll-view>
+</view>
