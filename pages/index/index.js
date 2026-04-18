@@ -1,17 +1,27 @@
 const foods = require('../../data/foods')
+const cartUtil = require('../../utils/cart')
 
 Page({
   data: {
     searchText: '',
     currentCategory: '全部',
     categories: ['全部', '荤菜', '素菜', '海鲜', '主食'],
-    filteredList: []
+    filteredList: [],
+    cartCount: 0
   },
 
   onLoad() {
-    this.setData({
-      filteredList: foods
-    })
+    this.setData({ filteredList: foods })
+    this.updateCartBadge()
+  },
+
+  onShow() {
+    this.updateCartBadge()
+  },
+
+  updateCartBadge() {
+    const info = cartUtil.getCartTotal()
+    this.setData({ cartCount: info.count })
   },
 
   // 搜索输入
@@ -53,6 +63,17 @@ Page({
     const id = e.currentTarget.dataset.id
     wx.navigateTo({
       url: `/pages/detail/detail?id=${id}`
+    })
+  },
+
+  // 加入购物车（从列表）
+  onAddToCart(e) {
+    const food = e.currentTarget.dataset.food
+    const result = cartUtil.addToCart(food)
+    this.setData({ cartCount: result.count })
+    wx.showToast({
+      title: `${food.name} 已加入购物车`,
+      icon: 'none'
     })
   }
 })

@@ -1,0 +1,70 @@
+<view class="orders-page">
+  <!-- 统计卡片 -->
+  <view class="stats-card">
+    <view class="stat-item">
+      <text class="stat-num">{{summary.total}}</text>
+      <text class="stat-label">总订单</text>
+    </view>
+    <view class="stat-divider"></view>
+    <view class="stat-item">
+      <text class="stat-num pending-num">{{summary.pendingCount}}</text>
+      <text class="stat-label">待处理</text>
+    </view>
+    <view class="stat-divider"></view>
+    <view class="stat-item">
+      <text class="stat-num done-num">{{summary.completedCount}}</text>
+      <text class="stat-label">已完成</text>
+    </view>
+    <view class="stat-divider"></view>
+    <view class="stat-item">
+      <text class="stat-num amount-num">¥{{summary.totalAmount}}</text>
+      <text class="stat-label">累计金额</text>
+    </view>
+  </view>
+
+  <!-- Tab 切换 -->
+  <view class="tabs">
+    <text class="tab-item {{currentTab === 'all' ? 'active' : ''}}" bindtap="switchTab" data-tab="all">全部</text>
+    <text class="tab-item {{currentTab === 'pending' ? 'active' : ''}}" bindtap="switchTab" data-tab="pending">待处理</text>
+    <text class="tab-item {{currentTab === 'completed' ? 'active' : ''}}" bindtap="switchTab" data-tab="completed">已完成</text>
+  </view>
+
+  <!-- 订单列表 -->
+  <scroll-view scroll-y class="order-list" enhanced show-scrollbar="{{false}}">
+    <!-- 空状态 -->
+    <view class="empty-orders" wx:if="{{displayOrders.length === 0}}">
+      <text class="empty-icon-2">📋</text>
+      <text class="empty-text-2">暂无订单记录</text>
+      <text class="empty-sub-2">去点餐吧~</text>
+    </view>
+
+    <!-- 订单卡片 -->
+    <view class="order-card" wx:for="{{displayOrders}}" wx:key="orderId" bindtap="onOrderTap" data-id="{{item.orderId}}">
+      <view class="oc-header">
+        <view class="oc-left">
+          <text class="oc-id">{{item.orderId}}</text>
+          <text class="oc-time">{{formatTime(item.orderTime)}}</text>
+        </view>
+        <view class="oc-status {{item.status}}">
+          {{item.status === 'pending' ? '待处理' : '已完成'}}
+        </view>
+      </view>
+
+      <!-- 商品摘要行 -->
+      <view class="oc-items">
+        <view class="oc-item-row" wx:for="{{item.items}}" wx:for-item="food" wx:for-index="fidx" wx:key="id">
+          <text class="oci-icon">{{food.icon}}</text>
+          <text class="oci-name">{{food.name}}</text>
+          <text class="oci-qty">x{{food.quantity}}</text>
+        </view>
+      </view>
+
+      <view class="oc-footer">
+        <text class="oc-count">共 {{item.totalCount}} 份</text>
+        <text class="oc-price">¥{{item.priceText}}</text>
+      </view>
+    </view>
+  </scroll-view>
+
+  <view class="bottom-space"></view>
+</view>

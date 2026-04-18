@@ -233,5 +233,47 @@
 }
 
 .bottom-space {
-  height: 60rpx;
+  height: 140rpx;
+}
+
+/* 底部加购栏 */
+.bottom-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 120rpx;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32rpx;
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.06);
+  z-index: 100;
+}
+
+.bar-info {
+  display: flex;
+  align-items: baseline;
+}
+
+.bar-label {
+  font-size: 26rpx;
+  color: #666;
+}
+
+.bar-price {
+  font-size: 44rpx;
+  font-weight: 800;
+  color: #ff6b35;
+  margin-left: 8rpx;
+}
+
+.add-cart-btn {
+  background: linear-gradient(135deg, #ff6b35, #ff4500);
+  color: #fff;
+  font-size: 30rpx;
+  font-weight: 700;
+  padding: 22rpx 56rpx;
+  border-radius: 44rpx;
 }

@@ -34,6 +34,11 @@
           <text class="meta-item">📊 {{item.difficulty}}</text>
         </view>
       </view>
+      <!-- 价格和加购 -->
+      <view class="price-area" catchtap="onAddToCart" data-food="{{item}}">
+        <text class="price">¥{{item.price}}</text>
+        <view class="add-btn">+</view>
+      </view>
       <view class="arrow">›</view>
     </view>
   </view>

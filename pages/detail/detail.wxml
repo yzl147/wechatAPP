@@ -10,6 +10,9 @@
         <text class="hero-tag">📊 {{food.difficulty}}</text>
         <text class="hero-tag tag-cat">{{food.category}}</text>
       </view>
+      <view class="price-row">
+        <text class="hero-price">¥{{food.price}}</text>
+      </view>
     </view>
   </view>
 
@@ -53,6 +56,17 @@
           </view>
         </view>
       </view>
+    </view>
+  </view>
+
+  <!-- 底部加购栏 -->
+  <view class="bottom-bar">
+    <view class="bar-info">
+      <text class="bar-label">价格:</text>
+      <text class="bar-price">¥{{food.price}}</text>
+    </view>
+    <view class="add-cart-btn" bindtap="onAddToCart">
+      加入购物车
     </view>
   </view>
 

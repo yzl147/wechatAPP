@@ -149,6 +149,33 @@
   font-weight: 300;
 }
 
+/* 价格区域 */
+.price-area {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-left: 8rpx;
+  flex-shrink: 0;
+}
+
+.price {
+  font-size: 30rpx;
+  font-weight: 800;
+  color: #ff6b35;
+}
+
+.add-btn {
+  width: 48rpx;
+  height: 48rpx;
+  line-height: 46rpx;
+  text-align: center;
+  background: linear-gradient(135deg, #ff6b35, #ff4500);
+  color: #fff;
+  border-radius: 50%;
+  font-size: 32rpx;
+  font-weight: bold;
+}
+
 /* 空状态 */
 .empty {
   display: flex;

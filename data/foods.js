@@ -10,6 +10,7 @@ const foods = [
     time: '90分钟',
     icon: '🥩',
     bgStyle: 'linear-gradient(135deg, #ff6b35, #d63031)',
+    price: 38,
     ingredients: [
       { name: '五花肉', amount: '500g' },
       { name: '冰糖', amount: '30g' },
@@ -38,6 +39,7 @@ const foods = [
     time: '20分钟',
     icon: '🌶️',
     bgStyle: 'linear-gradient(135deg, #e17055, #d63031)',
+    price: 18,
     ingredients: [
       { name: '嫩豆腐', amount: '1块(400g)' },
       { name: '牛肉末', amount: '100g' },
@@ -66,6 +68,7 @@ const foods = [
     time: '25分钟',
     icon: '🍗',
     bgStyle: 'linear-gradient(135deg, #fdcb6e, #e17055)',
+    price: 26,
     ingredients: [
       { name: '鸡胸肉', amount: '300g' },
       { name: '油炸花生米', amount: '50g' },
@@ -95,6 +98,7 @@ const foods = [
     time: '20分钟',
     icon: '🐟',
     bgStyle: 'linear-gradient(135deg, #74b9ff, #0984e3)',
+    price: 48,
     ingredients: [
       { name: '鲈鱼', amount: '1条(约500g)' },
       { name: '姜丝', amount: '适量' },
@@ -121,6 +125,7 @@ const foods = [
     time: '15分钟',
     icon: '🍜',
     bgStyle: 'linear-gradient(135deg, #ffeaa7, #fdcb6e)',
+    price: 15,
     ingredients: [
       { name: '面条', amount: '1人份' },
       { name: '番茄', amount: '2个' },
@@ -149,6 +154,7 @@ const foods = [
     time: '30分钟',
     icon: '🍖',
     bgStyle: 'linear-gradient(135deg, #e17055, #a33b0f)',
+    price: 28,
     ingredients: [
       { name: '鸡翅中', amount: '8-10个' },
       { name: '可乐', amount: '1罐(330ml)' },
@@ -165,7 +171,6 @@ const foods = [
       { title: '收汁', desc: '开大火不断翻动收汁至浓稠挂浆，撒芝麻点缀出锅。' }
     ]
   },
-  // ===== 新增菜品 =====
   {
     id: 7,
     name: '糖醋排骨',
@@ -176,6 +181,7 @@ const foods = [
     time: '40分钟',
     icon: '🍖',
     bgStyle: 'linear-gradient(135deg, #f8b500, #e67e22)',
+    price: 42,
     ingredients: [
       { name: '猪小排', amount: '500g' },
       { name: '白糖', amount: '3勺' },
@@ -203,6 +209,7 @@ const foods = [
     time: '18分钟',
     icon: '🦪',
     bgStyle: 'linear-gradient(135deg, #a29bfe, #6c5ce7)',
+    price: 58,
     ingredients: [
       { name: '扇贝', amount: '6个' },
       { name: '粉丝', amount: '1把' },
@@ -230,6 +237,7 @@ const foods = [
     time: '25分钟',
     icon: '🥔',
     bgStyle: 'linear-gradient(135deg, #a0c659, #6ab04c)',
+    price: 16,
     ingredients: [
       { name: '土豆', amount: '1个(中等)' },
       { name: '茄子', amount: '1根' },
@@ -258,6 +266,7 @@ const foods = [
     time: '10分钟',
     icon: '🍳',
     bgStyle: 'linear-gradient(135deg, #ffeaa7, #f39c12)',
+    price: 12,
     ingredients: [
       { name: '米饭', amount: '1碗(隔夜最佳)' },
       { name: '鸡蛋', amount: '2个' },
@@ -284,6 +293,7 @@ const foods = [
     time: '35分钟',
     icon: '🐠',
     bgStyle: 'linear-gradient(135deg, #00cec9, #0984e3)',
+    price: 55,
     ingredients: [
       { name: '草鱼/黑鱼', amount: '750g' },
       { name: '酸菜', amount: '300g' },
@@ -312,6 +322,7 @@ const foods = [
     time: '25分钟',
     icon: '🥓',
     bgStyle: 'linear-gradient(135deg, #fab1a0, #e55039)',
+    price: 30,
     ingredients: [
       { name: '五花肉', amount: '350g' },
       { name: '青蒜苗', amount: '3根' },
@@ -340,6 +351,7 @@ const foods = [
     time: '10分钟',
     icon: '🍅',
     bgStyle: 'linear-gradient(135deg, #ff7675, #d63031)',
+    price: 14,
     ingredients: [
       { name: '番茄', amount: '2个(中等)' },
       { name: '鸡蛋', amount: '3个' },
@@ -366,6 +378,7 @@ const foods = [
     time: '15分钟',
     icon: '🐑',
     bgStyle: 'linear-gradient(135deg, #cd84f1, #be2edd)',
+    price: 45,
     ingredients: [
       { name: '羊腿肉', amount: '250g' },
       { name: '大葱', amount: '2根' },
@@ -394,6 +407,7 @@ const foods = [
     time: '15分钟',
     icon: '🍤',
     bgStyle: 'linear-gradient(135deg, #81ecec, #00cec9)',
+    price: 38,
     ingredients: [
       { name: '鲜虾仁', amount: '200g' },
       { name: '鸡蛋', amount: '4个' },
@@ -421,6 +435,7 @@ const foods = [
     time: '8分钟',
     icon: '🥬',
     bgStyle: 'linear-gradient(135deg, #55efc4, #00b894)',
+    price: 13,
     ingredients: [
       { name: '包菜', amount: '半个' },
       { name: '干红辣椒', amount: '5个' },
@@ -449,6 +464,7 @@ const foods = [
     time: '180分钟',
     icon: '🍜',
     bgStyle: 'linear-gradient(135deg, #dfe6e9, #b2bec3)',
+    price: 22,
     ingredients: [
       { name: '牛腩', amount: '500g' },
       { name: '拉面/面条', amount: '2人份' },
@@ -477,6 +493,7 @@ const foods = [
     time: '8分钟',
     icon: '🥦',
     bgStyle: 'linear-gradient(135deg, #26de81, #20bf6b)',
+    price: 15,
     ingredients: [
       { name: '西兰花', amount: '1朵' },
       { name: '大蒜', amount: '5瓣' },
@@ -503,6 +520,7 @@ const foods = [
     time: '40分钟',
     icon: '🍗',
     bgStyle: 'linear-gradient(135deg, #eb4d4b, #c0392b)',
+    price: 32,
     ingredients: [
       { name: '鸡腿/鸡胸肉', amount: '2个(约400g)' },
       { name: '花生碎', amount: '1勺' },
@@ -531,6 +549,7 @@ const foods = [
     time: '60分钟',
     icon: '🥣',
     bgStyle: 'linear-gradient(135deg, #ecf0f1, #bdc3c7)',
+    price: 16,
     ingredients: [
       { name: '大米', amount: '100g' },
       { name: '瘦肉', amount: '100g' },

@@ -1,0 +1,259 @@
+.detail-page {
+  height: 100vh;
+  background-color: #f5f6fa;
+}
+
+/* 状态区域 */
+.status-section {
+  padding: 48rpx 32rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.status-icon {
+  font-size: 80rpx;
+  margin-bottom: 16rpx;
+}
+
+.status-text {
+  font-size: 36rpx;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 12rpx;
+}
+
+.order-id {
+  font-size: 24rpx;
+  color: rgba(255,255,255,0.85);
+  margin-bottom: 8rpx;
+}
+
+.order-time {
+  font-size: 22rpx;
+  color: rgba(255,255,255,0.7);
+}
+
+/* 推送消息卡片 */
+.push-card {
+  background: linear-gradient(135deg, #fff9e6, #fff3cd);
+  border-left: 6rpx solid #f39c12;
+}
+
+.push-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.push-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #e67e22;
+}
+
+.push-close {
+  font-size: 40rpx;
+  color: #999;
+  line-height: 1;
+  padding: 0 8rpx;
+}
+
+.push-body {
+  margin-bottom: 12rpx;
+}
+
+.push-content {
+  font-size: 24rpx;
+  color: #555;
+  line-height: 1.7;
+  white-space: pre-line;
+}
+
+.push-footer {
+  border-top: 1rpx dashed #e0e0e0;
+  padding-top: 12rpx;
+}
+
+.push-summary {
+  font-size: 24rpx;
+  color: #d35400;
+  font-weight: 600;
+}
+
+/* 通用区域 */
+.section {
+  background: #fff;
+  margin: 20rpx;
+  border-radius: 20rpx;
+  padding: 28rpx 32rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.section-title-bar {
+  width: 8rpx;
+  height: 32rpx;
+  background: linear-gradient(180deg, #ff6b35, #ff4500);
+  border-radius: 4rpx;
+  margin-right: 14rpx;
+}
+
+.remark-bar {
+  background: linear-gradient(180deg, #74b9ff, #0984e3);
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+/* 订单商品列表 */
+.item-list {
+  margin-bottom: 20rpx;
+}
+
+.order-item {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid #f5f5f5;
+}
+
+.order-item:last-child {
+  border-bottom: none;
+}
+
+.oi-icon-wrap {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 10rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.oi-icon {
+  font-size: 40rpx;
+}
+
+.oi-info {
+  flex: 1;
+  margin-left: 16rpx;
+}
+
+.oi-name {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.oi-spec {
+  display: block;
+  font-size: 22rpx;
+  color: #999;
+  margin-top: 4rpx;
+}
+
+.oi-subtotal {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #333;
+}
+
+/* 价格汇总 */
+.price-summary {
+  background: #fafafa;
+  border-radius: 12rpx;
+  padding: 20rpx;
+}
+
+.ps-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8rpx 0;
+}
+
+.ps-total {
+  border-top: 1rpx solid #eee;
+  margin-top: 8rpx;
+  padding-top: 16rpx;
+}
+
+.ps-label {
+  font-size: 26rpx;
+  color: #666;
+}
+
+.ps-value {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.total-amount {
+  font-size: 36rpx;
+  font-weight: 800;
+  color: #ff6b35;
+}
+
+/* 备注 */
+.remark-text {
+  font-size: 26rpx;
+  color: #666;
+  line-height: 1.7;
+}
+
+/* 操作按钮区 */
+.action-area {
+  padding: 40rpx 32rpx;
+  display: flex;
+  gap: 20rpx;
+}
+
+.btn-primary {
+  flex: 1;
+  text-align: center;
+  background: linear-gradient(135deg, #ff6b35, #ff4500);
+  color: #fff;
+  font-size: 28rpx;
+  font-weight: 600;
+  padding: 24rpx 0;
+  border-radius: 44rpx;
+}
+
+.btn-complete {
+  flex: 1;
+  text-align: center;
+  background: linear-gradient(135deg, #26de81, #20bf6b);
+  color: #fff;
+  font-size: 28rpx;
+  font-weight: 600;
+  padding: 24rpx 0;
+  border-radius: 44rpx;
+}
+
+.btn-secondary {
+  flex: 1;
+  text-align: center;
+  background: #f5f6fa;
+  color: #666;
+  font-size: 28rpx;
+  font-weight: 600;
+  padding: 24rpx 0;
+  border-radius: 44rpx;
+}
+
+.bottom-space {
+  height: 60rpx;
+}

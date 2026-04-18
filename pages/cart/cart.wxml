@@ -1,0 +1,60 @@
+<view class="cart-page">
+  <!-- 空购物车 -->
+  <view class="empty-cart" wx:if="{{cartList.length === 0}}">
+    <text class="empty-icon">🛒</text>
+    <text class="empty-text">购物车还是空的</text>
+    <text class="empty-sub">快去挑选美食吧~</text>
+    <view class="go-shop" bindtap="goToIndex">
+      <text>去点餐</text>
+    </view>
+  </view>
+
+  <!-- 购物车内容 -->
+  <view class="cart-content" wx:else>
+    <!-- 购物车头部 -->
+    <view class="cart-header">
+      <text class="cart-title">购物车 ({{totalCount}})</text>
+      <text class="clear-btn" bindtap="onClearCart">清空</text>
+    </view>
+
+    <!-- 商品列表 -->
+    <view class="cart-list">
+      <view class="cart-item" wx:for="{{cartList}}" wx:key="id">
+        <view class="item-left">
+          <view class="item-icon-wrap" style="background: {{item.bgStyle}};">
+            <text class="item-icon">{{item.icon}}</text>
+          </view>
+          <view class="item-info">
+            <text class="item-name">{{item.name}}</text>
+            <text class="item-brief">{{item.brief}}</text>
+            <text class="item-price">¥{{item.price}}</text>
+          </view>
+        </view>
+
+        <!-- 数量控制 -->
+        <view class="quantity-control">
+          <view class="qty-btn minus" bindtap="onDecrease" data-id="{{item.id}}">-</view>
+          <text class="qty-num">{{item.quantity}}</text>
+          <view class="qty-btn plus" bindtap="onIncrease" data-id="{{item.id}}">+</view>
+        </view>
+
+        <!-- 小计和删除 -->
+        <view class="item-right">
+          <text class="item-subtotal">¥{{item.subtotal}}</text>
+          <text class="delete-btn" catchtap="onDeleteItem" data-id="{{item.id}}">删除</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 底部结算栏 -->
+    <view class="checkout-bar">
+      <view class="checkout-info">
+        <text class="total-label">合计:</text>
+        <text class="total-price">¥{{totalPrice}}</text>
+      </view>
+      <view class="checkout-btn {{cartList.length > 0 ? 'active' : ''}}" bindtap="onCheckout">
+        去结算
+      </view>
+    </view>
+  </view>
+</view>
