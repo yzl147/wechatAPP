@@ -1,27 +1,45 @@
-<!--index.wxml-->
-<scroll-view class="scrollarea" scroll-y type="list">
-  <view class="container">
-    <view class="userinfo">
-      <block wx:if="{{canIUseNicknameComp && !hasUserInfo}}">
-        <button class="avatar-wrapper" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
-          <image class="avatar" src="{{userInfo.avatarUrl}}"></image>
-        </button>
-        <view class="nickname-wrapper">
-          <text class="nickname-label">昵称</text>
-          <input type="nickname" class="nickname-input" placeholder="请输入昵称" bind:change="onInputChange" />
-        </view>
-      </block>
-      <block wx:elif="{{!hasUserInfo}}">
-        <button wx:if="{{canIUseGetUserProfile}}" bindtap="getUserProfile"> 获取头像昵称 </button>
-        <view wx:else> 请使用2.10.4及以上版本基础库 </view>
-      </block>
-      <block wx:else>
-        <image bindtap="bindViewTap" class="userinfo-avatar" src="{{userInfo.avatarUrl}}" mode="cover"></image>
-        <text class="userinfo-nickname">{{userInfo.nickName}}</text>
-      </block>
+<view class="container">
+  <!-- 搜索栏 -->
+  <view class="search-bar">
+    <input class="search-input" placeholder="搜索美食..." value="{{searchText}}" bindinput="onSearchInput" confirm-type="search" />
+  </view>
+
+  <!-- 分类标签 -->
+  <scroll-view class="category-scroll" scroll-x enhanced show-scrollbar="{{false}}">
+    <view class="category-list">
+      <text 
+        class="category-item {{currentCategory === item ? 'active' : ''}}" 
+        wx:for="{{categories}}" 
+        wx:key="*this"
+        data-category="{{item}}"
+        bindtap="onCategoryTap"
+      >{{item}}</text>
     </view>
-    <view class="usermotto">
-      <text class="user-motto">{{motto}}</text>
+  </scroll-view>
+
+  <!-- 美食列表 -->
+  <view class="food-list">
+    <view class="food-card" wx:for="{{filteredList}}" wx:key="id" bindtap="onFoodTap" data-id="{{item.id}}">
+      <view class="food-image-wrap" style="background: {{item.bgStyle}};">
+        <text class="food-icon">{{item.icon}}</text>
+      </view>
+      <view class="food-info">
+        <view class="food-header">
+          <text class="food-name">{{item.name}}</text>
+          <view class="food-tag tag-{{item.catClass}}">{{item.category}}</view>
+        </view>
+        <text class="food-brief">{{item.brief}}</text>
+        <view class="food-meta">
+          <text class="meta-item">⏱ {{item.time}}</text>
+          <text class="meta-item">📊 {{item.difficulty}}</text>
+        </view>
+      </view>
+      <view class="arrow">›</view>
     </view>
   </view>
-</scroll-view>
+
+  <!-- 空状态 -->
+  <view class="empty" wx:if="{{filteredList.length === 0}}">
+    <text class="empty-text">没有找到相关美食</text>
+  </view>
+</view>

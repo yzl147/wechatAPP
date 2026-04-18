@@ -1,0 +1,61 @@
+<scroll-view scroll-y class="detail-page" enhanced show-scrollbar="{{false}}">
+  <!-- 头部大图区 -->
+  <view class="hero-section" style="background: {{food.bgStyle}};">
+    <text class="hero-icon">{{food.icon}}</text>
+    <view class="hero-content">
+      <text class="hero-name">{{food.name}}</text>
+      <text class="hero-brief">{{food.brief}}</text>
+      <view class="hero-tags">
+        <text class="hero-tag">⏱ {{food.time}}</text>
+        <text class="hero-tag">📊 {{food.difficulty}}</text>
+        <text class="hero-tag tag-cat">{{food.category}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 原材料区域 -->
+  <view class="section">
+    <view class="section-header">
+      <view class="section-title-bar"></view>
+      <text class="section-title">🥘 所需食材</text>
+      <text class="section-count">{{food.ingredients.length}} 种食材</text>
+    </view>
+    <view class="ingredient-grid">
+      <view class="ingredient-item" wx:for="{{food.ingredients}}" wx:key="name" wx:for-index="idx">
+        <text class="ingredient-index">{{idx + 1}}</text>
+        <view class="ingredient-info">
+          <text class="ingredient-name">{{item.name}}</text>
+          <text class="ingredient-amount">{{item.amount}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 制作步骤区域 -->
+  <view class="section section-steps">
+    <view class="section-header">
+      <view class="section-title-bar step-bar"></view>
+      <text class="section-title">👨‍🍳 制作步骤</text>
+      <text class="section-count">{{food.steps.length}} 个步骤</text>
+    </view>
+    <view class="steps-container">
+      <view class="step-item" wx:for="{{food.steps}}" wx:key="title" wx:for-index="idx">
+        <view class="step-left">
+          <view class="step-number-wrapper">
+            <text class="step-number">{{idx + 1}}</text>
+          </view>
+          <view class="step-line" wx:if="{{idx < food.steps.length - 1}}"></view>
+        </view>
+        <view class="step-right">
+          <view class="step-card">
+            <text class="step-title">{{item.title}}</text>
+            <text class="step-desc">{{item.desc}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部占位 -->
+  <view class="bottom-space"></view>
+</scroll-view>
