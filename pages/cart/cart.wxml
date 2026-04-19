@@ -21,7 +21,7 @@
     <view class="cart-list">
       <view class="cart-item" wx:for="{{cartList}}" wx:key="_id">
         <view class="item-left">
-          <view class="item-img-wrap">
+          <view class="item-img-wrap" catchtap="onPreviewImage" data-url="{{item.image}}">
             <image class="item-img" src="{{item.image}}" mode="aspectFill" lazy-load />
           </view>
           <view class="item-info">

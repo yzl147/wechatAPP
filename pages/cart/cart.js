@@ -124,5 +124,18 @@ Page({
     wx.switchTab({
       url: '/pages/index/index'
     })
+  },
+
+  // 预览菜品图片
+  onPreviewImage(e) {
+    const url = e.currentTarget.dataset.url
+    if (!url) return
+    const allUrls = this.data.cartList
+      .map(item => item.image)
+      .filter(Boolean)
+    wx.previewImage({
+      current: url,
+      urls: allUrls
+    })
   }
 })

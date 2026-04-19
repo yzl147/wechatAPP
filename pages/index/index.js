@@ -89,6 +89,19 @@ Page({
     })
   },
 
+  // 预览菜品图片
+  onPreviewImage(e) {
+    const url = e.currentTarget.dataset.url
+    if (!url) return
+    const allUrls = this.data.filteredList
+      .map(item => item.image)
+      .filter(Boolean)
+    wx.previewImage({
+      current: url,
+      urls: allUrls
+    })
+  },
+
   // 加入购物车（从列表）
   async onAddToCart(e) {
     const food = e.currentTarget.dataset.food

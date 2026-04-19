@@ -44,5 +44,15 @@ Page({
     } catch (e) {
       console.error('加入购物车失败', e)
     }
+  },
+
+  // 预览菜品图片
+  onPreviewImage() {
+    const { food } = this.data
+    if (!food || !food.image) return
+    wx.previewImage({
+      current: food.image,
+      urls: [food.image]
+    })
   }
 })

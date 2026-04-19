@@ -1,6 +1,6 @@
 <scroll-view scroll-y class="detail-page" enhanced show-scrollbar="{{false}}">
   <!-- 头部大图区 -->
-  <view class="hero-section">
+  <view class="hero-section" bindtap="onPreviewImage">
     <image class="hero-bg" src="{{food.image}}" mode="aspectFill" />
     <view class="hero-overlay"></view>
     <view class="hero-content">
