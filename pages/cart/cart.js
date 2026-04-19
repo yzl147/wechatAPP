@@ -1,4 +1,5 @@
 const cartUtil = require('../../utils/cart')
+const orderUtil = require('../../utils/order')
 
 Page({
   data: {
@@ -11,37 +12,45 @@ Page({
     this.loadCart()
   },
 
-  loadCart() {
-    const info = cartUtil.getCartInfo()
-    // 预计算每项小计
-    const list = info.list.map(item => ({
-      ...item,
-      subtotal: (item.price * item.quantity).toFixed(2)
-    }))
-    this.setData({
-      cartList: list,
-      totalCount: info.count,
-      totalPrice: info.total
-    })
+  async loadCart() {
+    try {
+      const info = await cartUtil.getCartInfo()
+      const list = info.list.map(item => ({
+        ...item,
+        subtotal: (item.price * item.quantity).toFixed(2),
+        // 购物车项用 foodId 或 id 作为标识
+        itemId: item.foodId || item.id
+      }))
+      this.setData({
+        cartList: list,
+        totalCount: info.count,
+        totalPrice: info.total
+      })
+    } catch (e) {
+      console.error('加载购物车失败', e)
+    }
   },
 
   // 增加数量
-  onIncrease(e) {
+  async onIncrease(e) {
     const id = e.currentTarget.dataset.id
-    const result = cartUtil.increaseQuantity(id)
-    this.setData({
-      totalCount: result.count,
-      totalPrice: result.total
-    })
-    // 刷新完整列表（因为引用变了）
-    this.loadCart()
+    try {
+      await cartUtil.increaseQuantity(id)
+      this.loadCart()
+    } catch (e) {
+      console.error('增加数量失败', e)
+    }
   },
 
   // 减少数量
-  onDecrease(e) {
+  async onDecrease(e) {
     const id = e.currentTarget.dataset.id
-    const result = cartUtil.decreaseQuantity(id)
-    this.loadCart()
+    try {
+      await cartUtil.decreaseQuantity(id)
+      this.loadCart()
+    } catch (e) {
+      console.error('减少数量失败', e)
+    }
   },
 
   // 删除商品
@@ -50,14 +59,14 @@ Page({
     wx.showModal({
       title: '提示',
       content: '确定要删除这个商品吗？',
-      success: (res) => {
+      success: async (res) => {
         if (res.confirm) {
-          const result = cartUtil.removeFromCart(id)
-          this.setData({
-            totalCount: result.count,
-            totalPrice: result.total
-          })
-          this.loadCart()
+          try {
+            await cartUtil.removeFromCart(id)
+            this.loadCart()
+          } catch (e) {
+            console.error('删除商品失败', e)
+          }
         }
       }
     })
@@ -69,11 +78,15 @@ Page({
     wx.showModal({
       title: '提示',
       content: '确定清空购物车吗？',
-      success: (res) => {
+      success: async (res) => {
         if (res.confirm) {
-          cartUtil.clearCart()
-          this.setData({ cartList: [], totalCount: 0, totalPrice: 0 })
-          wx.showToast({ title: '已清空', icon: 'none' })
+          try {
+            await cartUtil.clearCart()
+            this.setData({ cartList: [], totalCount: 0, totalPrice: 0 })
+            wx.showToast({ title: '已清空', icon: 'none' })
+          } catch (e) {
+            console.error('清空购物车失败', e)
+          }
         }
       }
     })
@@ -85,26 +98,25 @@ Page({
       wx.showToast({ title: '购物车是空的', icon: 'none' })
       return
     }
-
-    // 跳转到订单确认页（直接下单）
     this.submitOrder()
   },
 
   // 提交订单
-  submitOrder() {
-    const orderUtil = require('../../utils/order')
+  async submitOrder() {
     const { cartList } = this.data
-
-    // 创建订单
-    const order = orderUtil.createOrder(cartList)
-
-    // 清空购物车
-    cartUtil.clearCart()
-
-    // 跳转到订单详情（带消息推送）
-    wx.navigateTo({
-      url: `/pages/order-detail/order-detail?orderId=${order.orderId}`
-    })
+    wx.showLoading({ title: '提交中...' })
+    try {
+      const order = await orderUtil.createOrder(cartList)
+      await cartUtil.clearCart()
+      wx.hideLoading()
+      wx.navigateTo({
+        url: `/pages/order-detail/order-detail?orderId=${order.orderId}`
+      })
+    } catch (e) {
+      wx.hideLoading()
+      console.error('提交订单失败', e)
+      wx.showToast({ title: '提交失败，请重试', icon: 'none' })
+    }
   },
 
   // 返回首页

@@ -1,13 +1,24 @@
 {
-  "envId": "{{env.ENV_ID}}",
-  "functionRoot": "./functions",
-  "functions": [],
-  "ai": {
-    "defaultAgent": "{{env.AI_DEFAULT_AGENT}}",
-    "agents": {
-      "codebuddy": {
-        "type": "none"
-      }
+  "envId": "wechat-app-d6gp5xsg1e6da46b0",
+  "functionRoot": "./cloudfunctions",
+  "functions": [
+    {
+      "name": "manageDishes",
+      "runtime": "Nodejs18.15",
+      "handler": "index.main",
+      "timeout": 10
+    },
+    {
+      "name": "manageOrders",
+      "runtime": "Nodejs18.15",
+      "handler": "index.main",
+      "timeout": 10
+    },
+    {
+      "name": "manageCart",
+      "runtime": "Nodejs18.15",
+      "handler": "index.main",
+      "timeout": 10
     }
-  }
+  ]
 }

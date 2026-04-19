@@ -9,10 +9,22 @@ Page({
 
   onLoad(options) {
     if (options.orderId) {
-      const orders = orderUtil.getOrders()
-      const order = orders.find(o => o.orderId === options.orderId)
+      this.loadOrderDetail(options.orderId)
+    }
+    if (options.fromHistory === 'true') {
+      this.setData({ fromHistory: true })
+    }
+  },
+
+  // 从云端加载订单详情
+  async loadOrderDetail(orderId) {
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'manageOrders',
+        data: { action: 'detail', orderId }
+      })
+      const order = res.result.data
       if (order) {
-        // 预计算价格格式化字段
         const items = order.items.map(item => ({
           ...item,
           subtotalText: (item.price * item.quantity).toFixed(2)
@@ -25,26 +37,10 @@ Page({
         }
         this.setData({ order: orderData })
         wx.setNavigationBarTitle({ title: '订单详情' })
-
-        // 如果是刚下单，自动显示推送消息弹窗
-        this.showPushNotification()
       }
+    } catch (e) {
+      console.error('加载订单详情失败', e)
     }
-    if (options.fromHistory === 'true') {
-      this.setData({ fromHistory: true })
-    }
-  },
-
-  // 格式化时间
-  formatTime(timestamp) {
-    return orderUtil.formatTime(timestamp)
-  },
-
-  // 显示推送通知（模拟）
-  showPushNotification() {
-    setTimeout(() => {
-      // 推送消息已展示在页面上
-    }, 500)
   },
 
   // 关闭推送提示
@@ -58,17 +54,21 @@ Page({
     wx.showModal({
       title: '确认完成',
       content: '确定将此订单标记为已完成吗？',
-      success: (res) => {
+      success: async (res) => {
         if (res.confirm) {
-          const updatedOrder = orderUtil.updateOrderStatus(order.orderId, 'completed')
-          this.setData({
-            order: {
-              ...this.data.order,
-              status: 'completed',
-              completedTime: updatedOrder.completedTime
-            }
-          })
-          wx.showToast({ title: '已标记完成', icon: 'success' })
+          try {
+            await orderUtil.updateOrderStatus(order.orderId, 'completed')
+            this.setData({
+              order: {
+                ...this.data.order,
+                status: 'completed',
+                completedTime: Date.now()
+              }
+            })
+            wx.showToast({ title: '已标记完成', icon: 'success' })
+          } catch (e) {
+            console.error('标记完成失败', e)
+          }
         }
       }
     })
@@ -89,13 +89,17 @@ Page({
       title: '确认删除',
       content: `确定要删除订单 ${order.orderId} 吗？\n（${dishNames}）`,
       confirmColor: '#e74c3c',
-      success: (res) => {
+      success: async (res) => {
         if (res.confirm) {
-          orderUtil.deleteOrder(order.orderId)
-          wx.showToast({ title: '已删除', icon: 'none' })
-          setTimeout(() => {
-            wx.switchTab({ url: '/pages/orders/orders' })
-          }, 800)
+          try {
+            await orderUtil.deleteOrder(order.orderId)
+            wx.showToast({ title: '已删除', icon: 'none' })
+            setTimeout(() => {
+              wx.switchTab({ url: '/pages/orders/orders' })
+            }, 800)
+          } catch (e) {
+            console.error('删除订单失败', e)
+          }
         }
       }
     })

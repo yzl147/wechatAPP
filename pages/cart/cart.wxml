@@ -19,7 +19,7 @@
 
     <!-- 商品列表 -->
     <view class="cart-list">
-      <view class="cart-item" wx:for="{{cartList}}" wx:key="id">
+      <view class="cart-item" wx:for="{{cartList}}" wx:key="_id">
         <view class="item-left">
           <view class="item-icon-wrap" style="background: {{item.bgStyle}};">
             <text class="item-icon">{{item.icon}}</text>
@@ -33,15 +33,15 @@
 
         <!-- 数量控制 -->
         <view class="quantity-control">
-          <view class="qty-btn minus" bindtap="onDecrease" data-id="{{item.id}}">-</view>
+          <view class="qty-btn minus" bindtap="onDecrease" data-id="{{item.foodId}}">-</view>
           <text class="qty-num">{{item.quantity}}</text>
-          <view class="qty-btn plus" bindtap="onIncrease" data-id="{{item.id}}">+</view>
+          <view class="qty-btn plus" bindtap="onIncrease" data-id="{{item.foodId}}">+</view>
         </view>
 
         <!-- 小计和删除 -->
         <view class="item-right">
           <text class="item-subtotal">¥{{item.subtotal}}</text>
-          <text class="delete-btn" catchtap="onDeleteItem" data-id="{{item.id}}">删除</text>
+          <text class="delete-btn" catchtap="onDeleteItem" data-id="{{item.foodId}}">删除</text>
         </view>
       </view>
     </view>

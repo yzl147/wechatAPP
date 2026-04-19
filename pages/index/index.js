@@ -1,4 +1,3 @@
-const foods = require('../../data/foods')
 const cartUtil = require('../../utils/cart')
 
 Page({
@@ -7,11 +6,15 @@ Page({
     currentCategory: '全部',
     categories: ['全部', '荤菜', '素菜', '海鲜', '主食'],
     filteredList: [],
-    cartCount: 0
+    cartCount: 0,
+    loading: true
   },
 
+  // 全量菜品数据（用于筛选）
+  _allDishes: [],
+
   onLoad() {
-    this.setData({ filteredList: foods })
+    this.loadDishes()
     this.updateCartBadge()
   },
 
@@ -19,9 +22,29 @@ Page({
     this.updateCartBadge()
   },
 
-  updateCartBadge() {
-    const info = cartUtil.getCartTotal()
-    this.setData({ cartCount: info.count })
+  // 从云端加载菜品
+  async loadDishes() {
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'manageDishes',
+        data: { action: 'list' }
+      })
+      const dishes = res.result.data || []
+      this._allDishes = dishes
+      this.setData({ filteredList: dishes, loading: false })
+    } catch (e) {
+      console.error('加载菜品失败', e)
+      this.setData({ loading: false })
+    }
+  },
+
+  async updateCartBadge() {
+    try {
+      const info = await cartUtil.getCartTotal()
+      this.setData({ cartCount: info.count })
+    } catch (e) {
+      console.error('获取购物车统计失败', e)
+    }
   },
 
   // 搜索输入
@@ -40,7 +63,7 @@ Page({
 
   // 过滤美食列表
   filterFoods() {
-    let list = foods
+    let list = [...this._allDishes]
     const { searchText, currentCategory } = this.data
 
     if (currentCategory !== '全部') {
@@ -67,13 +90,17 @@ Page({
   },
 
   // 加入购物车（从列表）
-  onAddToCart(e) {
+  async onAddToCart(e) {
     const food = e.currentTarget.dataset.food
-    const result = cartUtil.addToCart(food)
-    this.setData({ cartCount: result.count })
-    wx.showToast({
-      title: `${food.name} 已加入购物车`,
-      icon: 'none'
-    })
+    try {
+      const result = await cartUtil.addToCart(food)
+      this.setData({ cartCount: result.count })
+      wx.showToast({
+        title: `${food.name} 已加入购物车`,
+        icon: 'none'
+      })
+    } catch (e) {
+      console.error('加入购物车失败', e)
+    }
   }
 })

@@ -15,26 +15,30 @@ Page({
     selectMode: false,
     selectedIds: [],
     isAllSelected: false,
-    selectedMap: {}  // 用对象做快速查找，避免模板中 indexOf
+    selectedMap: {}
   },
 
   onShow() {
     this.loadOrders()
   },
 
-  loadOrders() {
-    const orders = orderUtil.getOrders()
-    const list = orders.map(order => ({
-      ...order,
-      priceText: order.totalPrice.toFixed(2)
-    }))
-    const summary = orderUtil.getOrderSummary()
-    this.setData({
-      allOrders: list,
-      displayOrders: list,
-      summary
-    })
-    this.filterOrders()
+  async loadOrders() {
+    try {
+      const orders = await orderUtil.getOrders()
+      const list = orders.map(order => ({
+        ...order,
+        priceText: order.totalPrice.toFixed(2)
+      }))
+      const summary = await orderUtil.getOrderSummary()
+      this.setData({
+        allOrders: list,
+        displayOrders: list,
+        summary
+      })
+      this.filterOrders()
+    } catch (e) {
+      console.error('加载订单失败', e)
+    }
   },
 
   // 切换Tab
@@ -50,7 +54,6 @@ Page({
     if (this.data.currentTab !== 'all') {
       list = list.filter(o => o.status === this.data.currentTab)
     }
-    // 预计算每项的选中状态和时间格式化，避免在 WXML 中调用方法
     const displayList = list.map(item => ({
       ...item,
       _selected: !!this.data.selectedMap[item.orderId],
@@ -62,7 +65,7 @@ Page({
     }
   },
 
-  // 刷新选中状态（不重新过滤）
+  // 刷新选中状态
   refreshSelectedState() {
     const displayList = this.data.displayOrders.map(item => ({
       ...item,
@@ -73,7 +76,6 @@ Page({
 
   // ===== 选择模式相关 =====
 
-  // 长按进入选择模式
   onLongPressCard(e) {
     const id = e.currentTarget.dataset.id
     if (!this.data.selectMode) {
@@ -89,7 +91,6 @@ Page({
     }
   },
 
-  // 切换单个订单选中状态
   onToggleItem(e) {
     const id = e.currentTarget.dataset.id || e.currentTarget.dataset.orderId
     const map = { ...this.data.selectedMap }
@@ -112,7 +113,6 @@ Page({
     wx.vibrateShort && wx.vibrateShort({ type: 'light' })
   },
 
-  // 全选/取消全选
   onToggleSelectAll() {
     const displayList = this.data.displayOrders
     if (this.data.isAllSelected) {
@@ -137,7 +137,6 @@ Page({
     this.refreshSelectedState()
   },
 
-  // 更新全选状态
   updateSelectAllState(displayList) {
     const map = this.data.selectedMap
     const allSelected = displayList.length > 0 &&
@@ -145,7 +144,6 @@ Page({
     this.setData({ isAllSelected: allSelected })
   },
 
-  // 取消选择模式
   onCancelSelect() {
     this.setData({
       selectMode: false,
@@ -156,7 +154,6 @@ Page({
     this.refreshSelectedState()
   },
 
-  // 点击进入详情（非选择模式下）
   onOrderTap(e) {
     if (this.data.selectMode) return
     const id = e.currentTarget.dataset.id
@@ -172,14 +169,16 @@ Page({
     wx.showModal({
       title: '批量完成',
       content: `确定将选中的 ${count} 个订单标记为已完成吗？`,
-      success: (res) => {
+      success: async (res) => {
         if (res.confirm) {
-          selectedIds.forEach(orderId => {
-            orderUtil.updateOrderStatus(orderId, 'completed')
-          })
-          wx.showToast({ title: `已批量完成 ${count} 个订单`, icon: 'success' })
-          this.onCancelSelect()
-          this.loadOrders()
+          try {
+            await orderUtil.batchComplete(selectedIds)
+            wx.showToast({ title: `已批量完成 ${count} 个订单`, icon: 'success' })
+            this.onCancelSelect()
+            this.loadOrders()
+          } catch (e) {
+            console.error('批量完成失败', e)
+          }
         }
       }
     })
@@ -193,14 +192,16 @@ Page({
       title: '批量删除',
       content: `确定要删除选中的 ${count} 个订单吗？此操作不可撤销。`,
       confirmColor: '#e74c3c',
-      success: (res) => {
+      success: async (res) => {
         if (res.confirm) {
-          selectedIds.forEach(orderId => {
-            orderUtil.deleteOrder(orderId)
-          })
-          wx.showToast({ title: `已删除 ${count} 个订单`, icon: 'none' })
-          this.onCancelSelect()
-          this.loadOrders()
+          try {
+            await orderUtil.batchDelete(selectedIds)
+            wx.showToast({ title: `已删除 ${count} 个订单`, icon: 'none' })
+            this.onCancelSelect()
+            this.loadOrders()
+          } catch (e) {
+            console.error('批量删除失败', e)
+          }
         }
       }
     })
@@ -215,11 +216,15 @@ Page({
       title: '确认删除',
       content: `确定要删除订单 ${orderId} 吗？\n（${dishNames}）`,
       confirmColor: '#e74c3c',
-      success: (res) => {
+      success: async (res) => {
         if (res.confirm) {
-          orderUtil.deleteOrder(orderId)
-          this.loadOrders()
-          wx.showToast({ title: '已删除', icon: 'none' })
+          try {
+            await orderUtil.deleteOrder(orderId)
+            this.loadOrders()
+            wx.showToast({ title: '已删除', icon: 'none' })
+          } catch (e) {
+            console.error('删除订单失败', e)
+          }
         }
       }
     })
