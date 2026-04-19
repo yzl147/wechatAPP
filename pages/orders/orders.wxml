@@ -80,7 +80,7 @@
         <!-- 商品摘要行 -->
         <view class="oc-items">
           <view class="oc-item-row" wx:for="{{item.items}}" wx:for-item="food" wx:for-index="fidx" wx:key="id">
-            <text class="oci-icon">{{food.icon}}</text>
+            <image class="oci-img" src="{{food.image}}" mode="aspectFill" lazy-load />
             <text class="oci-name">{{food.name}}</text>
             <text class="oci-qty">x{{food.quantity}}</text>
           </view>

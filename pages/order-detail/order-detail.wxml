@@ -39,8 +39,8 @@
 
       <view class="item-list">
         <view class="order-item" wx:for="{{order.items}}" wx:key="id">
-          <view class="oi-icon-wrap" style="background: {{item.bgStyle}};">
-            <text class="oi-icon">{{item.icon}}</text>
+          <view class="oi-img-wrap">
+            <image class="oi-img" src="{{item.image}}" mode="aspectFill" lazy-load />
           </view>
           <view class="oi-info">
             <text class="oi-name">{{item.name}}</text>

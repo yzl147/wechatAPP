@@ -21,8 +21,8 @@
     <view class="cart-list">
       <view class="cart-item" wx:for="{{cartList}}" wx:key="_id">
         <view class="item-left">
-          <view class="item-icon-wrap" style="background: {{item.bgStyle}};">
-            <text class="item-icon">{{item.icon}}</text>
+          <view class="item-img-wrap">
+            <image class="item-img" src="{{item.image}}" mode="aspectFill" lazy-load />
           </view>
           <view class="item-info">
             <text class="item-name">{{item.name}}</text>

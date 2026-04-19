@@ -1,7 +1,8 @@
 <scroll-view scroll-y class="detail-page" enhanced show-scrollbar="{{false}}">
   <!-- 头部大图区 -->
-  <view class="hero-section" style="background: {{food.bgStyle}};">
-    <text class="hero-icon">{{food.icon}}</text>
+  <view class="hero-section">
+    <image class="hero-bg" src="{{food.image}}" mode="aspectFill" />
+    <view class="hero-overlay"></view>
     <view class="hero-content">
       <text class="hero-name">{{food.name}}</text>
       <text class="hero-brief">{{food.brief}}</text>

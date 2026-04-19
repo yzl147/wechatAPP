@@ -42,6 +42,7 @@ exports.main = async (event, context) => {
           foodId: food.id,
           name: food.name,
           icon: food.icon,
+          image: food.image,
           bgStyle: food.bgStyle,
           price: food.price || 28,
           category: food.category,

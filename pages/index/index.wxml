@@ -20,8 +20,8 @@
   <!-- 美食列表 -->
   <view class="food-list">
     <view class="food-card" wx:for="{{filteredList}}" wx:key="id" bindtap="onFoodTap" data-id="{{item.id}}">
-      <view class="food-image-wrap" style="background: {{item.bgStyle}};">
-        <text class="food-icon">{{item.icon}}</text>
+      <view class="food-image-wrap">
+        <image class="food-image" src="{{item.image}}" mode="aspectFill" lazy-load />
       </view>
       <view class="food-info">
         <view class="food-header">
