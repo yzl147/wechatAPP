@@ -20,7 +20,8 @@ Page({
         const orderData = {
           ...order,
           items,
-          priceText: order.totalPrice.toFixed(2)
+          priceText: order.totalPrice.toFixed(2),
+          _timeText: orderUtil.formatTime(order.orderTime)
         }
         this.setData({ order: orderData })
         wx.setNavigationBarTitle({ title: '订单详情' })

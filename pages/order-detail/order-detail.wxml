@@ -13,7 +13,7 @@
       <text class="status-icon">{{order.status === 'pending' ? '📋' : '✅'}}</text>
       <text class="status-text">{{order.status === 'pending' ? '待处理' : '已完成'}}</text>
       <text class="order-id">订单号: {{order.orderId}}</text>
-      <text class="order-time">{{formatTime(order.orderTime)}}</text>
+      <text class="order-time">{{order._timeText}}</text>
     </view>
 
     <!-- 消息推送卡片（模拟商家通知） -->

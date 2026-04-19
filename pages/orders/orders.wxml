@@ -52,7 +52,7 @@
 
     <!-- 订单卡片 -->
     <view
-      class="order-card {{selectedIds.indexOf(item.orderId) > -1 ? 'card-selected' : ''}} {{selectMode ? 'card-selectable' : ''}}"
+      class="order-card {{item._selected ? 'card-selected' : ''}} {{selectMode ? 'card-selectable' : ''}}"
       wx:for="{{displayOrders}}"
       wx:key="orderId"
       bindlongpress="onLongPressCard"
@@ -60,8 +60,8 @@
     >
       <!-- 选择模式下的复选框 -->
       <view class="card-checkbox-area" wx:if="{{selectMode}}" catchtap="onToggleItem" data-id="{{item.orderId}}">
-        <view class="checkbox-box {{selectedIds.indexOf(item.orderId) > -1 ? 'checked' : ''}}">
-          <text>{{selectedIds.indexOf(item.orderId) > -1 ? '✓' : ''}}</text>
+        <view class="checkbox-box {{item._selected ? 'checked' : ''}}">
+          <text>{{item._selected ? '✓' : ''}}</text>
         </view>
       </view>
 
@@ -70,7 +70,7 @@
         <view class="oc-header">
           <view class="oc-left">
             <text class="oc-id">{{item.orderId}}</text>
-            <text class="oc-time">{{formatTime(item.orderTime)}}</text>
+            <text class="oc-time">{{item._timeText}}</text>
           </view>
           <view class="oc-status {{item.status}}">
             {{item.status === 'pending' ? '待处理' : '已完成'}}
