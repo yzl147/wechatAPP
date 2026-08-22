@@ -29,9 +29,12 @@ function createOrder(cartItems, remark = '') {
   const items = cartItems.map(item => ({
     id: item.foodId || item.id,
     name: item.name,
-      icon: item.icon,
-      image: item.image,
+    icon: item.icon,
+    image: item.image,
     bgStyle: item.bgStyle,
+    brief: item.brief || '',
+    category: item.category || '',
+    ingredients: item.ingredients || [],
     price: item.price,
     quantity: item.quantity,
     subtotal: parseFloat((item.price * item.quantity).toFixed(2))

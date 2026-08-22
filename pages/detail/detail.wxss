@@ -39,6 +39,22 @@
   z-index: 1;
 }
 
+.favorite-btn {
+  position: absolute;
+  top: 28rpx;
+  right: 28rpx;
+  z-index: 2;
+  padding: 12rpx 20rpx;
+  border-radius: 28rpx;
+  background: rgba(0, 0, 0, 0.28);
+  color: #fff;
+  font-size: 24rpx;
+}
+
+.favorite-btn.active {
+  background: rgba(255, 107, 53, 0.9);
+}
+
 .hero-name {
   display: block;
   font-size: 44rpx;

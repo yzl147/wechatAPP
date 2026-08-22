@@ -1,8 +1,10 @@
 const cartUtil = require('../../utils/cart')
+const favoriteUtil = require('../../utils/favorite')
 
 Page({
   data: {
-    food: null
+    food: null,
+    isFavorite: false
   },
 
   onLoad(options) {
@@ -21,9 +23,33 @@ Page({
       if (food) {
         wx.setNavigationBarTitle({ title: food.name })
         this.setData({ food })
+        this.loadFavoriteStatus(food.id)
       }
     } catch (e) {
       console.error('加载菜品详情失败', e)
+    }
+  },
+
+  async loadFavoriteStatus(foodId) {
+    try {
+      const favoriteIds = await favoriteUtil.getFavoriteIds()
+      this.setData({ isFavorite: favoriteIds.includes(foodId) })
+    } catch (e) {
+      console.error('加载收藏状态失败', e)
+    }
+  },
+
+  async onToggleFavorite() {
+    const { food, isFavorite } = this.data
+    if (!food) return
+    try {
+      const nextStatus = !isFavorite
+      await favoriteUtil.setFavorite(food.id, nextStatus)
+      this.setData({ isFavorite: nextStatus })
+      wx.showToast({ title: nextStatus ? '已收藏菜谱' : '已取消收藏', icon: 'none' })
+    } catch (e) {
+      console.error('更新收藏状态失败', e)
+      wx.showToast({ title: '操作失败，请重试', icon: 'none' })
     }
   },
 
@@ -42,7 +68,7 @@ Page({
         wx.vibrateShort({ type: 'light' })
       }
     } catch (e) {
-      console.error('加入购物车失败', e)
+      console.error('加入今日清单失败', e)
     }
   },
 

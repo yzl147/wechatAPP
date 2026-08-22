@@ -120,6 +120,12 @@
 .food-tag.tag-seafood { background: #e3f2fd; color: #1976d2; }
 .food-tag.tag-staple { background: #fff3e0; color: #f57c00; }
 
+.favorite-mark {
+  color: #ff6b35;
+  font-size: 28rpx;
+  line-height: 1;
+}
+
 .food-brief {
   font-size: 24rpx;
   color: #888;

@@ -1,11 +1,13 @@
 const cartUtil = require('../../utils/cart')
+const favoriteUtil = require('../../utils/favorite')
 
 Page({
   data: {
     searchText: '',
     currentCategory: '全部',
-    categories: ['全部', '荤菜', '素菜', '海鲜', '主食'],
+    categories: ['全部', '收藏', '荤菜', '素菜', '海鲜', '主食'],
     filteredList: [],
+    favoriteIds: [],
     cartCount: 0,
     loading: true
   },
@@ -15,10 +17,12 @@ Page({
 
   onLoad() {
     this.loadDishes()
+    this.loadFavorites()
     this.updateCartBadge()
   },
 
   onShow() {
+    this.loadFavorites()
     this.updateCartBadge()
   },
 
@@ -31,10 +35,21 @@ Page({
       })
       const dishes = res.result.data || []
       this._allDishes = dishes
-      this.setData({ filteredList: dishes, loading: false })
+      this.setData({ loading: false })
+      this.filterFoods()
     } catch (e) {
       console.error('加载菜品失败', e)
       this.setData({ loading: false })
+    }
+  },
+
+  async loadFavorites() {
+    try {
+      const favoriteIds = await favoriteUtil.getFavoriteIds()
+      this.setData({ favoriteIds })
+      this.filterFoods()
+    } catch (e) {
+      console.error('加载收藏菜谱失败', e)
     }
   },
 
@@ -64,9 +79,12 @@ Page({
   // 过滤美食列表
   filterFoods() {
     let list = [...this._allDishes]
-    const { searchText, currentCategory } = this.data
+    const { searchText, currentCategory, favoriteIds } = this.data
+    const favoriteIdSet = new Set(favoriteIds)
 
-    if (currentCategory !== '全部') {
+    if (currentCategory === '收藏') {
+      list = list.filter(item => favoriteIdSet.has(item.id))
+    } else if (currentCategory !== '全部') {
       list = list.filter(item => item.category === currentCategory)
     }
 
@@ -78,7 +96,9 @@ Page({
       )
     }
 
-    this.setData({ filteredList: list })
+    this.setData({
+      filteredList: list.map(item => ({ ...item, isFavorite: favoriteIdSet.has(item.id) }))
+    })
   },
 
   // 点击查看详情

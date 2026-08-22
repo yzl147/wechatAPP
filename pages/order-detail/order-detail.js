@@ -1,4 +1,5 @@
 const orderUtil = require('../../utils/order')
+const cartUtil = require('../../utils/cart')
 
 Page({
   data: {
@@ -81,6 +82,24 @@ Page({
     })
   },
 
+  // 按原份数将这餐菜品重新加入今日清单
+  async onReuseMeal() {
+    const { order } = this.data
+    if (!order || !order.items || order.items.length === 0) return
+    wx.showLoading({ title: '加入清单中...' })
+    try {
+      for (const item of order.items) {
+        await cartUtil.addToCart(item, item.quantity || 1)
+      }
+      wx.hideLoading()
+      wx.showToast({ title: '已加入今日清单', icon: 'success' })
+    } catch (e) {
+      wx.hideLoading()
+      console.error('复用饮食记录失败', e)
+      wx.showToast({ title: '加入失败，请重试', icon: 'none' })
+    }
+  },
+
   // 删除当前订单
   onDeleteOrder() {
     const order = this.data.order
@@ -105,7 +124,7 @@ Page({
     })
   },
 
-  // 继续点餐
+  // 继续选菜
   goToIndex() {
     wx.switchTab({
       url: '/pages/index/index'

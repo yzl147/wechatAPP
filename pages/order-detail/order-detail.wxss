@@ -283,6 +283,17 @@
   border-radius: 44rpx;
 }
 
+.btn-reuse {
+  flex: 1;
+  text-align: center;
+  background: linear-gradient(135deg, #26de81, #20bf6b);
+  color: #fff;
+  font-size: 28rpx;
+  font-weight: 600;
+  padding: 24rpx 0;
+  border-radius: 44rpx;
+}
+
 .btn-secondary {
   flex: 1;
   text-align: center;

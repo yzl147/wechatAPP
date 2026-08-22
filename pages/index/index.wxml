@@ -27,6 +27,7 @@
         <view class="food-header">
           <text class="food-name">{{item.name}}</text>
           <view class="food-tag tag-{{item.catClass}}">{{item.category}}</view>
+          <text class="favorite-mark" wx:if="{{item.isFavorite}}">♥</text>
         </view>
         <text class="food-brief">{{item.brief}}</text>
         <view class="food-meta">

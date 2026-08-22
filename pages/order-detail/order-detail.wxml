@@ -54,9 +54,8 @@
 
     <!-- 操作按钮 -->
     <view class="action-area">
-    <view class="btn-delete" bindtap="onDeleteOrder">
-      🗑 删除记录
-    </view>
+      <view class="btn-reuse" bindtap="onReuseMeal">复用这一餐</view>
+      <view class="btn-delete" bindtap="onDeleteOrder">🗑 删除记录</view>
       <view class="btn-primary" bindtap="onViewOrders">
         查看饮食记录
       </view>

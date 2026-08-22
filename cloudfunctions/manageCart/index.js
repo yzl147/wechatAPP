@@ -26,14 +26,15 @@ exports.main = async (event, context) => {
 
   // 添加商品到购物车
   if (action === 'add') {
-    const { food } = event
+    const { food, quantity = 1 } = event
+    const addQuantity = Math.max(1, Number(quantity) || 1)
     // 查找是否已存在
     const { data: exist } = await db.collection('carts')
       .where({ _openid: OPENID, foodId: food.id })
       .get()
     if (exist.length > 0) {
       await db.collection('carts').doc(exist[0]._id).update({
-        data: { quantity: _.inc(1) }
+        data: { quantity: _.inc(addQuantity) }
       })
     } else {
       await db.collection('carts').add({
@@ -46,8 +47,9 @@ exports.main = async (event, context) => {
           bgStyle: food.bgStyle,
           price: food.price || 28,
           category: food.category,
-          brief: food.brief,
-          quantity: 1,
+          brief: food.brief || '',
+          ingredients: food.ingredients || [],
+          quantity: addQuantity,
           addedTime: Date.now()
         }
       })

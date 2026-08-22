@@ -44,7 +44,7 @@ function getCartTotal() {
  * 添加商品到购物车
  */
 function addToCart(food, quantity = 1) {
-  return callCloud('add', { food }).then(() => getCartTotal())
+  return callCloud('add', { food, quantity }).then(() => getCartTotal())
 }
 
 /**
