@@ -39,7 +39,6 @@
         <text class="price">¥{{item.price}}</text>
         <view class="add-btn">+</view>
       </view>
-      <view class="arrow">›</view>
     </view>
   </view>
 

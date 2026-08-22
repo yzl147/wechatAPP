@@ -141,16 +141,6 @@
   color: #999;
 }
 
-.arrow {
-  position: absolute;
-  right: 20rpx;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 40rpx;
-  color: #ccc;
-  font-weight: 300;
-}
-
 /* 价格区域 */
 .price-area {
   display: flex;
