@@ -72,20 +72,20 @@ Page({
     })
   },
 
-  // 清空购物车
+  // 清空今日清单
   onClearCart() {
     if (this.data.cartList.length === 0) return
     wx.showModal({
       title: '提示',
-      content: '确定清空购物车吗？',
+      content: '确定清空今日清单吗？',
       success: async (res) => {
         if (res.confirm) {
           try {
             await cartUtil.clearCart()
             this.setData({ cartList: [], totalCount: 0, totalPrice: 0 })
-            wx.showToast({ title: '已清空', icon: 'none' })
+            wx.showToast({ title: '今日清单已清空', icon: 'none' })
           } catch (e) {
-            console.error('清空购物车失败', e)
+            console.error('清空今日清单失败', e)
           }
         }
       }

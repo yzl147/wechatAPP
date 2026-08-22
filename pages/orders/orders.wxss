@@ -143,12 +143,12 @@
 
 /* 订单列表 */
 .order-list {
-  height: calc(100vh - 320rpx);
+  height: calc(100vh - 240rpx);
   padding: 0 20rpx;
 }
 
 .order-list.in-select-mode {
-  height: calc(100vh - 380rpx);
+  height: calc(100vh - 300rpx);
 }
 
 /* 空状态 */
@@ -400,9 +400,9 @@
 }
 
 .bottom-space {
-  height: 60rpx;
+  height: 0;
 }
 
 .bottom-space.with-batch {
-  height: 140rpx;
+  height: 0;
 }
