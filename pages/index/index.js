@@ -109,11 +109,11 @@ Page({
       const result = await cartUtil.addToCart(food)
       this.setData({ cartCount: result.count })
       wx.showToast({
-        title: `${food.name} 已加入购物车`,
+        title: `${food.name} 已加入今日清单`,
         icon: 'none'
       })
     } catch (e) {
-      console.error('加入购物车失败', e)
+      console.error('加入今日清单失败', e)
     }
   }
 })

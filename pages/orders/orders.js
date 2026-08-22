@@ -2,7 +2,6 @@ const orderUtil = require('../../utils/order')
 
 Page({
   data: {
-    currentTab: 'all',
     allOrders: [],
     displayOrders: [],
     summary: {
@@ -41,19 +40,9 @@ Page({
     }
   },
 
-  // 切换Tab
-  switchTab(e) {
-    const tab = e.currentTarget.dataset.tab
-    this.setData({ currentTab: tab })
-    this.filterOrders()
-  },
-
-  // 过滤订单 + 预计算选中状态
+  // 预计算选中状态
   filterOrders() {
-    let list = this.data.allOrders
-    if (this.data.currentTab !== 'all') {
-      list = list.filter(o => o.status === this.data.currentTab)
-    }
+    const list = this.data.allOrders
     const displayList = list.map(item => ({
       ...item,
       _selected: !!this.data.selectedMap[item.orderId],
@@ -159,28 +148,6 @@ Page({
     const id = e.currentTarget.dataset.id
     wx.navigateTo({
       url: `/pages/order-detail/order-detail?orderId=${id}&fromHistory=true`
-    })
-  },
-
-  // 批量完成
-  onBatchComplete() {
-    const { selectedIds } = this.data
-    const count = selectedIds.length
-    wx.showModal({
-      title: '批量完成',
-      content: `确定将选中的 ${count} 个订单标记为已完成吗？`,
-      success: async (res) => {
-        if (res.confirm) {
-          try {
-            await orderUtil.batchComplete(selectedIds)
-            wx.showToast({ title: `已批量完成 ${count} 个订单`, icon: 'success' })
-            this.onCancelSelect()
-            this.loadOrders()
-          } catch (e) {
-            console.error('批量完成失败', e)
-          }
-        }
-      }
     })
   },
 

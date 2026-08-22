@@ -91,14 +91,12 @@ exports.main = async (event, context) => {
   // 获取订单统计
   if (action === 'summary') {
     const { data: orders } = await db.collection('orders').where({ _openid: OPENID }).get()
-    const pending = orders.filter(o => o.status === 'pending')
-    const completed = orders.filter(o => o.status === 'completed')
     return {
       code: 0,
       data: {
         total: orders.length,
-        pendingCount: pending.length,
-        completedCount: completed.length,
+        pendingCount: 0,
+        completedCount: orders.length,
         totalAmount: parseFloat(orders.reduce((sum, o) => sum + (o.totalPrice || 0), 0).toFixed(2))
       }
     }

@@ -1,27 +1,15 @@
 <view class="orders-page">
   <!-- 统计卡片 -->
-  <view class="stats-card">
+  <view class="stats-card" wx:if="{{!selectMode}}">
     <view class="stat-item">
       <text class="stat-num">{{summary.total}}</text>
       <text class="stat-label">总记录</text>
     </view>
     <view class="stat-divider"></view>
     <view class="stat-item">
-      <text class="stat-num pending-num">{{summary.pendingCount}}</text>
-      <text class="stat-label">待整理</text>
-    </view>
-    <view class="stat-divider"></view>
-    <view class="stat-item">
       <text class="stat-num done-num">{{summary.completedCount}}</text>
       <text class="stat-label">已记录</text>
     </view>
-  </view>
-
-  <!-- Tab 切换 -->
-  <view class="tabs" wx:if="{{!selectMode}}">
-    <text class="tab-item {{currentTab === 'all' ? 'active' : ''}}" bindtap="switchTab" data-tab="all">全部</text>
-    <text class="tab-item {{currentTab === 'pending' ? 'active' : ''}}" bindtap="switchTab" data-tab="pending">待整理</text>
-    <text class="tab-item {{currentTab === 'completed' ? 'active' : ''}}" bindtap="switchTab" data-tab="completed">已记录</text>
   </view>
 
   <!-- 选择模式顶部栏 -->
@@ -67,9 +55,7 @@
             <text class="oc-id">{{item.orderId}}</text>
             <text class="oc-time">{{item._timeText}}</text>
           </view>
-          <view class="oc-status {{item.status}}">
-            {{item.status === 'pending' ? '待整理' : '已记录'}}
-          </view>
+          <view class="oc-status completed">已记录</view>
         </view>
 
         <!-- 商品摘要行 -->
@@ -93,9 +79,6 @@
 
   <!-- 批量操作底部栏 -->
   <view class="batch-bar" wx:if="{{selectMode && selectedIds.length > 0}}">
-    <view class="batch-btn batch-complete" bindtap="onBatchComplete">
-      ✅ 批量完成 ({{selectedIds.length}})
-    </view>
     <view class="batch-btn batch-delete" bindtap="onBatchDelete">
       🗑 批量删除 ({{selectedIds.length}})
     </view>
