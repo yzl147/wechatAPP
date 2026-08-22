@@ -1,4 +1,4 @@
-// 美食数据 - 使用本地渐变色+Emoji替代外部图片
+// 菜品基础数据；图片地址由 manageDishes/index.js 统一注入。
 const foods = [
   {
     id: 1,
