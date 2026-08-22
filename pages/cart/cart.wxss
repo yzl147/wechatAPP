@@ -58,6 +58,20 @@
   color: #ff4757;
 }
 
+.shopping-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 20rpx 32rpx 0;
+  padding: 22rpx 24rpx;
+  border-radius: 18rpx;
+  background: #fff7f2;
+}
+
+.shopping-entry-title { display: block; font-size: 28rpx; font-weight: 600; color: #4a3228; }
+.shopping-entry-tip { display: block; margin-top: 8rpx; font-size: 22rpx; color: #a68d82; }
+.shopping-entry-arrow { font-size: 42rpx; color: #ff6b35; line-height: 1; }
+
 /* 商品列表 */
 .cart-list {
   padding: 20rpx 32rpx;

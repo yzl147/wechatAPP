@@ -1,0 +1,31 @@
+<view class="shopping-page">
+  <view class="summary-card" wx:if="{{items.length > 0}}">
+    <view>
+      <text class="summary-num">{{shoppingCount}}</text>
+      <text class="summary-label">项待采购</text>
+    </view>
+    <text class="summary-tip">勾选表示家里已有，不会列入采购</text>
+  </view>
+
+  <view class="empty-state" wx:if="{{items.length === 0}}">
+    <text class="empty-icon">🧺</text>
+    <text class="empty-title">还没有需要准备的食材</text>
+    <text class="empty-tip">先在菜谱页挑选想做的菜吧</text>
+    <view class="menu-btn" bindtap="goToMenu">去选菜</view>
+  </view>
+
+  <view class="shopping-list" wx:else>
+    <view class="list-tip">共 {{items.length}} 项食材，{{inStockCount}} 项家里已有</view>
+    <view class="shopping-item {{item.isInStock ? 'in-stock' : ''}}" wx:for="{{items}}" wx:key="key" bindtap="onToggleItem" data-key="{{item.key}}">
+      <view class="check-box {{item.isInStock ? 'checked' : ''}}">{{item.isInStock ? '✓' : ''}}</view>
+      <view class="item-info">
+        <view class="item-main">
+          <text class="item-name">{{item.name}}</text>
+          <text class="item-amount">{{item.amount}}</text>
+        </view>
+        <text class="item-source">{{item.sourceText}}</text>
+      </view>
+      <text class="item-status">{{item.isInStock ? '家里已有' : '待采购'}}</text>
+    </view>
+  </view>
+</view>

@@ -17,6 +17,14 @@
       <text class="clear-btn" bindtap="onClearCart">清空清单</text>
     </view>
 
+    <view class="shopping-entry" bindtap="goToShoppingList">
+      <view>
+        <text class="shopping-entry-title">🧺 食材采购清单</text>
+        <text class="shopping-entry-tip">勾选家里已有的食材，查看还需要买什么</text>
+      </view>
+      <text class="shopping-entry-arrow">›</text>
+    </view>
+
     <!-- 商品列表 -->
     <view class="cart-list">
       <view class="cart-item" wx:for="{{cartList}}" wx:key="_id">

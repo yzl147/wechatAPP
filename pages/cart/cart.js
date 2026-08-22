@@ -101,6 +101,14 @@ Page({
     this.submitOrder()
   },
 
+  goToShoppingList() {
+    if (this.data.cartList.length === 0) {
+      wx.showToast({ title: '先添加想做的菜吧', icon: 'none' })
+      return
+    }
+    wx.navigateTo({ url: '/pages/shopping-list/shopping-list' })
+  },
+
   // 提交订单
   async submitOrder() {
     const { cartList } = this.data
