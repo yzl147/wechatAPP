@@ -21,7 +21,7 @@ exports.main = async (event, context) => {
       orderId,
       _openid: OPENID,
       orderTime: Date.now(),
-      status: 'pending',
+      status: 'completed',
       items,
       totalCount,
       totalPrice: parseFloat(totalPrice.toFixed(2)),

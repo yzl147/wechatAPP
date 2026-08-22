@@ -8,7 +8,7 @@
   ],
   "window": {
     "navigationBarTextStyle": "black",
-    "navigationBarTitleText": "美食菜单",
+    "navigationBarTitleText": "记事微清单",
     "navigationBarBackgroundColor": "#ffffff"
   },
   "tabBar": {
@@ -19,19 +19,19 @@
     "list": [
       {
         "pagePath": "pages/index/index",
-        "text": "菜单",
+        "text": "菜谱",
         "iconPath": "images/menu.png",
         "selectedIconPath": "images/menu-active.png"
       },
       {
         "pagePath": "pages/cart/cart",
-        "text": "购物车",
+        "text": "清单",
         "iconPath": "images/cart.png",
         "selectedIconPath": "images/cart-active.png"
       },
       {
         "pagePath": "pages/orders/orders",
-        "text": "订单",
+        "text": "记录",
         "iconPath": "images/order.png",
         "selectedIconPath": "images/order-active.png"
       }

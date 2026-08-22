@@ -3,30 +3,25 @@
   <view class="stats-card">
     <view class="stat-item">
       <text class="stat-num">{{summary.total}}</text>
-      <text class="stat-label">总订单</text>
+      <text class="stat-label">总记录</text>
     </view>
     <view class="stat-divider"></view>
     <view class="stat-item">
       <text class="stat-num pending-num">{{summary.pendingCount}}</text>
-      <text class="stat-label">待处理</text>
+      <text class="stat-label">待整理</text>
     </view>
     <view class="stat-divider"></view>
     <view class="stat-item">
       <text class="stat-num done-num">{{summary.completedCount}}</text>
-      <text class="stat-label">已完成</text>
-    </view>
-    <view class="stat-divider"></view>
-    <view class="stat-item">
-      <text class="stat-num amount-num">¥{{summary.totalAmount}}</text>
-      <text class="stat-label">累计金额</text>
+      <text class="stat-label">已记录</text>
     </view>
   </view>
 
   <!-- Tab 切换 -->
   <view class="tabs" wx:if="{{!selectMode}}">
     <text class="tab-item {{currentTab === 'all' ? 'active' : ''}}" bindtap="switchTab" data-tab="all">全部</text>
-    <text class="tab-item {{currentTab === 'pending' ? 'active' : ''}}" bindtap="switchTab" data-tab="pending">待处理</text>
-    <text class="tab-item {{currentTab === 'completed' ? 'active' : ''}}" bindtap="switchTab" data-tab="completed">已完成</text>
+    <text class="tab-item {{currentTab === 'pending' ? 'active' : ''}}" bindtap="switchTab" data-tab="pending">待整理</text>
+    <text class="tab-item {{currentTab === 'completed' ? 'active' : ''}}" bindtap="switchTab" data-tab="completed">已记录</text>
   </view>
 
   <!-- 选择模式顶部栏 -->
@@ -46,8 +41,8 @@
     <!-- 空状态 -->
     <view class="empty-orders" wx:if="{{displayOrders.length === 0}}">
       <text class="empty-icon-2">📋</text>
-      <text class="empty-text-2">暂无订单记录</text>
-      <text class="empty-sub-2">去点餐吧~</text>
+      <text class="empty-text-2">暂无饮食记录</text>
+      <text class="empty-sub-2">去挑选今天想做的菜吧~</text>
     </view>
 
     <!-- 订单卡片 -->
@@ -73,7 +68,7 @@
             <text class="oc-time">{{item._timeText}}</text>
           </view>
           <view class="oc-status {{item.status}}">
-            {{item.status === 'pending' ? '待处理' : '已完成'}}
+            {{item.status === 'pending' ? '待整理' : '已记录'}}
           </view>
         </view>
 
@@ -89,7 +84,6 @@
         <view class="oc-footer">
           <text class="oc-count">共 {{item.totalCount}} 份</text>
           <view class="oc-footer-right">
-            <text class="oc-price">¥{{item.priceText}}</text>
             <text class="oc-delete-btn" catchtap="onDeleteOrder" data-id="{{item.orderId}}" wx:if="{{!selectMode}}">删除</text>
           </view>
         </view>

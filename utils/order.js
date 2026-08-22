@@ -29,7 +29,8 @@ function createOrder(cartItems, remark = '') {
   const items = cartItems.map(item => ({
     id: item.foodId || item.id,
     name: item.name,
-    icon: item.icon,
+      icon: item.icon,
+      image: item.image,
     bgStyle: item.bgStyle,
     price: item.price,
     quantity: item.quantity,

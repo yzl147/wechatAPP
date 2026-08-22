@@ -37,7 +37,7 @@ Page({
       })
       this.filterOrders()
     } catch (e) {
-      console.error('加载订单失败', e)
+      console.error('加载饮食记录失败', e)
     }
   },
 
@@ -190,13 +190,13 @@ Page({
     const count = selectedIds.length
     wx.showModal({
       title: '批量删除',
-      content: `确定要删除选中的 ${count} 个订单吗？此操作不可撤销。`,
+      content: `确定要删除选中的 ${count} 条记录吗？此操作不可撤销。`,
       confirmColor: '#e74c3c',
       success: async (res) => {
         if (res.confirm) {
           try {
             await orderUtil.batchDelete(selectedIds)
-            wx.showToast({ title: `已删除 ${count} 个订单`, icon: 'none' })
+            wx.showToast({ title: `已删除 ${count} 条记录`, icon: 'none' })
             this.onCancelSelect()
             this.loadOrders()
           } catch (e) {
@@ -214,7 +214,7 @@ Page({
     const dishNames = (order && order.items) ? order.items.map(i => i.name).join('、') : ''
     wx.showModal({
       title: '确认删除',
-      content: `确定要删除订单 ${orderId} 吗？\n（${dishNames}）`,
+      content: `确定要删除这条饮食记录吗？\n（${dishNames}）`,
       confirmColor: '#e74c3c',
       success: async (res) => {
         if (res.confirm) {

@@ -35,7 +35,7 @@ Page({
     try {
       await cartUtil.addToCart(food)
       wx.showToast({
-        title: `${food.name} 已加入购物车`,
+        title: `${food.name} 已加入今日清单`,
         icon: 'none'
       })
       if (wx.vibrateShort) {

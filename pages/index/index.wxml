@@ -1,7 +1,7 @@
 <view class="container">
   <!-- 搜索栏 -->
   <view class="search-bar">
-    <input class="search-input" placeholder="搜索美食..." value="{{searchText}}" bindinput="onSearchInput" confirm-type="search" />
+    <input class="search-input" placeholder="搜索菜谱..." value="{{searchText}}" bindinput="onSearchInput" confirm-type="search" />
   </view>
 
   <!-- 分类标签 -->
@@ -36,7 +36,6 @@
       </view>
       <!-- 价格和加购 -->
       <view class="price-area" catchtap="onAddToCart" data-food="{{item}}">
-        <text class="price">¥{{item.price}}</text>
         <view class="add-btn">+</view>
       </view>
     </view>

@@ -95,7 +95,7 @@ Page({
   // 去结算
   onCheckout() {
     if (this.data.cartList.length === 0) {
-      wx.showToast({ title: '购物车是空的', icon: 'none' })
+      wx.showToast({ title: '清单还是空的', icon: 'none' })
       return
     }
     this.submitOrder()
@@ -104,7 +104,7 @@ Page({
   // 提交订单
   async submitOrder() {
     const { cartList } = this.data
-    wx.showLoading({ title: '提交中...' })
+    wx.showLoading({ title: '保存中...' })
     try {
       const order = await orderUtil.createOrder(cartList)
       await cartUtil.clearCart()
@@ -114,8 +114,8 @@ Page({
       })
     } catch (e) {
       wx.hideLoading()
-      console.error('提交订单失败', e)
-      wx.showToast({ title: '提交失败，请重试', icon: 'none' })
+      console.error('保存饮食记录失败', e)
+      wx.showToast({ title: '保存失败，请重试', icon: 'none' })
     }
   },
 

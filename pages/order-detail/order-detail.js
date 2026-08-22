@@ -36,7 +36,7 @@ Page({
           _timeText: orderUtil.formatTime(order.orderTime)
         }
         this.setData({ order: orderData })
-        wx.setNavigationBarTitle({ title: '订单详情' })
+        wx.setNavigationBarTitle({ title: '饮食记录' })
       }
     } catch (e) {
       console.error('加载订单详情失败', e)
@@ -87,7 +87,7 @@ Page({
     const dishNames = (order && order.items) ? order.items.map(i => i.name).join('、') : ''
     wx.showModal({
       title: '确认删除',
-      content: `确定要删除订单 ${order.orderId} 吗？\n（${dishNames}）`,
+      content: `确定要删除这条饮食记录吗？\n（${dishNames}）`,
       confirmColor: '#e74c3c',
       success: async (res) => {
         if (res.confirm) {
