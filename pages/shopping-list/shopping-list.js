@@ -43,6 +43,10 @@ Page({
     this.updateItems(items)
   },
 
+  goToInventory() {
+    wx.navigateTo({ url: '/pages/inventory/inventory' })
+  },
+
   goToMenu() {
     wx.switchTab({ url: '/pages/index/index' })
   }

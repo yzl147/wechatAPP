@@ -5,6 +5,9 @@
   background: #f5f6fa;
 }
 
+.inventory-entry { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18rpx; padding: 20rpx 24rpx; border-radius: 18rpx; background: #eef9f2; }
+.inventory-entry-title { display: block; font-size: 28rpx; font-weight: 600; color: #356045; }.inventory-entry-tip { display: block; margin-top: 7rpx; font-size: 22rpx; color: #769082; }.inventory-entry-arrow { font-size: 42rpx; color: #31a667; }
+
 .summary-card {
   display: flex;
   align-items: center;

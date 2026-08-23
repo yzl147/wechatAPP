@@ -4,6 +4,7 @@
     "pages/detail/detail",
     "pages/cart/cart",
     "pages/shopping-list/shopping-list",
+    "pages/inventory/inventory",
     "pages/order-detail/order-detail",
     "pages/orders/orders"
   ],

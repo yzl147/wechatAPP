@@ -1,4 +1,8 @@
 <view class="shopping-page">
+  <view class="inventory-entry" bindtap="goToInventory">
+    <view><text class="inventory-entry-title">🥬 食材库存</text><text class="inventory-entry-tip">登记库存，查看临期食材</text></view>
+    <text class="inventory-entry-arrow">›</text>
+  </view>
   <view class="summary-card" wx:if="{{items.length > 0}}">
     <view>
       <text class="summary-num">{{shoppingCount}}</text>

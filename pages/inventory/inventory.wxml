@@ -1,0 +1,37 @@
+<view class="inventory-page">
+  <view class="form-card">
+    <view class="form-title">添加食材</view>
+    <input class="name-input" placeholder="例如：鸡蛋" value="{{name}}" bindinput="onNameInput" maxlength="20" />
+    <view class="form-row">
+      <input class="small-input" type="digit" placeholder="数量" value="{{quantity}}" bindinput="onQuantityInput" />
+      <input class="small-input unit-input" placeholder="单位，如 个、袋" value="{{unit}}" bindinput="onUnitInput" maxlength="8" />
+      <picker mode="date" value="{{expiryDate}}" start="{{today}}" bindchange="onExpiryChange">
+        <view class="date-picker {{expiryDate ? 'has-value' : ''}}">{{expiryDate || '保质日期（可选）'}}</view>
+      </picker>
+    </view>
+    <view class="add-btn" bindtap="onAddItem">加入库存</view>
+  </view>
+
+  <view class="list-title">我的库存 <text>{{items.length}} 项</text></view>
+  <view class="empty-state" wx:if="{{items.length === 0}}">
+    <text class="empty-icon">🥕</text>
+    <text>还没有记录食材</text>
+  </view>
+
+  <view class="inventory-list" wx:else>
+    <view class="inventory-item" wx:for="{{items}}" wx:key="id">
+      <view class="item-main">
+        <text class="item-name">{{item.name}}</text>
+        <text class="expiry-tag {{item.expiry.type}}">{{item.expiry.text}}</text>
+      </view>
+      <view class="item-bottom">
+        <view class="quantity-control">
+          <view class="qty-btn" bindtap="onDecrease" data-id="{{item.id}}">−</view>
+          <text class="quantity">{{item.quantity}} {{item.unit}}</text>
+          <view class="qty-btn plus" bindtap="onIncrease" data-id="{{item.id}}">＋</view>
+        </view>
+        <text class="delete-btn" bindtap="onDelete" data-id="{{item.id}}">删除</text>
+      </view>
+    </view>
+  </view>
+</view>
