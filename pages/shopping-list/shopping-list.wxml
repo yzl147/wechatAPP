@@ -28,6 +28,7 @@
           <text class="item-amount">{{item.amount}}</text>
         </view>
         <text class="item-source">{{item.sourceText}}</text>
+        <text class="stock-text {{item.stockState}}">{{item.stockText}}</text>
       </view>
       <text class="item-status">{{item.isInStock ? '家里已有' : '待采购'}}</text>
     </view>

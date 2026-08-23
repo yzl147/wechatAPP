@@ -54,6 +54,7 @@
 .item-name { font-size: 30rpx; font-weight: 600; color: #333; }
 .item-amount { font-size: 24rpx; color: #ff6b35; }
 .item-source { display: block; margin-top: 8rpx; font-size: 22rpx; color: #999; }
+.stock-text { display: block; margin-top: 5rpx; font-size: 21rpx; }.stock-text.enough { color: #26a96c; }.stock-text.partial { color: #e67e22; }.stock-text.none, .stock-text.manual { color: #999; }
 .item-status { margin-left: 16rpx; flex-shrink: 0; font-size: 23rpx; color: #ff6b35; }
 .shopping-item.in-stock { opacity: .62; }
 .shopping-item.in-stock .item-name { text-decoration: line-through; }

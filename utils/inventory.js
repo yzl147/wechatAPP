@@ -56,4 +56,4 @@ function getDisplayInventory() {
     .sort((a, b) => a.expiry.order - b.expiry.order || a.createdAt - b.createdAt)
 }
 
-module.exports = { addInventory, updateQuantity, removeInventory, getDisplayInventory }
+module.exports = { getInventory, addInventory, updateQuantity, removeInventory, getDisplayInventory }

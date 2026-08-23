@@ -34,6 +34,11 @@ Page({
 
   onToggleItem(e) {
     const key = e.currentTarget.dataset.key
+    const currentItem = this.data.items.find(item => item.key === key)
+    if (currentItem && currentItem.stockState === 'enough') {
+      wx.showToast({ title: '库存充足，无需采购', icon: 'none' })
+      return
+    }
     const items = this.data.items.map(item => {
       if (item.key !== key) return item
       const isInStock = !item.isInStock
