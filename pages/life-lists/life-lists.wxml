@@ -10,10 +10,14 @@
   </view>
 
   <view class="section-title">常用模板</view>
-  <view class="template-row">
-    <view class="template-card" bindtap="onUseTemplate" data-index="0"><text>🧹</text><text>家务清单</text></view>
-    <view class="template-card" bindtap="onUseTemplate" data-index="1"><text>🧳</text><text>出行准备</text></view>
+  <view class="template-grid">
+    <view class="template-card" wx:for="{{templates}}" wx:key="*this" bindtap="onUseTemplate" data-index="{{index}}"><text>{{item}}</text></view>
   </view>
+
+  <block wx:if="{{customTemplates.length > 0}}">
+    <view class="section-title">我的模板</view>
+    <view class="custom-template" wx:for="{{customTemplates}}" wx:key="id" bindtap="onUseCustomTemplate" data-id="{{item.id}}"><text>{{item.title}}</text><text>使用 ›</text></view>
+  </block>
 
   <view class="section-title">我的清单</view>
   <view class="empty-state" wx:if="{{lists.length === 0}}">暂时还没有生活清单</view>

@@ -27,6 +27,10 @@ Page({
     this.loadList()
   },
   onRemoveItem(e) { lifeListUtil.removeItem(this.listId, e.currentTarget.dataset.id); this.loadList() },
+  onSaveAsTemplate() {
+    const template = lifeListUtil.saveAsTemplate(this.data.list)
+    wx.showToast({ title: template ? '已保存为模板' : '清单没有可保存的项目', icon: 'none' })
+  },
   onDeleteList() {
     wx.showModal({ title: '删除清单', content: '确定删除这张清单吗？', confirmColor: '#e74c3c', success: res => {
       if (!res.confirm) return

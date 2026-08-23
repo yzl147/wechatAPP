@@ -1,4 +1,5 @@
 const STORAGE_KEY = 'life_checklists'
+const TEMPLATE_STORAGE_KEY = 'life_list_custom_templates'
 
 function getLists() {
   const lists = wx.getStorageSync(STORAGE_KEY)
@@ -68,6 +69,25 @@ function removeList(id) {
   saveLists(getLists().filter(list => list.id !== id))
 }
 
+function getCustomTemplates() {
+  const templates = wx.getStorageSync(TEMPLATE_STORAGE_KEY)
+  return Array.isArray(templates) ? templates : []
+}
+
+function saveAsTemplate(list) {
+  if (!list || !list.title || !list.items || list.items.length === 0) return null
+  const templates = getCustomTemplates()
+  const template = {
+    id: `${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+    title: list.title,
+    items: list.items.map(item => item.text).filter(Boolean),
+    createdAt: Date.now()
+  }
+  templates.unshift(template)
+  wx.setStorageSync(TEMPLATE_STORAGE_KEY, templates)
+  return template
+}
+
 function getDisplayLists() {
   return refreshRecurringLists(getLists()).map(toDisplayList)
     .sort((a, b) => b.updatedAt - a.updatedAt)
@@ -119,4 +139,4 @@ function formatDate(timestamp) {
   return `${date.getMonth() + 1}-${date.getDate()}`
 }
 
-module.exports = { createList, getList, getDisplayLists, toggleItem, addItem, removeItem, removeList }
+module.exports = { createList, getList, getDisplayLists, toggleItem, addItem, removeItem, removeList, getCustomTemplates, saveAsTemplate }

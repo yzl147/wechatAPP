@@ -6,5 +6,6 @@
     <text class="item-text" bindtap="onToggleItem" data-id="{{item.id}}">{{item.text}}</text>
     <text class="remove" bindtap="onRemoveItem" data-id="{{item.id}}">×</text>
   </view>
+  <view class="save-template" bindtap="onSaveAsTemplate">保存为我的模板</view>
   <view class="delete-list" bindtap="onDeleteList">删除这张清单</view>
 </view>
