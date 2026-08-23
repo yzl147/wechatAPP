@@ -1,0 +1,29 @@
+<view class="home-page">
+  <view class="hero">
+    <text class="hero-title">记事微清单</text>
+    <text class="hero-subtitle">把日常琐事，整理成轻松可完成的清单</text>
+  </view>
+
+  <view class="section-title">今天要做什么</view>
+  <view class="scene-card meal-card" bindtap="goToMealList">
+    <view class="scene-icon">🍳</view>
+    <view class="scene-content">
+      <text class="scene-title">饮食清单</text>
+      <text class="scene-desc">选菜、准备食材、记录今天吃什么</text>
+      <text class="scene-status">{{mealCount ? '今日已选 ' + mealCount + ' 份' : '去挑选今天想做的菜'}}</text>
+    </view>
+    <text class="scene-arrow">›</text>
+  </view>
+
+  <view class="scene-card life-card" bindtap="goToLifeLists">
+    <view class="scene-icon">📝</view>
+    <view class="scene-content">
+      <text class="scene-title">生活清单</text>
+      <text class="scene-desc">家务、出行和属于自己的日常待办</text>
+      <text class="scene-status">{{lifeListCount ? '还有 ' + unfinishedCount + ' 项等待完成' : '创建第一张生活清单'}}</text>
+    </view>
+    <text class="scene-arrow">›</text>
+  </view>
+
+  <view class="record-entry" bindtap="goToRecords"><text>🗓️ 回顾饮食记录</text><text>›</text></view>
+</view>

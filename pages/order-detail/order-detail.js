@@ -126,7 +126,7 @@ Page({
 
   // 继续选菜
   goToIndex() {
-    wx.switchTab({
+    wx.navigateTo({
       url: '/pages/index/index'
     })
   }

@@ -1,5 +1,6 @@
 {
   "pages": [
+    "pages/home/home",
     "pages/index/index",
     "pages/detail/detail",
     "pages/cart/cart",
@@ -22,14 +23,14 @@
     "borderStyle": "white",
     "list": [
       {
-        "pagePath": "pages/index/index",
-        "text": "菜谱",
+        "pagePath": "pages/home/home",
+        "text": "首页",
         "iconPath": "images/menu.png",
         "selectedIconPath": "images/menu-active.png"
       },
       {
         "pagePath": "pages/cart/cart",
-        "text": "清单",
+        "text": "饮食清单",
         "iconPath": "images/cart.png",
         "selectedIconPath": "images/cart-active.png"
       },
