@@ -9,8 +9,7 @@ Page({
     dishCount: 0,
     topDishes: [],
     expiringCount: 0,
-    lifeDoneCount: 0,
-    lifeTotalCount: 0
+    lifeCompletionRecords: []
   },
 
   onShow() { this.loadStats() },
@@ -31,26 +30,37 @@ Page({
         .slice(0, 3)
       const inventory = inventoryUtil.getDisplayInventory()
       const expiringCount = inventory.filter(item => item.expiry.type === 'expired' || item.expiry.type === 'expiring').length
-      const lifeLists = lifeListUtil.getDisplayLists()
-      const lifeDoneCount = lifeLists.reduce((total, list) => total + list.doneCount, 0)
-      const lifeTotalCount = lifeLists.reduce((total, list) => total + list.totalCount, 0)
+      const lifeCompletionRecords = lifeListUtil.getCompletionHistory()
+        .filter(record => formatMonth(record.completedAt) === monthKey)
+        .map(record => ({
+          ...record,
+          completedDateText: formatDate(record.completedAt)
+        }))
       this.setData({
         monthLabel: `${now.getFullYear()}年${now.getMonth() + 1}月`,
         mealDays: monthOrders.length,
         dishCount: Object.keys(dishMap).length,
         topDishes,
         expiringCount,
-        lifeDoneCount,
-        lifeTotalCount
+        lifeCompletionRecords
       })
     } catch (e) {
       console.error('加载统计数据失败', e)
       wx.showToast({ title: '加载统计失败', icon: 'none' })
     }
+  },
+
+  onLifeRecordTap(e) {
+    wx.navigateTo({ url: `/pages/life-completion-detail/life-completion-detail?id=${e.currentTarget.dataset.id}` })
   }
 })
 
 function formatMonth(timestamp) {
   const date = new Date(timestamp)
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+}
+
+function formatDate(timestamp) {
+  const date = new Date(timestamp)
+  return `${date.getMonth() + 1}月${date.getDate()}日`
 }
