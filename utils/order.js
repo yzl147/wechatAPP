@@ -39,7 +39,12 @@ function createOrder(cartItems, remark = '') {
     quantity: item.quantity,
     subtotal: parseFloat((item.price * item.quantity).toFixed(2))
   }))
-  return callCloud('create', { items, remark }).then(res => res.data)
+  return callCloud('create', { items, remark, mealType: 'cook' }).then(res => res.data)
+}
+
+function createExternalMeal({ mealType, venue, dishes, remark = '' }) {
+  const items = [{ id: `meal-${Date.now()}`, name: dishes.trim(), quantity: 1, price: 0, image: '' }]
+  return callCloud('create', { items, remark, mealType, venue: venue.trim() }).then(res => res.data)
 }
 
 /**
@@ -100,6 +105,7 @@ function getOrderSummary() {
 module.exports = {
   getOrders,
   createOrder,
+  createExternalMeal,
   updateOrderStatus,
   deleteOrder,
   batchComplete,

@@ -10,7 +10,8 @@
   <block wx:else>
     <view class="status-section" style="background: linear-gradient(135deg, #26de81, #20bf6b);">
       <text class="status-icon">🍽️</text>
-      <text class="status-text">饮食记录</text>
+      <text class="status-text">{{order.mealTypeText}}记录</text>
+      <text class="order-id" wx:if="{{order.venue}}">{{order.venue}}</text>
       <text class="order-id">记录编号: {{order.orderId}}</text>
       <text class="order-time">{{order._timeText}}</text>
     </view>
@@ -19,17 +20,18 @@
     <view class="section">
       <view class="section-header">
         <view class="section-title-bar"></view>
-        <text class="section-title">🍳 今天做了什么</text>
+        <text class="section-title">{{order.isCook ? '🍳 今天做了什么' : '🍽️ 吃了什么'}}</text>
       </view>
 
       <view class="item-list">
         <view class="order-item" wx:for="{{order.items}}" wx:key="id">
           <view class="oi-img-wrap">
-            <image class="oi-img" src="{{item.image}}" mode="aspectFill" lazy-load />
+            <image class="oi-img" wx:if="{{item.image}}" src="{{item.image}}" mode="aspectFill" lazy-load />
+            <text class="oi-img oi-placeholder" wx:else>🍽️</text>
           </view>
           <view class="oi-info">
             <text class="oi-name">{{item.name}}</text>
-          <text class="oi-spec">准备 {{item.quantity}} 份</text>
+          <text class="oi-spec">{{order.isCook ? '准备' : '记录' }} {{item.quantity}} 份</text>
           </view>
         </view>
       </view>
@@ -54,7 +56,7 @@
 
     <!-- 操作按钮 -->
     <view class="action-area">
-      <view class="btn-reuse" bindtap="onReuseMeal">复用这一餐</view>
+      <view class="btn-reuse" wx:if="{{order.isCook}}" bindtap="onReuseMeal">复用这一餐</view>
       <view class="btn-delete" bindtap="onDeleteOrder">🗑 删除记录</view>
       <view class="btn-primary" bindtap="onViewOrders">
         查看饮食记录

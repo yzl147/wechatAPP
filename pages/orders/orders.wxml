@@ -32,6 +32,8 @@
     <view class="life-record-item" wx:for="{{selectedLifeRecords}}" wx:key="id" bindtap="onLifeRecordTap" data-id="{{item.id}}"><text>{{item.title}}</text><text>查看 ›</text></view>
   </view>
 
+  <view class="quick-meal-entry" wx:if="{{!selectMode}}" bindtap="goToMealRecord"><view><text class="quick-meal-title">＋ 快速记录一餐</text><text class="quick-meal-tip">外出吃或点外卖，简单记下就好</text></view><text class="quick-meal-arrow">›</text></view>
+
   <!-- 选择模式顶部栏 -->
   <view class="select-bar" wx:if="{{selectMode}}">
     <view class="select-left">
@@ -72,16 +74,17 @@
       <view class="oc-body" bindtap="{{selectMode ? 'onToggleItem' : 'onOrderTap'}}" data-id="{{item.orderId}}">
         <view class="oc-header">
           <view class="oc-left">
-            <text class="oc-id">{{item.orderId}}</text>
+            <text class="oc-id">{{item.venue || item.orderId}}</text>
             <text class="oc-time">{{item._timeText}}</text>
           </view>
-          <view class="oc-status completed">已记录</view>
+          <view class="oc-status completed">{{item.mealTypeIcon}} {{item.mealTypeText}}</view>
         </view>
 
         <!-- 商品摘要行 -->
         <view class="oc-items">
           <view class="oc-item-row" wx:for="{{item.items}}" wx:for-item="food" wx:for-index="fidx" wx:key="id">
-            <image class="oci-img" src="{{food.image}}" mode="aspectFill" lazy-load />
+            <image class="oci-img" wx:if="{{food.image}}" src="{{food.image}}" mode="aspectFill" lazy-load />
+            <text class="oci-icon" wx:else>{{item.mealTypeIcon}}</text>
             <text class="oci-name">{{food.name}}</text>
             <text class="oci-qty">x{{food.quantity}}</text>
           </view>

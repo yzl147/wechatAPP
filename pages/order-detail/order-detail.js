@@ -32,6 +32,9 @@ Page({
         }))
         const orderData = {
           ...order,
+          mealType: order.mealType || 'cook',
+          mealTypeText: getMealTypeText(order.mealType),
+          isCook: !order.mealType || order.mealType === 'cook',
           items,
           priceText: order.totalPrice.toFixed(2),
           _timeText: orderUtil.formatTime(order.orderTime)
@@ -131,3 +134,7 @@ Page({
     })
   }
 })
+
+function getMealTypeText(type) {
+  return { dine_out: '外出吃', takeout: '外卖' }[type] || '自己做'
+}

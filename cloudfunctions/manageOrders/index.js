@@ -9,7 +9,7 @@ exports.main = async (event, context) => {
 
   // 创建订单
   if (action === 'create') {
-    const { items, remark } = event
+    const { items, remark, mealType, venue } = event
     let totalPrice = 0
     let totalCount = 0
     items.forEach(item => {
@@ -25,7 +25,9 @@ exports.main = async (event, context) => {
       items,
       totalCount,
       totalPrice: parseFloat(totalPrice.toFixed(2)),
-      remark: remark || ''
+      remark: remark || '',
+      mealType: mealType || 'cook',
+      venue: venue || ''
     }
     await db.collection('orders').add({ data: orderData })
     return { code: 0, data: orderData }

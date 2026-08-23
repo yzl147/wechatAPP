@@ -64,6 +64,9 @@ Page({
       : allOrders
     const displayList = list.map(item => ({
       ...item,
+      mealType: item.mealType || 'cook',
+      mealTypeText: getMealTypeText(item.mealType),
+      mealTypeIcon: getMealTypeIcon(item.mealType),
       _selected: !!this.data.selectedMap[item.orderId],
       _timeText: orderUtil.formatTime(item.orderTime)
     }))
@@ -114,6 +117,10 @@ Page({
 
   onLifeRecordTap(e) {
     wx.navigateTo({ url: `/pages/life-completion-detail/life-completion-detail?id=${e.currentTarget.dataset.id}` })
+  },
+
+  goToMealRecord() {
+    wx.navigateTo({ url: '/pages/meal-record/meal-record' })
   },
 
   buildCalendar() {
@@ -302,4 +309,12 @@ function formatDate(timestamp) {
   const month = String(date.getMonth() + 1).padStart(2, '0')
   const day = String(date.getDate()).padStart(2, '0')
   return `${year}-${month}-${day}`
+}
+
+function getMealTypeText(type) {
+  return { dine_out: '外出吃', takeout: '外卖' }[type] || '自己做'
+}
+
+function getMealTypeIcon(type) {
+  return { dine_out: '🍜', takeout: '🛵' }[type] || '🍳'
 }

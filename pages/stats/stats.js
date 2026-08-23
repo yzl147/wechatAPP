@@ -5,8 +5,9 @@ const lifeListUtil = require('../../utils/life-list')
 Page({
   data: {
     monthLabel: '',
-    mealDays: 0,
-    dishCount: 0,
+    cookCount: 0,
+    dineOutCount: 0,
+    takeoutCount: 0,
     topDishes: [],
     expiringCount: 0,
     lifeCompletionRecords: []
@@ -20,8 +21,9 @@ Page({
       const now = new Date()
       const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
       const monthOrders = orders.filter(order => formatMonth(order.orderTime) === monthKey)
+      const cookOrders = monthOrders.filter(order => !order.mealType || order.mealType === 'cook')
       const dishMap = {}
-      monthOrders.forEach(order => (order.items || []).forEach(item => {
+      cookOrders.forEach(order => (order.items || []).forEach(item => {
         dishMap[item.name] = (dishMap[item.name] || 0) + (item.quantity || 1)
       }))
       const topDishes = Object.keys(dishMap)
@@ -38,8 +40,9 @@ Page({
         }))
       this.setData({
         monthLabel: `${now.getFullYear()}年${now.getMonth() + 1}月`,
-        mealDays: monthOrders.length,
-        dishCount: Object.keys(dishMap).length,
+        cookCount: cookOrders.length,
+        dineOutCount: monthOrders.filter(order => order.mealType === 'dine_out').length,
+        takeoutCount: monthOrders.filter(order => order.mealType === 'takeout').length,
         topDishes,
         expiringCount,
         lifeCompletionRecords
