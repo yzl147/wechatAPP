@@ -3,6 +3,9 @@
     <text class="create-title">新建清单</text>
     <input class="title-input" placeholder="例如：周末大扫除" value="{{title}}" bindinput="onTitleInput" maxlength="20" />
     <textarea class="items-input" placeholder="清单项目（每行一项，可选）" value="{{itemsText}}" bindinput="onItemsInput" maxlength="300" auto-height />
+    <picker mode="selector" range="{{repeatOptions}}" value="{{repeatIndex}}" bindchange="onRepeatChange">
+      <view class="repeat-picker">循环：{{repeatOptions[repeatIndex]}} <text>›</text></view>
+    </picker>
     <view class="create-btn" bindtap="onCreateList">创建清单</view>
   </view>
 
@@ -16,7 +19,7 @@
   <view class="empty-state" wx:if="{{lists.length === 0}}">暂时还没有生活清单</view>
   <block wx:if="{{lists.length > 0}}">
     <view class="list-card" wx:for="{{lists}}" wx:key="id" bindtap="onListTap" data-id="{{item.id}}">
-      <view><text class="list-name">{{item.title}}</text><text class="list-progress">已完成 {{item.doneCount}} / {{item.totalCount}} 项</text></view>
+      <view><text class="list-name">{{item.title}}</text><text class="list-progress">{{item.repeatText}} · 已完成 {{item.doneCount}} / {{item.totalCount}} 项</text></view>
       <text class="arrow">›</text>
     </view>
   </block>
