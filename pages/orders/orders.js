@@ -4,6 +4,8 @@ Page({
   data: {
     allOrders: [],
     displayOrders: [],
+    selectedDate: '',
+    today: '',
     summary: {
       total: 0,
       pendingCount: 0,
@@ -15,6 +17,10 @@ Page({
     selectedIds: [],
     isAllSelected: false,
     selectedMap: {}
+  },
+
+  onLoad() {
+    this.setData({ today: formatDate(Date.now()) })
   },
 
   onShow() {
@@ -42,7 +48,10 @@ Page({
 
   // 预计算选中状态
   filterOrders() {
-    const list = this.data.allOrders
+    const { allOrders, selectedDate } = this.data
+    const list = selectedDate
+      ? allOrders.filter(item => formatDate(item.orderTime) === selectedDate)
+      : allOrders
     const displayList = list.map(item => ({
       ...item,
       _selected: !!this.data.selectedMap[item.orderId],
@@ -52,6 +61,16 @@ Page({
     if (this.data.selectMode) {
       this.updateSelectAllState(displayList)
     }
+  },
+
+  onDateChange(e) {
+    this.setData({ selectedDate: e.detail.value })
+    this.filterOrders()
+  },
+
+  onClearDate() {
+    this.setData({ selectedDate: '' })
+    this.filterOrders()
   },
 
   // 刷新选中状态
@@ -197,3 +216,11 @@ Page({
     })
   }
 })
+
+function formatDate(timestamp) {
+  const date = new Date(timestamp)
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}

@@ -43,6 +43,27 @@
   background: #eee;
 }
 
+.date-filter {
+  display: flex;
+  align-items: center;
+  margin: 0 20rpx 18rpx;
+}
+
+.date-picker {
+  padding: 14rpx 22rpx;
+  border-radius: 28rpx;
+  background: #fff;
+  color: #666;
+  font-size: 25rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.03);
+}
+
+.clear-date {
+  margin-left: 18rpx;
+  color: #ff6b35;
+  font-size: 25rpx;
+}
+
 /* Tab 切换 */
 .tabs {
   display: flex;
@@ -143,7 +164,7 @@
 
 /* 订单列表 */
 .order-list {
-  height: calc(100vh - 240rpx);
+  height: calc(100vh - 320rpx);
   padding: 0 20rpx;
 }
 

@@ -12,8 +12,15 @@
     </view>
   </view>
 
+  <view class="date-filter" wx:if="{{!selectMode}}">
+    <picker mode="date" value="{{selectedDate}}" end="{{today}}" bindchange="onDateChange">
+      <view class="date-picker">{{selectedDate || '按日期查看记录'}}</view>
+    </picker>
+    <text class="clear-date" wx:if="{{selectedDate}}" bindtap="onClearDate">查看全部</text>
+  </view>
+
   <!-- 选择模式顶部栏 -->
-  <view class="select-bar" wx:else>
+  <view class="select-bar" wx:if="{{selectMode}}">
     <view class="select-left">
       <view class="checkbox-wrap {{isAllSelected ? 'checked' : ''}}" bindtap="onToggleSelectAll">
         <text class="{{isAllSelected ? 'check-icon' : 'uncheck-icon'}}">{{isAllSelected ? '✓' : '○'}}</text>
@@ -29,7 +36,7 @@
     <!-- 空状态 -->
     <view class="empty-orders" wx:if="{{displayOrders.length === 0}}">
       <text class="empty-icon-2">📋</text>
-      <text class="empty-text-2">暂无饮食记录</text>
+      <text class="empty-text-2">{{selectedDate ? '当天暂无饮食记录' : '暂无饮食记录'}}</text>
       <text class="empty-sub-2">去挑选今天想做的菜吧~</text>
     </view>
 
