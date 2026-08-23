@@ -29,7 +29,7 @@
 
   <view class="life-record-card" wx:if="{{selectedLifeRecords.length > 0}}">
     <text class="life-record-title">📝 当天完成的生活清单</text>
-    <text class="life-record-item" wx:for="{{selectedLifeRecords}}" wx:key="id">{{item.title}}</text>
+    <view class="life-record-item" wx:for="{{selectedLifeRecords}}" wx:key="id" bindtap="onLifeRecordTap" data-id="{{item.id}}"><text>{{item.title}}</text><text>查看 ›</text></view>
   </view>
 
   <!-- 选择模式顶部栏 -->

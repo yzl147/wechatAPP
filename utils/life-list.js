@@ -124,7 +124,12 @@ function toDisplayList(list) {
     const completedAt = Date.now()
     const lists = getLists().map(item => item.id === list.id ? { ...item, lastCompletedAt: completedAt, updatedAt: completedAt } : item)
     saveLists(lists)
-    addCompletionHistory({ listId: list.id, title: list.title, completedAt })
+    addCompletionHistory({
+      listId: list.id,
+      title: list.title,
+      completedAt,
+      items: list.items.map(item => item.text)
+    })
     list = lists.find(item => item.id === list.id)
   }
   return {
@@ -153,4 +158,8 @@ function getCompletionHistory() {
   return Array.isArray(history) ? history : []
 }
 
-module.exports = { createList, getList, getDisplayLists, toggleItem, addItem, removeItem, removeList, getCustomTemplates, saveAsTemplate, getCompletionHistory }
+function getCompletionRecord(id) {
+  return getCompletionHistory().find(item => item.id === id) || null
+}
+
+module.exports = { createList, getList, getDisplayLists, toggleItem, addItem, removeItem, removeList, getCustomTemplates, saveAsTemplate, getCompletionHistory, getCompletionRecord }

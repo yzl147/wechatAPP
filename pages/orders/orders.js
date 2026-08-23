@@ -112,6 +112,10 @@ Page({
     this.buildCalendar()
   },
 
+  onLifeRecordTap(e) {
+    wx.navigateTo({ url: `/pages/life-completion-detail/life-completion-detail?id=${e.currentTarget.dataset.id}` })
+  },
+
   buildCalendar() {
     if (this.calendarYear === undefined) return
     const recordDates = new Set(this.data.allOrders.map(item => formatDate(item.orderTime)))
