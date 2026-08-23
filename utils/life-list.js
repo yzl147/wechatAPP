@@ -1,5 +1,6 @@
 const STORAGE_KEY = 'life_checklists'
 const TEMPLATE_STORAGE_KEY = 'life_list_custom_templates'
+const HISTORY_STORAGE_KEY = 'life_list_completion_history'
 
 function getLists() {
   const lists = wx.getStorageSync(STORAGE_KEY)
@@ -119,9 +120,11 @@ function toDisplayList(list) {
   if (!list) return null
   const doneCount = list.items.filter(item => item.done).length
   const isCompleted = list.items.length > 0 && doneCount === list.items.length
-  if (isCompleted && list.repeat && list.repeat !== 'none' && !list.lastCompletedAt) {
-    const lists = getLists().map(item => item.id === list.id ? { ...item, lastCompletedAt: Date.now(), updatedAt: Date.now() } : item)
+  if (isCompleted && !list.lastCompletedAt) {
+    const completedAt = Date.now()
+    const lists = getLists().map(item => item.id === list.id ? { ...item, lastCompletedAt: completedAt, updatedAt: completedAt } : item)
     saveLists(lists)
+    addCompletionHistory({ listId: list.id, title: list.title, completedAt })
     list = lists.find(item => item.id === list.id)
   }
   return {
@@ -139,4 +142,15 @@ function formatDate(timestamp) {
   return `${date.getMonth() + 1}-${date.getDate()}`
 }
 
-module.exports = { createList, getList, getDisplayLists, toggleItem, addItem, removeItem, removeList, getCustomTemplates, saveAsTemplate }
+function addCompletionHistory(record) {
+  const history = getCompletionHistory()
+  history.unshift({ id: `${record.completedAt}-${record.listId}`, ...record })
+  wx.setStorageSync(HISTORY_STORAGE_KEY, history.slice(0, 200))
+}
+
+function getCompletionHistory() {
+  const history = wx.getStorageSync(HISTORY_STORAGE_KEY)
+  return Array.isArray(history) ? history : []
+}
+
+module.exports = { createList, getList, getDisplayLists, toggleItem, addItem, removeItem, removeList, getCustomTemplates, saveAsTemplate, getCompletionHistory }

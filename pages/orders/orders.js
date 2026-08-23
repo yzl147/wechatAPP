@@ -1,4 +1,5 @@
 const orderUtil = require('../../utils/order')
+const lifeListUtil = require('../../utils/life-list')
 
 Page({
   data: {
@@ -9,6 +10,7 @@ Page({
     monthTitle: '',
     calendarDays: [],
     weekDays: ['日', '一', '二', '三', '四', '五', '六'],
+    selectedLifeRecords: [],
     summary: {
       total: 0,
       pendingCount: 0,
@@ -113,6 +115,8 @@ Page({
   buildCalendar() {
     if (this.calendarYear === undefined) return
     const recordDates = new Set(this.data.allOrders.map(item => formatDate(item.orderTime)))
+    const lifeHistory = lifeListUtil.getCompletionHistory()
+    const lifeRecordDates = new Set(lifeHistory.map(item => formatDate(item.completedAt)))
     const firstDay = new Date(this.calendarYear, this.calendarMonth, 1).getDay()
     const daysInMonth = new Date(this.calendarYear, this.calendarMonth + 1, 0).getDate()
     const today = formatDate(Date.now())
@@ -129,6 +133,7 @@ Page({
         day,
         date,
         hasRecord: recordDates.has(date),
+        hasLifeRecord: lifeRecordDates.has(date),
         isToday: date === today,
         isSelected: date === this.data.selectedDate
       })
@@ -136,7 +141,10 @@ Page({
     this.setData({
       monthTitle: `${this.calendarYear}年${this.calendarMonth + 1}月`,
       calendarDays,
-      calendarHint: this.data.selectedDate ? `正在查看 ${this.data.selectedDate}` : '橙色日期表示已有饮食记录'
+      calendarHint: this.data.selectedDate ? `正在查看 ${this.data.selectedDate}` : '橙色表示饮食记录，蓝框表示完成生活清单',
+      selectedLifeRecords: this.data.selectedDate
+        ? lifeHistory.filter(item => formatDate(item.completedAt) === this.data.selectedDate)
+        : []
     })
   },
 

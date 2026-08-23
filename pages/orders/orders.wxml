@@ -20,11 +20,16 @@
     </view>
     <view class="week-row"><text wx:for="{{weekDays}}" wx:key="*this">{{item}}</text></view>
     <view class="day-grid">
-      <view class="day-cell {{item.hasRecord ? 'has-record' : ''}} {{item.isSelected ? 'selected' : ''}} {{item.isToday ? 'today' : ''}}" wx:for="{{calendarDays}}" wx:key="key" bindtap="onCalendarDateTap" data-date="{{item.date}}">
+      <view class="day-cell {{item.hasRecord ? 'has-record' : ''}} {{item.hasLifeRecord ? 'has-life-record' : ''}} {{item.isSelected ? 'selected' : ''}} {{item.isToday ? 'today' : ''}}" wx:for="{{calendarDays}}" wx:key="key" bindtap="onCalendarDateTap" data-date="{{item.date}}">
         <text>{{item.day}}</text>
       </view>
     </view>
     <view class="calendar-footer"><text>{{calendarHint}}</text><text wx:if="{{selectedDate}}" bindtap="onClearDate">查看全部</text></view>
+  </view>
+
+  <view class="life-record-card" wx:if="{{selectedLifeRecords.length > 0}}">
+    <text class="life-record-title">📝 当天完成的生活清单</text>
+    <text class="life-record-item" wx:for="{{selectedLifeRecords}}" wx:key="id">{{item.title}}</text>
   </view>
 
   <!-- 选择模式顶部栏 -->
