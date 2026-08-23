@@ -1,0 +1,19 @@
+<view class="stats-page">
+  <view class="hero-card"><text class="hero-month">{{monthLabel}}回顾</text><text class="hero-text">把完成过的小事，变成看得见的日常</text></view>
+
+  <view class="section-title">饮食记录</view>
+  <view class="metric-row">
+    <view class="metric-card"><text class="metric-num">{{mealDays}}</text><text>次饮食记录</text></view>
+    <view class="metric-card"><text class="metric-num">{{dishCount}}</text><text>道不同菜品</text></view>
+  </view>
+
+  <view class="section-title">常做菜</view>
+  <view class="panel empty-panel" wx:if="{{topDishes.length === 0}}">这个月还没有饮食记录</view>
+  <view class="panel" wx:else>
+    <view class="dish-row" wx:for="{{topDishes}}" wx:key="name"><text class="dish-rank">{{index + 1}}</text><text class="dish-name">{{item.name}}</text><text class="dish-count">做了 {{item.count}} 份</text></view>
+  </view>
+
+  <view class="section-title">日常提醒</view>
+  <view class="panel reminder-panel"><view><text class="reminder-title">🥬 临期食材</text><text class="reminder-tip">过期和三天内到期的食材</text></view><text class="reminder-num {{expiringCount ? 'warn' : ''}}">{{expiringCount}}</text></view>
+  <view class="panel reminder-panel"><view><text class="reminder-title">📝 生活清单</text><text class="reminder-tip">当前清单已完成项目</text></view><text class="reminder-num">{{lifeDoneCount}} / {{lifeTotalCount}}</text></view>
+</view>

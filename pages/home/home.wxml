@@ -26,4 +26,5 @@
   </view>
 
   <view class="record-entry" bindtap="goToRecords"><text>🗓️ 回顾饮食记录</text><text>›</text></view>
+  <view class="stats-entry" bindtap="goToStats"><text>📊 查看本月回顾</text><text>›</text></view>
 </view>

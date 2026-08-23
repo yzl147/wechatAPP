@@ -22,5 +22,6 @@ Page({
 
   goToMealList() { wx.switchTab({ url: '/pages/cart/cart' }) },
   goToLifeLists() { wx.navigateTo({ url: '/pages/life-lists/life-lists' }) },
-  goToRecords() { wx.switchTab({ url: '/pages/orders/orders' }) }
+  goToRecords() { wx.switchTab({ url: '/pages/orders/orders' }) },
+  goToStats() { wx.navigateTo({ url: '/pages/stats/stats' }) }
 })
