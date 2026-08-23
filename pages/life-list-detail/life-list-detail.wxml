@@ -1,0 +1,10 @@
+<view class="detail-page" wx:if="{{list}}">
+  <view class="progress-card"><text class="progress-num">{{list.doneCount}} / {{list.totalCount}}</text><text>已完成项目</text></view>
+  <view class="add-row"><input placeholder="添加一个项目" value="{{newItem}}" bindinput="onNewItemInput" confirm-type="done" bindconfirm="onAddItem" /><text bindtap="onAddItem">添加</text></view>
+  <view class="item-card {{item.done ? 'done' : ''}}" wx:for="{{list.items}}" wx:key="id">
+    <view class="item-check" bindtap="onToggleItem" data-id="{{item.id}}">{{item.done ? '✓' : ''}}</view>
+    <text class="item-text" bindtap="onToggleItem" data-id="{{item.id}}">{{item.text}}</text>
+    <text class="remove" bindtap="onRemoveItem" data-id="{{item.id}}">×</text>
+  </view>
+  <view class="delete-list" bindtap="onDeleteList">删除这张清单</view>
+</view>

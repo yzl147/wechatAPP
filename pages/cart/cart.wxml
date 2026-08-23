@@ -7,6 +7,7 @@
     <view class="go-shop" bindtap="goToIndex">
       <text>去选菜</text>
     </view>
+    <view class="empty-life-entry" bindtap="goToLifeLists">📝 管理生活清单</view>
   </view>
 
   <!-- 购物车内容 -->
@@ -21,6 +22,14 @@
       <view>
         <text class="shopping-entry-title">🧺 食材采购清单</text>
         <text class="shopping-entry-tip">勾选家里已有的食材，查看还需要买什么</text>
+      </view>
+      <text class="shopping-entry-arrow">›</text>
+    </view>
+
+    <view class="life-list-entry" bindtap="goToLifeLists">
+      <view>
+        <text class="life-list-title">📝 生活清单</text>
+        <text class="life-list-tip">家务、出行和自定义待办</text>
       </view>
       <text class="shopping-entry-arrow">›</text>
     </view>

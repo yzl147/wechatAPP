@@ -3,6 +3,8 @@
     "pages/index/index",
     "pages/detail/detail",
     "pages/cart/cart",
+    "pages/life-lists/life-lists",
+    "pages/life-list-detail/life-list-detail",
     "pages/shopping-list/shopping-list",
     "pages/inventory/inventory",
     "pages/order-detail/order-detail",

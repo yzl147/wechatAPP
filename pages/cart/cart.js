@@ -109,6 +109,10 @@ Page({
     wx.navigateTo({ url: '/pages/shopping-list/shopping-list' })
   },
 
+  goToLifeLists() {
+    wx.navigateTo({ url: '/pages/life-lists/life-lists' })
+  },
+
   // 提交订单
   async submitOrder() {
     const { cartList } = this.data

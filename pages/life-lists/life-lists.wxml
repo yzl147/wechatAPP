@@ -1,0 +1,23 @@
+<view class="lists-page">
+  <view class="create-card">
+    <text class="create-title">新建清单</text>
+    <input class="title-input" placeholder="例如：周末大扫除" value="{{title}}" bindinput="onTitleInput" maxlength="20" />
+    <textarea class="items-input" placeholder="清单项目（每行一项，可选）" value="{{itemsText}}" bindinput="onItemsInput" maxlength="300" auto-height />
+    <view class="create-btn" bindtap="onCreateList">创建清单</view>
+  </view>
+
+  <view class="section-title">常用模板</view>
+  <view class="template-row">
+    <view class="template-card" bindtap="onUseTemplate" data-index="0"><text>🧹</text><text>家务清单</text></view>
+    <view class="template-card" bindtap="onUseTemplate" data-index="1"><text>🧳</text><text>出行准备</text></view>
+  </view>
+
+  <view class="section-title">我的清单</view>
+  <view class="empty-state" wx:if="{{lists.length === 0}}">暂时还没有生活清单</view>
+  <block wx:if="{{lists.length > 0}}">
+    <view class="list-card" wx:for="{{lists}}" wx:key="id" bindtap="onListTap" data-id="{{item.id}}">
+      <view><text class="list-name">{{item.title}}</text><text class="list-progress">已完成 {{item.doneCount}} / {{item.totalCount}} 项</text></view>
+      <text class="arrow">›</text>
+    </view>
+  </block>
+</view>
