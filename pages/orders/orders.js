@@ -6,6 +6,9 @@ Page({
     displayOrders: [],
     selectedDate: '',
     today: '',
+    monthTitle: '',
+    calendarDays: [],
+    weekDays: ['日', '一', '二', '三', '四', '五', '六'],
     summary: {
       total: 0,
       pendingCount: 0,
@@ -20,7 +23,11 @@ Page({
   },
 
   onLoad() {
+    const now = new Date()
+    this.calendarYear = now.getFullYear()
+    this.calendarMonth = now.getMonth()
     this.setData({ today: formatDate(Date.now()) })
+    this.buildCalendar()
   },
 
   onShow() {
@@ -40,6 +47,7 @@ Page({
         displayOrders: list,
         summary
       })
+      this.buildCalendar()
       this.filterOrders()
     } catch (e) {
       console.error('加载饮食记录失败', e)
@@ -71,6 +79,65 @@ Page({
   onClearDate() {
     this.setData({ selectedDate: '' })
     this.filterOrders()
+    this.buildCalendar()
+  },
+
+  onPreviousMonth() {
+    this.calendarMonth -= 1
+    if (this.calendarMonth < 0) {
+      this.calendarMonth = 11
+      this.calendarYear -= 1
+    }
+    this.buildCalendar()
+  },
+
+  onNextMonth() {
+    const now = new Date()
+    if (this.calendarYear === now.getFullYear() && this.calendarMonth === now.getMonth()) return
+    this.calendarMonth += 1
+    if (this.calendarMonth > 11) {
+      this.calendarMonth = 0
+      this.calendarYear += 1
+    }
+    this.buildCalendar()
+  },
+
+  onCalendarDateTap(e) {
+    const date = e.currentTarget.dataset.date
+    if (!date) return
+    this.setData({ selectedDate: date })
+    this.filterOrders()
+    this.buildCalendar()
+  },
+
+  buildCalendar() {
+    if (this.calendarYear === undefined) return
+    const recordDates = new Set(this.data.allOrders.map(item => formatDate(item.orderTime)))
+    const firstDay = new Date(this.calendarYear, this.calendarMonth, 1).getDay()
+    const daysInMonth = new Date(this.calendarYear, this.calendarMonth + 1, 0).getDate()
+    const today = formatDate(Date.now())
+    const calendarDays = []
+    for (let index = 0; index < firstDay + daysInMonth; index += 1) {
+      if (index < firstDay) {
+        calendarDays.push({ key: `empty-${index}`, day: '', date: '' })
+        continue
+      }
+      const day = index - firstDay + 1
+      const date = `${this.calendarYear}-${String(this.calendarMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+      calendarDays.push({
+        key: date,
+        day,
+        date,
+        hasRecord: recordDates.has(date),
+        isToday: date === today,
+        isSelected: date === this.data.selectedDate
+      })
+    }
+    this.setData({
+      monthTitle: `${this.calendarYear}年${this.calendarMonth + 1}月`,
+      calendarDays,
+      calendarHint: this.data.selectedDate ? `正在查看 ${this.data.selectedDate}` : '橙色日期表示已有饮食记录'
+    })
   },
 
   // 刷新选中状态

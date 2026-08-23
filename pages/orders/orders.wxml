@@ -12,11 +12,19 @@
     </view>
   </view>
 
-  <view class="date-filter" wx:if="{{!selectMode}}">
-    <picker mode="date" value="{{selectedDate}}" end="{{today}}" bindchange="onDateChange">
-      <view class="date-picker">{{selectedDate || '按日期查看记录'}}</view>
-    </picker>
-    <text class="clear-date" wx:if="{{selectedDate}}" bindtap="onClearDate">查看全部</text>
+  <view class="calendar-card" wx:if="{{!selectMode}}">
+    <view class="calendar-header">
+      <text class="month-change" bindtap="onPreviousMonth">‹</text>
+      <text class="month-title">{{monthTitle}}</text>
+      <text class="month-change" bindtap="onNextMonth">›</text>
+    </view>
+    <view class="week-row"><text wx:for="{{weekDays}}" wx:key="*this">{{item}}</text></view>
+    <view class="day-grid">
+      <view class="day-cell {{item.hasRecord ? 'has-record' : ''}} {{item.isSelected ? 'selected' : ''}} {{item.isToday ? 'today' : ''}}" wx:for="{{calendarDays}}" wx:key="key" bindtap="onCalendarDateTap" data-date="{{item.date}}">
+        <text>{{item.day}}</text>
+      </view>
+    </view>
+    <view class="calendar-footer"><text>{{calendarHint}}</text><text wx:if="{{selectedDate}}" bindtap="onClearDate">查看全部</text></view>
   </view>
 
   <!-- 选择模式顶部栏 -->

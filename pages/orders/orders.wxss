@@ -43,26 +43,7 @@
   background: #eee;
 }
 
-.date-filter {
-  display: flex;
-  align-items: center;
-  margin: 0 20rpx 18rpx;
-}
-
-.date-picker {
-  padding: 14rpx 22rpx;
-  border-radius: 28rpx;
-  background: #fff;
-  color: #666;
-  font-size: 25rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.03);
-}
-
-.clear-date {
-  margin-left: 18rpx;
-  color: #ff6b35;
-  font-size: 25rpx;
-}
+.calendar-card { margin: 0 20rpx 18rpx; padding: 18rpx 16rpx 14rpx; border-radius: 20rpx; background: #fff; box-shadow: 0 3rpx 14rpx rgba(0, 0, 0, 0.03); }.calendar-header { display: flex; align-items: center; justify-content: space-between; padding: 0 12rpx 12rpx; }.month-title { font-size: 28rpx; font-weight: 700; color: #333; }.month-change { width: 52rpx; text-align: center; color: #ff6b35; font-size: 42rpx; line-height: 1; }.week-row, .day-grid { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; }.week-row text { padding: 8rpx 0; font-size: 21rpx; color: #aaa; }.day-cell { position: relative; display: flex; align-items: center; justify-content: center; height: 54rpx; margin: 3rpx; border-radius: 50%; font-size: 23rpx; color: #555; }.day-cell.has-record { color: #fff; background: #ff8a5c; }.day-cell.selected { background: #ff5b2d; box-shadow: 0 2rpx 8rpx rgba(255,91,45,.3); }.day-cell.today { border: 1rpx solid #ff6b35; }.calendar-footer { display: flex; justify-content: space-between; margin-top: 12rpx; padding: 10rpx 8rpx 0; border-top: 1rpx solid #f3f3f3; color: #aaa; font-size: 21rpx; }.calendar-footer text:last-child { color: #ff6b35; }
 
 /* Tab 切换 */
 .tabs {
@@ -164,7 +145,7 @@
 
 /* 订单列表 */
 .order-list {
-  height: calc(100vh - 320rpx);
+  height: calc(100vh - 680rpx);
   padding: 0 20rpx;
 }
 
