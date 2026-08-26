@@ -2,9 +2,9 @@ const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 const { MAX_QUANTITY, validateCartEvent } = require('./validation')
+const { runCloudRequest } = require('./runtime')
 
-exports.main = async (event, context) => {
-  const { OPENID } = cloud.getWXContext()
+async function handleRequest(event, OPENID) {
   const { action } = event || {}
   const validationError = validateCartEvent(event)
   if (validationError) return validationError
@@ -115,3 +115,10 @@ exports.main = async (event, context) => {
 
   return { code: -1, message: '未知操作' }
 }
+
+exports.main = (event, context) => runCloudRequest({
+  functionName: 'manageCart',
+  event,
+  getCaller: () => cloud.getWXContext().OPENID,
+  handler: OPENID => handleRequest(event, OPENID)
+})

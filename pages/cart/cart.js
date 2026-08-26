@@ -1,11 +1,13 @@
 const cartUtil = require('../../utils/cart')
 const orderUtil = require('../../utils/order')
+const cloudUtil = require('../../utils/cloud')
 
 Page({
   data: {
     cartList: [],
     totalCount: 0,
-    totalPrice: 0
+    totalPrice: 0,
+    loadStatus: 'loading'
   },
 
   onShow() {
@@ -13,6 +15,8 @@ Page({
   },
 
   async loadCart() {
+    const hasData = this.data.cartList.length > 0
+    if (!hasData) this.setData({ loadStatus: 'loading' })
     try {
       const info = await cartUtil.getCartInfo()
       const list = info.list.map(item => ({
@@ -24,11 +28,20 @@ Page({
       this.setData({
         cartList: list,
         totalCount: info.count,
-        totalPrice: info.total
+        totalPrice: info.total,
+        loadStatus: 'success'
       })
     } catch (e) {
-      console.error('加载购物车失败', e)
+      console.error('加载今日清单失败', e && e.code, e && e.requestId)
+      if (!hasData) this.setData({ loadStatus: 'error' })
+      else this.showError(e, '刷新失败，请重试')
     }
+  },
+
+  onRetryLoad() { this.loadCart() },
+
+  showError(error, fallback) {
+    wx.showToast({ title: cloudUtil.getErrorMessage(error, fallback), icon: 'none' })
   },
 
   // 增加数量
@@ -38,7 +51,7 @@ Page({
       await cartUtil.increaseQuantity(id)
       this.loadCart()
     } catch (e) {
-      console.error('增加数量失败', e)
+      this.showError(e, '增加数量失败，请重试')
     }
   },
 
@@ -49,7 +62,7 @@ Page({
       await cartUtil.decreaseQuantity(id)
       this.loadCart()
     } catch (e) {
-      console.error('减少数量失败', e)
+      this.showError(e, '减少数量失败，请重试')
     }
   },
 
@@ -65,7 +78,7 @@ Page({
             await cartUtil.removeFromCart(id)
             this.loadCart()
           } catch (e) {
-            console.error('删除商品失败', e)
+            this.showError(e, '删除失败，请重试')
           }
         }
       }
@@ -85,7 +98,7 @@ Page({
             this.setData({ cartList: [], totalCount: 0, totalPrice: 0 })
             wx.showToast({ title: '今日清单已清空', icon: 'none' })
           } catch (e) {
-            console.error('清空今日清单失败', e)
+            this.showError(e, '清空失败，请重试')
           }
         }
       }
@@ -122,8 +135,7 @@ Page({
       })
     } catch (e) {
       wx.hideLoading()
-      console.error('保存饮食记录失败', e)
-      wx.showToast({ title: '保存失败，请重试', icon: 'none' })
+      this.showError(e, '保存失败，请重试')
     }
   },
 

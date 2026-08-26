@@ -1,5 +1,6 @@
 const orderUtil = require('../../utils/order')
 const lifeListUtil = require('../../utils/life-list')
+const cloudUtil = require('../../utils/cloud')
 
 Page({
   data: {
@@ -11,6 +12,7 @@ Page({
     calendarDays: [],
     weekDays: ['日', '一', '二', '三', '四', '五', '六'],
     selectedLifeRecords: [],
+    loadStatus: 'loading',
     summary: {
       total: 0,
       pendingCount: 0,
@@ -37,24 +39,33 @@ Page({
   },
 
   async loadOrders() {
+    const hasData = this.data.allOrders.length > 0
+    if (!hasData) this.setData({ loadStatus: 'loading' })
     try {
-      const orders = await orderUtil.getOrders()
+      const [orders, summary] = await Promise.all([
+        orderUtil.getOrders(),
+        orderUtil.getOrderSummary()
+      ])
       const list = orders.map(order => ({
         ...order,
         priceText: order.totalPrice.toFixed(2)
       }))
-      const summary = await orderUtil.getOrderSummary()
       this.setData({
         allOrders: list,
         displayOrders: list,
-        summary
+        summary,
+        loadStatus: 'success'
       })
       this.buildCalendar()
       this.filterOrders()
     } catch (e) {
-      console.error('加载饮食记录失败', e)
+      console.error('加载饮食记录失败', e && e.code, e && e.requestId)
+      if (!hasData) this.setData({ loadStatus: 'error' })
+      else wx.showToast({ title: cloudUtil.getErrorMessage(e, '刷新失败，请重试'), icon: 'none' })
     }
   },
+
+  onRetryLoad() { this.loadOrders() },
 
   // 预计算选中状态
   filterOrders() {
@@ -272,7 +283,7 @@ Page({
             this.onCancelSelect()
             this.loadOrders()
           } catch (e) {
-            console.error('批量删除失败', e)
+            wx.showToast({ title: cloudUtil.getErrorMessage(e, '删除失败，请重试'), icon: 'none' })
           }
         }
       }
@@ -295,7 +306,7 @@ Page({
             this.loadOrders()
             wx.showToast({ title: '已删除', icon: 'none' })
           } catch (e) {
-            console.error('删除订单失败', e)
+            wx.showToast({ title: cloudUtil.getErrorMessage(e, '删除失败，请重试'), icon: 'none' })
           }
         }
       }

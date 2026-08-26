@@ -17,8 +17,13 @@
     </view>
   </scroll-view>
 
-  <!-- 美食列表 -->
-  <view class="food-list">
+  <!-- 菜谱加载状态和列表 -->
+  <view class="page-state" wx:if="{{loadStatus === 'loading'}}">正在加载菜谱...</view>
+  <view class="page-state" wx:elif="{{loadStatus === 'error'}}">
+    <text>菜谱加载失败</text>
+    <button class="retry-btn" bindtap="onRetryLoad">重新加载</button>
+  </view>
+  <view class="food-list" wx:else>
     <view class="food-card" wx:for="{{filteredList}}" wx:key="id" bindtap="onFoodTap" data-id="{{item.id}}">
       <view class="food-image-wrap" catchtap="onPreviewImage" data-url="{{item.image}}">
         <image class="food-image" src="{{item.image}}" mode="aspectFill" lazy-load />
@@ -43,7 +48,7 @@
   </view>
 
   <!-- 空状态 -->
-  <view class="empty" wx:if="{{filteredList.length === 0}}">
+  <view class="empty" wx:if="{{loadStatus === 'success' && filteredList.length === 0}}">
     <text class="empty-text">没有找到相关美食</text>
   </view>
 </view>

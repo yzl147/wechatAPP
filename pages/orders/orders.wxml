@@ -1,4 +1,7 @@
 <view class="orders-page">
+  <view class="page-state" wx:if="{{loadStatus === 'loading'}}">正在加载饮食记录...</view>
+  <view class="page-state" wx:elif="{{loadStatus === 'error'}}"><text>饮食记录加载失败</text><button class="retry-btn" bindtap="onRetryLoad">重新加载</button></view>
+  <block wx:else>
   <!-- 统计卡片 -->
   <view class="stats-card" wx:if="{{!selectMode}}">
     <view class="stat-item">
@@ -108,4 +111,5 @@
   </view>
 
   <view class="bottom-space {{selectMode ? 'with-batch' : ''}}"></view>
+  </block>
 </view>

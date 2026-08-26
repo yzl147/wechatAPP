@@ -1,16 +1,22 @@
 const orderUtil = require('../../utils/order')
 const cartUtil = require('../../utils/cart')
+const cloudUtil = require('../../utils/cloud')
 
 Page({
   data: {
     order: null,
+    orderId: '',
+    loadStatus: 'loading',
     showPush: true,
     fromHistory: false
   },
 
   onLoad(options) {
     if (options.orderId) {
+      this.setData({ orderId: options.orderId })
       this.loadOrderDetail(options.orderId)
+    } else {
+      this.setData({ loadStatus: 'empty' })
     }
     if (options.fromHistory === 'true') {
       this.setData({ fromHistory: true })
@@ -19,12 +25,10 @@ Page({
 
   // 从云端加载订单详情
   async loadOrderDetail(orderId) {
+    this.setData({ loadStatus: 'loading' })
     try {
-      const res = await wx.cloud.callFunction({
-        name: 'manageOrders',
-        data: { action: 'detail', orderId }
-      })
-      const order = res.result.data
+      const result = await cloudUtil.callFunction('manageOrders', { action: 'detail', orderId })
+      const order = result.data
       if (order) {
         const items = order.items.map(item => ({
           ...item,
@@ -39,13 +43,18 @@ Page({
           priceText: order.totalPrice.toFixed(2),
           _timeText: orderUtil.formatTime(order.orderTime)
         }
-        this.setData({ order: orderData })
+        this.setData({ order: orderData, loadStatus: 'success' })
         wx.setNavigationBarTitle({ title: '饮食记录' })
+      } else {
+        this.setData({ order: null, loadStatus: 'empty' })
       }
     } catch (e) {
-      console.error('加载订单详情失败', e)
+      console.error('加载饮食记录详情失败', e && e.code, e && e.requestId)
+      this.setData({ loadStatus: 'error' })
     }
   },
+
+  onRetryLoad() { this.loadOrderDetail(this.data.orderId) },
 
   // 关闭推送提示
   onClosePush() {
@@ -71,7 +80,7 @@ Page({
             })
             wx.showToast({ title: '已标记完成', icon: 'success' })
           } catch (e) {
-            console.error('标记完成失败', e)
+            wx.showToast({ title: cloudUtil.getErrorMessage(e, '操作失败，请重试'), icon: 'none' })
           }
         }
       }
@@ -98,8 +107,7 @@ Page({
       wx.showToast({ title: '已加入今日清单', icon: 'success' })
     } catch (e) {
       wx.hideLoading()
-      console.error('复用饮食记录失败', e)
-      wx.showToast({ title: '加入失败，请重试', icon: 'none' })
+      wx.showToast({ title: cloudUtil.getErrorMessage(e, '加入失败，请重试'), icon: 'none' })
     }
   },
 
@@ -120,7 +128,7 @@ Page({
               wx.switchTab({ url: '/pages/orders/orders' })
             }, 800)
           } catch (e) {
-            console.error('删除订单失败', e)
+            wx.showToast({ title: cloudUtil.getErrorMessage(e, '删除失败，请重试'), icon: 'none' })
           }
         }
       }

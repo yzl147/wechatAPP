@@ -410,3 +410,6 @@
 }
 
 .quick-meal-entry { display: flex; align-items: center; justify-content: space-between; margin: 0 20rpx 16rpx; padding: 22rpx 24rpx; border-radius: 18rpx; background: #fff4ec; }.quick-meal-title, .quick-meal-tip { display: block; }.quick-meal-title { color: #d95f25; font-size: 28rpx; font-weight: 700; }.quick-meal-tip { margin-top: 7rpx; color: #b58b73; font-size: 22rpx; }.quick-meal-arrow { color: #d95f25; font-size: 38rpx; }.oci-icon { display: flex; align-items: center; justify-content: center; width: 36rpx; height: 36rpx; margin-right: 10rpx; border-radius: 6rpx; background: #fff3ea; font-size: 22rpx; flex-shrink: 0; }
+.page-state { display: flex; flex-direction: column; align-items: center; padding: 180rpx 32rpx; color: #999; font-size: 28rpx; }
+.retry-btn { margin-top: 28rpx; padding: 0 36rpx; color: #ff6b35; border: 1rpx solid #ff6b35; border-radius: 32rpx; background: #fff; font-size: 26rpx; line-height: 60rpx; }
+.retry-btn::after { border: 0; }

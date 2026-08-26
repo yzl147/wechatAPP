@@ -1,12 +1,12 @@
 <view class="detail-page">
-  <!-- 订单不存在 -->
-  <view class="empty-order" wx:if="{{!order}}">
+  <!-- 详情加载状态、空状态和内容 -->
+  <view class="detail-state" wx:if="{{loadStatus === 'loading'}}">正在加载饮食记录...</view>
+  <view class="detail-state" wx:elif="{{loadStatus === 'error'}}"><text>饮食记录加载失败</text><button class="retry-btn" bindtap="onRetryLoad">重新加载</button></view>
+  <view class="empty-order" wx:elif="{{loadStatus === 'empty'}}">
     <text class="empty-icon">📋</text>
     <text class="empty-text">记录不存在</text>
     <view class="btn-back" bindtap="goToIndex">返回首页</view>
   </view>
-
-  <!-- 订单内容 -->
   <block wx:else>
     <view class="status-section" style="background: linear-gradient(135deg, #26de81, #20bf6b);">
       <text class="status-icon">🍽️</text>

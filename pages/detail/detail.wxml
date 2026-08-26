@@ -1,4 +1,8 @@
-<scroll-view scroll-y class="detail-page" enhanced show-scrollbar="{{false}}">
+<view class="detail-root">
+<view class="detail-state" wx:if="{{loadStatus === 'loading'}}">正在加载菜谱...</view>
+<view class="detail-state" wx:elif="{{loadStatus === 'error'}}"><text>菜谱加载失败</text><button class="retry-btn" bindtap="onRetryLoad">重新加载</button></view>
+<view class="detail-state" wx:elif="{{loadStatus === 'empty'}}">菜谱不存在或已被删除</view>
+<scroll-view wx:else scroll-y class="detail-page" enhanced show-scrollbar="{{false}}">
   <!-- 头部大图区 -->
   <view class="hero-section" bindtap="onPreviewImage">
     <image class="hero-bg" src="{{food.image}}" mode="aspectFill" />
@@ -71,3 +75,4 @@
   <!-- 底部占位 -->
   <view class="bottom-space"></view>
 </scroll-view>
+</view>

@@ -1,5 +1,6 @@
 const cartUtil = require('../../utils/cart')
 const favoriteUtil = require('../../utils/favorite')
+const cloudUtil = require('../../utils/cloud')
 
 Page({
   data: {
@@ -9,7 +10,7 @@ Page({
     filteredList: [],
     favoriteIds: [],
     cartCount: 0,
-    loading: true
+    loadStatus: 'loading'
   },
 
   // 全量菜品数据（用于筛选）
@@ -28,20 +29,20 @@ Page({
 
   // 从云端加载菜品
   async loadDishes() {
+    this.setData({ loadStatus: 'loading' })
     try {
-      const res = await wx.cloud.callFunction({
-        name: 'manageDishes',
-        data: { action: 'list' }
-      })
-      const dishes = res.result.data || []
+      const result = await cloudUtil.callFunction('manageDishes', { action: 'list' })
+      const dishes = result.data || []
       this._allDishes = dishes
-      this.setData({ loading: false })
+      this.setData({ loadStatus: 'success' })
       this.filterFoods()
     } catch (e) {
-      console.error('加载菜品失败', e)
-      this.setData({ loading: false })
+      console.error('加载菜品失败', e && e.code, e && e.requestId)
+      this.setData({ loadStatus: 'error' })
     }
   },
+
+  onRetryLoad() { this.loadDishes() },
 
   async loadFavorites() {
     try {
@@ -133,7 +134,7 @@ Page({
         icon: 'none'
       })
     } catch (e) {
-      console.error('加入今日清单失败', e)
+      wx.showToast({ title: cloudUtil.getErrorMessage(e, '加入失败，请重试'), icon: 'none' })
     }
   }
 })

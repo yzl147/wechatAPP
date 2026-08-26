@@ -10,7 +10,9 @@
     <view class="scene-content">
       <text class="scene-title">饮食清单</text>
       <text class="scene-desc">选菜、准备食材、记录今天吃什么</text>
-      <text class="scene-status">{{mealCount ? '今日已选 ' + mealCount + ' 份' : '去挑选今天想做的菜'}}</text>
+      <text class="scene-status" wx:if="{{mealLoadStatus === 'loading'}}">正在加载...</text>
+      <text class="scene-status status-error" wx:elif="{{mealLoadStatus === 'error'}}" catchtap="retryMealOverview">加载失败，点此重试</text>
+      <text class="scene-status" wx:else>{{mealCount ? '今日已选 ' + mealCount + ' 份' : '去挑选今天想做的菜'}}</text>
     </view>
     <text class="scene-arrow">›</text>
   </view>
@@ -20,7 +22,9 @@
     <view class="scene-content">
       <text class="scene-title">生活清单</text>
       <text class="scene-desc">家务、出行和属于自己的日常待办</text>
-      <text class="scene-status">{{lifeListCount ? '还有 ' + unfinishedCount + ' 项等待完成' : '创建第一张生活清单'}}</text>
+      <text class="scene-status" wx:if="{{lifeLoadStatus === 'loading'}}">正在加载...</text>
+      <text class="scene-status status-error" wx:elif="{{lifeLoadStatus === 'error'}}" catchtap="retryLifeOverview">加载失败，点此重试</text>
+      <text class="scene-status" wx:else>{{lifeListCount ? '还有 ' + unfinishedCount + ' 项等待完成' : '创建第一张生活清单'}}</text>
     </view>
     <text class="scene-arrow">›</text>
   </view>

@@ -5,6 +5,7 @@ const _ = db.command
 const { getForbiddenActionResponse, maskIdentifier } = require('./security')
 const { ensureDishesInitialized } = require('./initializer')
 const { validateDishEvent } = require('./validation')
+const { runCloudRequest } = require('./runtime')
 
 // 菜品图片映射（云存储路径）
 const DISH_IMAGES = {
@@ -35,12 +36,11 @@ const INIT_DISHES = require('./data/foods').map(food => ({
   ...food,
   image: DISH_IMAGES[food.id]
 }))
-exports.main = async (event, context) => {
+async function handleRequest(event, OPENID) {
   const { action } = event || {}
 
   const forbiddenResponse = getForbiddenActionResponse(action)
   if (forbiddenResponse) {
-    const { OPENID } = cloud.getWXContext()
     console.warn('[manageDishes] 已拦截客户端管理操作', {
       action,
       caller: maskIdentifier(OPENID)
@@ -71,3 +71,10 @@ exports.main = async (event, context) => {
 
   return { code: -1, message: '未知操作' }
 }
+
+exports.main = (event, context) => runCloudRequest({
+  functionName: 'manageDishes',
+  event,
+  getCaller: () => cloud.getWXContext().OPENID,
+  handler: OPENID => handleRequest(event, OPENID)
+})

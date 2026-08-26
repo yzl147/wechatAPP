@@ -1,24 +1,10 @@
-/**
- * 订单管理工具
- * 基于云开发实现，数据存储在云端
- */
+const cloudUtil = require('./cloud')
 
 /**
  * 调用云函数
  */
 function callCloud(action, data = {}) {
-  return wx.cloud.callFunction({
-    name: 'manageOrders',
-    data: { action, ...data }
-  }).then(res => {
-    const result = res.result
-    if (!result || result.code !== 0) {
-      const error = new Error((result && result.message) || '饮食记录操作失败')
-      error.code = result && result.code
-      throw error
-    }
-    return result
-  })
+  return cloudUtil.callFunction('manageOrders', { action, ...data })
 }
 
 /**
