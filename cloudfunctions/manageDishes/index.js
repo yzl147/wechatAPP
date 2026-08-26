@@ -2,6 +2,7 @@ const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 const _ = db.command
+const { getForbiddenActionResponse, maskIdentifier } = require('./security')
 
 // 菜品图片映射（云存储路径）
 const DISH_IMAGES = {
@@ -33,7 +34,17 @@ const INIT_DISHES = require('./data/foods').map(food => ({
   image: DISH_IMAGES[food.id]
 }))
 exports.main = async (event, context) => {
-  const { action } = event
+  const { action } = event || {}
+
+  const forbiddenResponse = getForbiddenActionResponse(action)
+  if (forbiddenResponse) {
+    const { OPENID } = cloud.getWXContext()
+    console.warn('[manageDishes] 已拦截客户端管理操作', {
+      action,
+      caller: maskIdentifier(OPENID)
+    })
+    return forbiddenResponse
+  }
 
   // 获取菜品列表（首次自动初始化数据）
   if (action === 'list') {
@@ -46,17 +57,6 @@ exports.main = async (event, context) => {
       data = result.data
     }
     return { code: 0, data }
-  }
-
-  // 重新初始化（清空旧数据后重新导入）
-  if (action === 'reinit') {
-    const { data: oldData } = await db.collection('dishes').limit(100).get()
-    const delPromises = oldData.map(doc => db.collection('dishes').doc(doc._id).remove())
-    await Promise.all(delPromises)
-    const addPromises = INIT_DISHES.map(dish => db.collection('dishes').add({ data: dish }))
-    await Promise.all(addPromises)
-    const result = await db.collection('dishes').limit(100).get()
-    return { code: 0, data: result.data, message: '重新初始化成功' }
   }
 
   // 获取单个菜品详情
