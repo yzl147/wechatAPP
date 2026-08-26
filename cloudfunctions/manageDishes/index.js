@@ -3,6 +3,7 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 const _ = db.command
 const { getForbiddenActionResponse, maskIdentifier } = require('./security')
+const { ensureDishesInitialized } = require('./initializer')
 
 // 菜品图片映射（云存储路径）
 const DISH_IMAGES = {
@@ -46,13 +47,11 @@ exports.main = async (event, context) => {
     return forbiddenResponse
   }
 
-  // 获取菜品列表（首次自动初始化数据）
+  // 获取菜品列表；空库初始化通过事务保证并发幂等和原子写入
   if (action === 'list') {
     let { data } = await db.collection('dishes').limit(100).get()
     if (data.length === 0) {
-      // 首次查询为空，初始化菜品数据
-      const addPromises = INIT_DISHES.map(dish => db.collection('dishes').add({ data: dish }))
-      await Promise.all(addPromises)
+      await ensureDishesInitialized(db, INIT_DISHES)
       const result = await db.collection('dishes').limit(100).get()
       data = result.data
     }
