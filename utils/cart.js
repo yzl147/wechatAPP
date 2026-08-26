@@ -10,7 +10,15 @@ function callCloud(action, data = {}) {
   return wx.cloud.callFunction({
     name: 'manageCart',
     data: { action, ...data }
-  }).then(res => res.result)
+  }).then(res => {
+    const result = res.result
+    if (!result || result.code !== 0) {
+      const error = new Error((result && result.message) || '今日清单操作失败')
+      error.code = result && result.code
+      throw error
+    }
+    return result
+  })
 }
 
 /**
@@ -44,7 +52,8 @@ function getCartTotal() {
  * 添加商品到购物车
  */
 function addToCart(food, quantity = 1) {
-  return callCloud('add', { food, quantity }).then(() => getCartTotal())
+  const dishId = food && (food.foodId || food.id)
+  return callCloud('add', { dishId, quantity }).then(() => getCartTotal())
 }
 
 /**

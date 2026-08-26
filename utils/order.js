@@ -10,7 +10,15 @@ function callCloud(action, data = {}) {
   return wx.cloud.callFunction({
     name: 'manageOrders',
     data: { action, ...data }
-  }).then(res => res.result)
+  }).then(res => {
+    const result = res.result
+    if (!result || result.code !== 0) {
+      const error = new Error((result && result.message) || '饮食记录操作失败')
+      error.code = result && result.code
+      throw error
+    }
+    return result
+  })
 }
 
 /**
@@ -27,24 +35,14 @@ function getOrders() {
  */
 function createOrder(cartItems, remark = '') {
   const items = cartItems.map(item => ({
-    id: item.foodId || item.id,
-    name: item.name,
-    icon: item.icon,
-    image: item.image,
-    bgStyle: item.bgStyle,
-    brief: item.brief || '',
-    category: item.category || '',
-    ingredients: item.ingredients || [],
-    price: item.price,
-    quantity: item.quantity,
-    subtotal: parseFloat((item.price * item.quantity).toFixed(2))
+    dishId: item.foodId || item.id,
+    quantity: item.quantity
   }))
   return callCloud('create', { items, remark, mealType: 'cook' }).then(res => res.data)
 }
 
 function createExternalMeal({ mealType, venue, dishes, remark = '' }) {
-  const items = [{ id: `meal-${Date.now()}`, name: dishes.trim(), quantity: 1, price: 0, image: '' }]
-  return callCloud('create', { items, remark, mealType, venue: venue.trim() }).then(res => res.data)
+  return callCloud('create', { remark, mealType, venue: venue.trim(), dishes: dishes.trim() }).then(res => res.data)
 }
 
 /**

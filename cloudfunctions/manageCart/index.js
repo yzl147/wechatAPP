@@ -1,11 +1,13 @@
 const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
-const _ = db.command
+const { MAX_QUANTITY, validateCartEvent } = require('./validation')
 
 exports.main = async (event, context) => {
   const { OPENID } = cloud.getWXContext()
-  const { action } = event
+  const { action } = event || {}
+  const validationError = validateCartEvent(event)
+  if (validationError) return validationError
 
   // 获取购物车
   if (action === 'get') {
@@ -24,32 +26,37 @@ exports.main = async (event, context) => {
     return { code: 0, data: { count, total: parseFloat(total.toFixed(2)) } }
   }
 
-  // 添加商品到购物车
+  // 只接收菜谱 ID 和份数，菜谱快照以云数据库为准
   if (action === 'add') {
-    const { food, quantity = 1 } = event
-    const addQuantity = Math.max(1, Number(quantity) || 1)
+    const { dishId, quantity } = event
+    const { data: dishes } = await db.collection('dishes').where({ id: dishId }).limit(1).get()
+    const dish = dishes[0]
+    if (!dish) return { code: 40401, message: '菜谱不存在' }
+
     // 查找是否已存在
     const { data: exist } = await db.collection('carts')
-      .where({ _openid: OPENID, foodId: food.id })
+      .where({ _openid: OPENID, foodId: dishId })
       .get()
     if (exist.length > 0) {
+      const nextQuantity = (Number(exist[0].quantity) || 0) + quantity
+      if (nextQuantity > MAX_QUANTITY) return { code: 40002, message: `每道菜最多 ${MAX_QUANTITY} 份` }
       await db.collection('carts').doc(exist[0]._id).update({
-        data: { quantity: _.inc(addQuantity) }
+        data: { quantity: nextQuantity }
       })
     } else {
       await db.collection('carts').add({
         data: {
           _openid: OPENID,
-          foodId: food.id,
-          name: food.name,
-          icon: food.icon,
-          image: food.image,
-          bgStyle: food.bgStyle,
-          price: food.price || 28,
-          category: food.category,
-          brief: food.brief || '',
-          ingredients: food.ingredients || [],
-          quantity: addQuantity,
+          foodId: dish.id,
+          name: dish.name,
+          icon: dish.icon || '',
+          image: dish.image || '',
+          bgStyle: dish.bgStyle || '',
+          price: Number(dish.price) || 0,
+          category: dish.category || '',
+          brief: dish.brief || '',
+          ingredients: Array.isArray(dish.ingredients) ? dish.ingredients : [],
+          quantity,
           addedTime: Date.now()
         }
       })
@@ -64,8 +71,11 @@ exports.main = async (event, context) => {
       .where({ _openid: OPENID, foodId })
       .get()
     if (exist.length > 0) {
+      if ((Number(exist[0].quantity) || 0) >= MAX_QUANTITY) {
+        return { code: 40002, message: `每道菜最多 ${MAX_QUANTITY} 份` }
+      }
       await db.collection('carts').doc(exist[0]._id).update({
-        data: { quantity: _.inc(1) }
+        data: { quantity: (Number(exist[0].quantity) || 0) + 1 }
       })
     }
     return { code: 0, message: '增加成功' }
@@ -78,11 +88,12 @@ exports.main = async (event, context) => {
       .where({ _openid: OPENID, foodId })
       .get()
     if (exist.length > 0) {
-      if (exist[0].quantity <= 1) {
+      const currentQuantity = Number(exist[0].quantity) || 0
+      if (currentQuantity <= 1) {
         await db.collection('carts').doc(exist[0]._id).remove()
       } else {
         await db.collection('carts').doc(exist[0]._id).update({
-          data: { quantity: _.inc(-1) }
+          data: { quantity: currentQuantity - 1 }
         })
       }
     }

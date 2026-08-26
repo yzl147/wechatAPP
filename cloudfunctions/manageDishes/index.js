@@ -4,6 +4,7 @@ const db = cloud.database()
 const _ = db.command
 const { getForbiddenActionResponse, maskIdentifier } = require('./security')
 const { ensureDishesInitialized } = require('./initializer')
+const { validateDishEvent } = require('./validation')
 
 // 菜品图片映射（云存储路径）
 const DISH_IMAGES = {
@@ -46,6 +47,9 @@ exports.main = async (event, context) => {
     })
     return forbiddenResponse
   }
+
+  const validationError = validateDishEvent(event)
+  if (validationError) return validationError
 
   // 获取菜品列表；空库初始化通过事务保证并发幂等和原子写入
   if (action === 'list') {
