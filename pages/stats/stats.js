@@ -1,6 +1,7 @@
 const orderUtil = require('../../utils/order')
 const inventoryUtil = require('../../utils/inventory')
 const lifeListUtil = require('../../utils/life-list')
+const cloudUtil = require('../../utils/cloud')
 
 Page({
   data: {
@@ -17,10 +18,12 @@ Page({
 
   async loadStats() {
     try {
-      const orders = await orderUtil.getOrders()
       const now = new Date()
+      const startTime = new Date(now.getFullYear(), now.getMonth(), 1).getTime()
+      const endTime = new Date(now.getFullYear(), now.getMonth() + 1, 1).getTime()
+      const orders = await orderUtil.getOrdersInRange(startTime, endTime)
       const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-      const monthOrders = orders.filter(order => formatMonth(order.orderTime) === monthKey)
+      const monthOrders = orders
       const cookOrders = monthOrders.filter(order => !order.mealType || order.mealType === 'cook')
       const dishMap = {}
       cookOrders.forEach(order => (order.items || []).forEach(item => {
@@ -48,8 +51,8 @@ Page({
         lifeCompletionRecords
       })
     } catch (e) {
-      console.error('加载统计数据失败', e)
-      wx.showToast({ title: '加载统计失败', icon: 'none' })
+      console.error('加载统计数据失败', e && e.code, e && e.requestId)
+      wx.showToast({ title: cloudUtil.getErrorMessage(e, '加载统计失败'), icon: 'none' })
     }
   },
 

@@ -2,6 +2,8 @@ const MEAL_TYPES = new Set(['cook', 'dine_out', 'takeout'])
 const MAX_ITEMS = 20
 const MAX_QUANTITY = 20
 const MAX_BATCH_SIZE = 50
+const MAX_LIST_SIZE = 50
+const MAX_RANGE_MS = 32 * 24 * 60 * 60 * 1000
 
 function validationError(message, field) {
   return { code: 40001, message, field }
@@ -13,6 +15,31 @@ function isNonEmptyString(value, maxLength) {
 
 function isOrderId(value) {
   return typeof value === 'string' && /^[A-Za-z0-9_-]{1,40}$/.test(value)
+}
+
+function validateListEvent(event) {
+  if (event.limit !== undefined && (!Number.isInteger(event.limit) || event.limit < 1 || event.limit > MAX_LIST_SIZE)) {
+    return validationError(`每页记录数量必须是 1 到 ${MAX_LIST_SIZE}`, 'limit')
+  }
+  if (event.cursor === undefined || event.cursor === null) return null
+  const cursor = event.cursor
+  if (!cursor || typeof cursor !== 'object' || Array.isArray(cursor) ||
+      !Number.isSafeInteger(cursor.orderTime) || cursor.orderTime < 0 ||
+      typeof cursor.id !== 'string' || !/^[A-Za-z0-9_-]{1,64}$/.test(cursor.id)) {
+    return validationError('分页游标不正确', 'cursor')
+  }
+  return null
+}
+
+function validateRangeEvent(event) {
+  const { startTime, endTime } = event
+  if (!Number.isSafeInteger(startTime) || !Number.isSafeInteger(endTime) || startTime < 0 || endTime <= startTime) {
+    return validationError('日期范围不正确', 'startTime')
+  }
+  if (endTime - startTime > MAX_RANGE_MS) {
+    return validationError('日期范围不能超过 32 天', 'endTime')
+  }
+  return null
 }
 
 function validateOrderIds(orderIds) {
@@ -59,9 +86,11 @@ function validateOrderEvent(event) {
   if (!event || typeof event !== 'object' || Array.isArray(event)) {
     return validationError('请求参数格式不正确', 'event')
   }
-  const actions = ['create', 'list', 'detail', 'updateStatus', 'delete', 'batchComplete', 'batchDelete', 'summary']
+  const actions = ['create', 'list', 'range', 'detail', 'updateStatus', 'delete', 'batchComplete', 'batchDelete', 'summary']
   if (!actions.includes(event.action)) return validationError('操作类型不正确', 'action')
   if (event.action === 'create') return validateCreateEvent(event)
+  if (event.action === 'list') return validateListEvent(event)
+  if (event.action === 'range') return validateRangeEvent(event)
   if (['detail', 'delete'].includes(event.action) && !isOrderId(event.orderId)) {
     return validationError('记录 ID 不正确', 'orderId')
   }

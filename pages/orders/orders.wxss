@@ -413,3 +413,4 @@
 .page-state { display: flex; flex-direction: column; align-items: center; padding: 180rpx 32rpx; color: #999; font-size: 28rpx; }
 .retry-btn { margin-top: 28rpx; padding: 0 36rpx; color: #ff6b35; border: 1rpx solid #ff6b35; border-radius: 32rpx; background: #fff; font-size: 26rpx; line-height: 60rpx; }
 .retry-btn::after { border: 0; }
+.load-more { padding: 18rpx 0 32rpx; text-align: center; color: #aaa; font-size: 22rpx; }

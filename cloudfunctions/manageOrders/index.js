@@ -2,8 +2,10 @@ const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 const _ = db.command
+const $ = db.command.aggregate
 const { validateOrderEvent } = require('./validation')
 const { runCloudRequest } = require('./runtime')
+const { fetchOrderPage, fetchAllOrders } = require('./pagination')
 
 async function handleRequest(event, OPENID) {
   const { action } = event || {}
@@ -72,11 +74,27 @@ async function handleRequest(event, OPENID) {
 
   // 获取当前用户订单列表
   if (action === 'list') {
-    const { data } = await db.collection('orders')
-      .where({ _openid: OPENID })
-      .orderBy('orderTime', 'desc')
-      .limit(100)
-      .get()
+    const page = await fetchOrderPage({
+      collection: db.collection('orders'),
+      command: _,
+      baseCondition: { _openid: OPENID },
+      cursor: event.cursor || null,
+      limit: event.limit
+    })
+    return { code: 0, data: page }
+  }
+
+  // 获取自然月等有限日期范围内的完整记录，不依赖数据库默认查询上限
+  if (action === 'range') {
+    const { startTime, endTime } = event
+    const data = await fetchAllOrders({
+      collection: db.collection('orders'),
+      command: _,
+      baseCondition: {
+        _openid: OPENID,
+        orderTime: _.gte(startTime).and(_.lt(endTime))
+      }
+    })
     return { code: 0, data }
   }
 
@@ -129,14 +147,25 @@ async function handleRequest(event, OPENID) {
 
   // 获取订单统计
   if (action === 'summary') {
-    const { data: orders } = await db.collection('orders').where({ _openid: OPENID }).get()
+    const collection = db.collection('orders')
+    const [countResult, amountResult] = await Promise.all([
+      collection.where({ _openid: OPENID }).count(),
+      collection.aggregate()
+        .match({ _openid: OPENID })
+        .group({ _id: null, totalAmount: $.sum('$totalPrice') })
+        .end()
+    ])
+    const total = countResult.total || 0
+    const totalAmount = amountResult.list && amountResult.list[0]
+      ? Number(amountResult.list[0].totalAmount) || 0
+      : 0
     return {
       code: 0,
       data: {
-        total: orders.length,
+        total,
         pendingCount: 0,
-        completedCount: orders.length,
-        totalAmount: parseFloat(orders.reduce((sum, o) => sum + (o.totalPrice || 0), 0).toFixed(2))
+        completedCount: total,
+        totalAmount: parseFloat(totalAmount.toFixed(2))
       }
     }
   }

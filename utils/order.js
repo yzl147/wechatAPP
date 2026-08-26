@@ -7,11 +7,17 @@ function callCloud(action, data = {}) {
   return cloudUtil.callFunction('manageOrders', { action, ...data })
 }
 
-/**
- * 获取所有订单（倒序，最新在前）
- */
-function getOrders() {
-  return callCloud('list').then(res => res.data || [])
+function getOrderPage({ cursor = null, limit = 20 } = {}) {
+  return callCloud('list', { cursor, limit }).then(res => res.data || {
+    items: [],
+    nextCursor: null,
+    hasMore: false
+  })
+}
+
+/** 获取一个有限日期范围内的完整饮食记录。 */
+function getOrdersInRange(startTime, endTime) {
+  return callCloud('range', { startTime, endTime }).then(res => res.data || [])
 }
 
 /**
@@ -63,7 +69,7 @@ function batchDelete(orderIds) {
  * 获取指定状态的订单
  */
 function getOrdersByStatus(status) {
-  return getOrders().then(orders => orders.filter(o => o.status === status))
+  return getOrderPage().then(page => page.items.filter(o => o.status === status))
 }
 
 /**
@@ -87,7 +93,8 @@ function getOrderSummary() {
 }
 
 module.exports = {
-  getOrders,
+  getOrderPage,
+  getOrdersInRange,
   createOrder,
   createExternalMeal,
   updateOrderStatus,

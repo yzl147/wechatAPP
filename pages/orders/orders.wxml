@@ -50,7 +50,7 @@
   </view>
 
   <!-- 订单列表 -->
-  <scroll-view scroll-y class="order-list {{selectMode ? 'in-select-mode' : ''}}" enhanced show-scrollbar="{{false}}">
+  <scroll-view scroll-y class="order-list {{selectMode ? 'in-select-mode' : ''}}" enhanced show-scrollbar="{{false}}" lower-threshold="120" bindscrolltolower="onLoadMore">
     <!-- 空状态 -->
     <view class="empty-orders" wx:if="{{displayOrders.length === 0}}">
       <text class="empty-icon-2">📋</text>
@@ -101,6 +101,7 @@
         </view>
       </view>
     </view>
+    <view class="load-more" wx:if="{{!selectedDate && displayOrders.length > 0}}">{{loadingMore ? '正在加载更多...' : (hasMore ? '继续上滑加载更多' : '已加载全部记录')}}</view>
   </scroll-view>
 
   <!-- 批量操作底部栏 -->

@@ -5,6 +5,7 @@ const cloudUtil = require('../../utils/cloud')
 Page({
   data: {
     allOrders: [],
+    monthOrders: [],
     displayOrders: [],
     selectedDate: '',
     today: '',
@@ -13,6 +14,9 @@ Page({
     weekDays: ['日', '一', '二', '三', '四', '五', '六'],
     selectedLifeRecords: [],
     loadStatus: 'loading',
+    nextCursor: null,
+    hasMore: true,
+    loadingMore: false,
     summary: {
       total: 0,
       pendingCount: 0,
@@ -35,43 +39,70 @@ Page({
   },
 
   onShow() {
-    this.loadOrders()
+    this.loadOrders(true)
+    this.loadCalendarMonth()
   },
 
-  async loadOrders() {
+  async loadOrders(reset = true) {
+    if (this.data.loadingMore || (!reset && !this.data.hasMore)) return
     const hasData = this.data.allOrders.length > 0
-    if (!hasData) this.setData({ loadStatus: 'loading' })
+    if (reset && !hasData) this.setData({ loadStatus: 'loading' })
+    if (!reset) this.setData({ loadingMore: true })
     try {
-      const [orders, summary] = await Promise.all([
-        orderUtil.getOrders(),
-        orderUtil.getOrderSummary()
-      ])
-      const list = orders.map(order => ({
+      const pagePromise = orderUtil.getOrderPage({
+        cursor: reset ? null : this.data.nextCursor,
+        limit: 20
+      })
+      const [page, summary] = reset
+        ? await Promise.all([pagePromise, orderUtil.getOrderSummary()])
+        : [await pagePromise, null]
+      const incoming = page.items.map(order => ({
         ...order,
         priceText: order.totalPrice.toFixed(2)
       }))
+      const list = reset ? incoming : mergeOrders(this.data.allOrders, incoming)
       this.setData({
         allOrders: list,
         displayOrders: list,
-        summary,
+        ...(summary ? { summary } : {}),
+        nextCursor: page.nextCursor,
+        hasMore: page.hasMore,
+        loadingMore: false,
         loadStatus: 'success'
       })
-      this.buildCalendar()
       this.filterOrders()
     } catch (e) {
       console.error('加载饮食记录失败', e && e.code, e && e.requestId)
+      this.setData({ loadingMore: false })
       if (!hasData) this.setData({ loadStatus: 'error' })
       else wx.showToast({ title: cloudUtil.getErrorMessage(e, '刷新失败，请重试'), icon: 'none' })
     }
   },
 
-  onRetryLoad() { this.loadOrders() },
+  onRetryLoad() { this.loadOrders(true) },
+  onLoadMore() { if (!this.data.selectedDate) this.loadOrders(false) },
+
+  async loadCalendarMonth() {
+    const queryYear = this.calendarYear
+    const queryMonth = this.calendarMonth
+    const { startTime, endTime } = getMonthRange(queryYear, queryMonth)
+    try {
+      const orders = await orderUtil.getOrdersInRange(startTime, endTime)
+      if (queryYear !== this.calendarYear || queryMonth !== this.calendarMonth) return
+      this.setData({ monthOrders: orders })
+      this.buildCalendar()
+      if (this.data.selectedDate) this.filterOrders()
+    } catch (e) {
+      console.error('加载月历记录失败', e && e.code, e && e.requestId)
+      wx.showToast({ title: cloudUtil.getErrorMessage(e, '月历加载失败，请重试'), icon: 'none' })
+    }
+  },
 
   // 预计算选中状态
   filterOrders() {
-    const { allOrders, selectedDate } = this.data
+    const { allOrders, monthOrders, selectedDate } = this.data
     const list = selectedDate
-      ? allOrders.filter(item => formatDate(item.orderTime) === selectedDate)
+      ? monthOrders.filter(item => formatDate(item.orderTime) === selectedDate)
       : allOrders
     const displayList = list.map(item => ({
       ...item,
@@ -104,7 +135,7 @@ Page({
       this.calendarMonth = 11
       this.calendarYear -= 1
     }
-    this.buildCalendar()
+    this.loadCalendarMonth()
   },
 
   onNextMonth() {
@@ -115,7 +146,7 @@ Page({
       this.calendarMonth = 0
       this.calendarYear += 1
     }
-    this.buildCalendar()
+    this.loadCalendarMonth()
   },
 
   onCalendarDateTap(e) {
@@ -136,7 +167,7 @@ Page({
 
   buildCalendar() {
     if (this.calendarYear === undefined) return
-    const recordDates = new Set(this.data.allOrders.map(item => formatDate(item.orderTime)))
+    const recordDates = new Set(this.data.monthOrders.map(item => formatDate(item.orderTime)))
     const lifeHistory = lifeListUtil.getCompletionHistory()
     const lifeRecordDates = new Set(lifeHistory.map(item => formatDate(item.completedAt)))
     const firstDay = new Date(this.calendarYear, this.calendarMonth, 1).getDay()
@@ -281,7 +312,8 @@ Page({
             await orderUtil.batchDelete(selectedIds)
             wx.showToast({ title: `已删除 ${count} 条记录`, icon: 'none' })
             this.onCancelSelect()
-            this.loadOrders()
+            this.loadOrders(true)
+            this.loadCalendarMonth()
           } catch (e) {
             wx.showToast({ title: cloudUtil.getErrorMessage(e, '删除失败，请重试'), icon: 'none' })
           }
@@ -303,7 +335,8 @@ Page({
         if (res.confirm) {
           try {
             await orderUtil.deleteOrder(orderId)
-            this.loadOrders()
+            this.loadOrders(true)
+            this.loadCalendarMonth()
             wx.showToast({ title: '已删除', icon: 'none' })
           } catch (e) {
             wx.showToast({ title: cloudUtil.getErrorMessage(e, '删除失败，请重试'), icon: 'none' })
@@ -328,4 +361,21 @@ function getMealTypeText(type) {
 
 function getMealTypeIcon(type) {
   return { dine_out: '🍜', takeout: '🛵' }[type] || '🍳'
+}
+
+function getMonthRange(year, month) {
+  return {
+    startTime: new Date(year, month, 1).getTime(),
+    endTime: new Date(year, month + 1, 1).getTime()
+  }
+}
+
+function mergeOrders(existing, incoming) {
+  const seen = new Set(existing.map(item => item._id || item.orderId))
+  return existing.concat(incoming.filter(item => {
+    const id = item._id || item.orderId
+    if (seen.has(id)) return false
+    seen.add(id)
+    return true
+  }))
 }

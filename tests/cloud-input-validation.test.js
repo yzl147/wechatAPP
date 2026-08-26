@@ -64,3 +64,16 @@ test('记录操作校验单条 ID、状态枚举和批量上限', () => {
   assert.equal(validateOrderEvent({ action: 'batchDelete', orderIds: ['FO1', 'FO1'] }).code, 40001)
   assert.equal(validateOrderEvent({ action: 'unknown' }).code, 40001)
 })
+
+test('饮食记录分页和日期范围参数受到限制', () => {
+  const cursor = { orderTime: 1787702400000, id: 'document_id_001' }
+  assert.equal(validateOrderEvent({ action: 'list', limit: 20, cursor }), null)
+  assert.equal(validateOrderEvent({ action: 'list', limit: 51 }).code, 40001)
+  assert.equal(validateOrderEvent({ action: 'list', cursor: { orderTime: 'bad', id: 'id' } }).code, 40001)
+
+  const startTime = new Date(2026, 7, 1).getTime()
+  const endTime = new Date(2026, 8, 1).getTime()
+  assert.equal(validateOrderEvent({ action: 'range', startTime, endTime }), null)
+  assert.equal(validateOrderEvent({ action: 'range', startTime: endTime, endTime: startTime }).code, 40001)
+  assert.equal(validateOrderEvent({ action: 'range', startTime, endTime: startTime + 33 * 86400000 }).code, 40001)
+})
