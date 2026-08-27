@@ -1,4 +1,6 @@
-const KINDS = new Set(['life', 'inventory', 'favorites', 'shopping'])
+const { createDefaultCandidates } = require('./candidate-defaults')
+
+const KINDS = new Set(['life', 'inventory', 'favorites', 'shopping', 'mealCandidates'])
 
 function mergeById(cloudItems, localItems, getTime = item => item.updatedAt || item.createdAt || 0) {
   const merged = new Map()
@@ -14,6 +16,7 @@ function mergeData(kind, cloudData, localData) {
   if (kind === 'inventory') return mergeById(cloudData, localData)
   if (kind === 'favorites') return Array.from(new Set([...(cloudData || []), ...(localData || [])]))
   if (kind === 'shopping') return { ...(cloudData || {}), ...(localData || {}) }
+  if (kind === 'mealCandidates') return mergeById(cloudData, localData)
   return {
     lists: mergeById(cloudData && cloudData.lists, localData && localData.lists),
     templates: mergeById(cloudData && cloudData.templates, localData && localData.templates),
@@ -26,6 +29,7 @@ function mergeData(kind, cloudData, localData) {
 function defaultData(kind) {
   if (kind === 'life') return { lists: [], templates: [], history: [] }
   if (kind === 'shopping') return {}
+  if (kind === 'mealCandidates') return createDefaultCandidates()
   return []
 }
 
@@ -70,11 +74,20 @@ function validateShopping(data) {
     Object.keys(data).length <= 500 && Object.keys(data).every(key => key.length > 0 && key.length <= 120 && data[key] === true)
 }
 
+function validateMealCandidates(data) {
+  return Array.isArray(data) && data.length <= 100 && new Set(data.map(item => item && item.id)).size === data.length && data.every(item => item &&
+    isText(item.id, 80) && item.id.length > 0 && ['dine_in', 'takeout'].includes(item.sourceType) &&
+    isText(item.name, 40) && item.name.trim() && isText(item.note, 80) && item.dishId === null &&
+    typeof item.enabled === 'boolean' && item.weight === 1 &&
+    isTimestamp(item.createdAt) && isTimestamp(item.updatedAt))
+}
+
 function validateData(kind, data) {
   if (kind === 'inventory') return validateInventory(data)
   if (kind === 'life') return validateLife(data)
   if (kind === 'favorites') return validateFavorites(data)
   if (kind === 'shopping') return validateShopping(data)
+  if (kind === 'mealCandidates') return validateMealCandidates(data)
   return false
 }
 

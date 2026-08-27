@@ -1,6 +1,6 @@
 const test = require('node:test')
 const assert = require('node:assert/strict')
-const { mergeData, validateData, validateEvent } = require('../cloudfunctions/manageUserData/domain')
+const { mergeData, defaultData, validateData, validateEvent } = require('../cloudfunctions/manageUserData/domain')
 
 function inventoryItem(id, quantity, updatedAt) {
   return { id, name: '鸡蛋', quantity, unit: '个', expiryDate: '', createdAt: 1, updatedAt }
@@ -62,4 +62,21 @@ test('收藏与采购状态首次迁移合并后不会重复或丢失', () => {
   assert.equal(validateData('favorites', [2, 2]), false)
   assert.equal(validateData('shopping', { '鸡蛋-个': true }), true)
   assert.equal(validateData('shopping', { '鸡蛋-个': false }), false)
+})
+
+test('转盘候选首次同步使用云端默认值并按稳定 ID 合并', () => {
+  const defaults = defaultData('mealCandidates')
+  const changed = { ...defaults[0], name: '一楼食堂', updatedAt: 10 }
+  const custom = {
+    id: 'custom-1', sourceType: 'takeout', name: '黄焖鸡', note: '', dishId: null,
+    enabled: true, weight: 1, createdAt: 20, updatedAt: 20
+  }
+  const merged = mergeData('mealCandidates', defaults, [changed, custom])
+
+  assert.equal(merged.length, 13)
+  assert.equal(merged.find(item => item.id === changed.id).name, '一楼食堂')
+  assert.equal(validateData('mealCandidates', merged), true)
+  assert.equal(validateData('mealCandidates', [{ ...custom, sourceType: 'cook', dishId: 2 }]), false)
+  assert.equal(validateData('mealCandidates', [custom, { ...custom }]), false)
+  assert.equal(validateEvent({ action: 'migrate', kind: 'mealCandidates', data: [], migrationId: 'mealCandidates_v1_123456' }), null)
 })
