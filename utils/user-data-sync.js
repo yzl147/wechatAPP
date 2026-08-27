@@ -9,16 +9,20 @@ const metaStorage = createVersionedStorage({
   validate: value => value && typeof value === 'object' && !Array.isArray(value)
 })
 
-function createMigrationId(kind) {
-  return `${kind}_${Date.now()}_${Math.floor(Math.random() * 1000000)}`
+function createMigrationId(kind, migrationVersion) {
+  return `${kind}_v${migrationVersion}_${Date.now()}_${Math.floor(Math.random() * 1000000)}`
 }
 
-function createUserDataSync({ kind, getLocal, saveLocal }) {
+function createUserDataSync({ kind, getLocal, saveLocal, migrationVersion = 1 }) {
   let syncPromise = null
 
   function getMeta() {
     const all = metaStorage.get()
-    return all[kind] || { migrationId: '', revision: 0, migrated: false }
+    const saved = all[kind] || { migrationId: '', revision: 0, migrated: false }
+    return {
+      ...saved,
+      migrationVersion: saved.migrationVersion || (saved.migrated ? 1 : 0)
+    }
   }
 
   function saveMeta(meta) {
@@ -28,15 +32,20 @@ function createUserDataSync({ kind, getLocal, saveLocal }) {
 
   async function runSync() {
     const meta = getMeta()
-    const action = meta.migrated ? 'get' : 'migrate'
-    const migrationId = meta.migrationId || createMigrationId(kind)
-    if (!meta.migrationId) saveMeta({ ...meta, migrationId })
+    const needsMigration = !meta.migrated || meta.migrationVersion < migrationVersion
+    const action = needsMigration ? 'migrate' : 'get'
+    const migrationId = needsMigration
+      ? (meta.migrationVersion === migrationVersion && meta.migrationId
+          ? meta.migrationId
+          : createMigrationId(kind, migrationVersion))
+      : meta.migrationId
+    if (needsMigration) saveMeta({ ...meta, migrationId, migrationVersion })
     const result = await cloudUtil.callFunction('manageUserData', action === 'get'
       ? { action, kind }
       : { action, kind, data: getLocal(), migrationId })
     const payload = result.data
     saveLocal(payload.data)
-    saveMeta({ migrationId, revision: payload.revision, migrated: true, syncedAt: Date.now() })
+    saveMeta({ migrationId, migrationVersion, revision: payload.revision, migrated: true, syncedAt: Date.now() })
     return payload.data
   }
 

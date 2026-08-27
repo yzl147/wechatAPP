@@ -1,6 +1,7 @@
 const cartUtil = require('../../utils/cart')
 const shoppingUtil = require('../../utils/shopping')
 const inventoryUtil = require('../../utils/inventory')
+const cloudUtil = require('../../utils/cloud')
 
 Page({
   data: {
@@ -16,9 +17,14 @@ Page({
   async loadShoppingList() {
     try {
       const [, cartInfo] = await Promise.all([
-        inventoryUtil.syncInventory().catch(error => {
-          console.warn('同步库存失败，采购清单继续使用本地缓存', error && error.code)
-        }),
+        Promise.all([
+          inventoryUtil.syncInventory().catch(error => {
+            console.warn('同步库存失败，采购清单继续使用本地缓存', error && error.code)
+          }),
+          shoppingUtil.syncShopping().catch(error => {
+            console.warn('同步采购勾选失败，采购清单继续使用本地缓存', error && error.code)
+          })
+        ]),
         cartUtil.getCartInfo()
       ])
       const { list } = cartInfo
@@ -39,20 +45,25 @@ Page({
     })
   },
 
-  onToggleItem(e) {
+  async onToggleItem(e) {
     const key = e.currentTarget.dataset.key
     const currentItem = this.data.items.find(item => item.key === key)
     if (currentItem && currentItem.stockState === 'enough') {
       wx.showToast({ title: '库存充足，无需采购', icon: 'none' })
       return
     }
-    const items = this.data.items.map(item => {
-      if (item.key !== key) return item
-      const isInStock = !item.isInStock
-      shoppingUtil.setItemChecked(key, isInStock)
-      return { ...item, isInStock }
-    })
-    this.updateItems(items)
+    if (!currentItem || this._updatingShoppingKey) return
+    const isInStock = !currentItem.isInStock
+    this._updatingShoppingKey = key
+    try {
+      await shoppingUtil.setItemChecked(key, isInStock)
+      const items = shoppingUtil.createShoppingItems((await cartUtil.getCartInfo()).list)
+      this.updateItems(items)
+    } catch (error) {
+      wx.showToast({ title: cloudUtil.getErrorMessage(error, '操作失败，请重试'), icon: 'none' })
+    } finally {
+      this._updatingShoppingKey = ''
+    }
   },
 
   goToInventory() {

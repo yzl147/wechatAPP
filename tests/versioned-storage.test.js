@@ -106,9 +106,19 @@ test('v2 会从首次 v1 备份恢复生活清单和收藏', async () => {
   const favorite = reload('../utils/favorite')
 
   assert.equal(lifeList.getDisplayLists()[0].id, 'old-list')
-  assert.deepEqual(await favorite.getFavoriteIds(), [2, 13])
+  assert.deepEqual(favorite.getFavoriteIdsSync(), [2, 13])
   assert.equal(values.get('life_checklists').schemaVersion, 2)
-  assert.equal(values.get('favorite_food_ids').schemaVersion, 2)
+  assert.equal(values.get('favorite_food_ids').schemaVersion, 3)
+})
+
+test('v2 收藏中的字符串菜谱 ID 升级后仍能迁移', async () => {
+  const values = installStorage({
+    favorite_food_ids: { schemaVersion: 2, data: ['2', '13', '13'], updatedAt: 20 }
+  })
+  const favorite = reload('../utils/favorite')
+
+  assert.deepEqual(await favorite.getFavoriteIds().catch(() => favorite.getFavoriteIdsSync()), [2, 13])
+  assert.equal(values.get('favorite_food_ids').schemaVersion, 3)
 })
 
 test('旧生活清单中的字符串项目迁移后仍可正常展示', () => {
@@ -128,12 +138,12 @@ test('旧生活清单中的字符串项目迁移后仍可正常展示', () => {
   assert.equal(lists[0].doneCount, 1)
 })
 
-test('旧采购勾选数组迁移为布尔映射', () => {
+test('旧采购勾选数组迁移为布尔映射', async () => {
   const values = installStorage({ meal_shopping_checked_items: ['鸡蛋-个', '葱-根'] })
   const shopping = reload('../utils/shopping')
-  shopping.setItemChecked('鸡蛋-个', false)
 
-  assert.deepEqual(values.get('meal_shopping_checked_items').data, { '葱-根': true })
+  assert.deepEqual(shopping.createShoppingItems([]), [])
+  assert.deepEqual(values.get('meal_shopping_checked_items').data, { '鸡蛋-个': true, '葱-根': true })
 })
 
 test('不可识别的未来版本返回默认值且不覆盖原数据', () => {

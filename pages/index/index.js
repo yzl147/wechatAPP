@@ -50,7 +50,10 @@ Page({
       this.setData({ favoriteIds })
       this.filterFoods()
     } catch (e) {
-      console.error('加载收藏菜谱失败', e)
+      console.warn('同步收藏菜谱失败，菜单页继续使用本地缓存', e && e.code)
+      const favoriteIds = favoriteUtil.getFavoriteIdsSync()
+      this.setData({ favoriteIds })
+      this.filterFoods()
     }
   },
 

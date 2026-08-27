@@ -73,3 +73,21 @@ test('网络失败时拒绝写入且不改变本地缓存', async () => {
   assert.strictEqual(local, original)
   assert.deepEqual(local, [{ id: 'cached' }])
 })
+
+test('迁移版本提升后使用新标识再次合并本地数据', async () => {
+  const requests = []
+  installWx(async options => {
+    requests.push(options.data)
+    return { result: { code: 0, data: { data: options.data.data, revision: requests.length } } }
+  })
+  let local = [2]
+  const { createUserDataSync } = reloadSyncModule()
+
+  await createUserDataSync({ kind: 'favorites', getLocal: () => local, saveLocal: value => { local = value } }).sync()
+  local = [2, 13]
+  await createUserDataSync({ kind: 'favorites', getLocal: () => local, saveLocal: value => { local = value }, migrationVersion: 2 }).sync()
+
+  assert.deepEqual(requests.map(item => item.action), ['migrate', 'migrate'])
+  assert.notEqual(requests[0].migrationId, requests[1].migrationId)
+  assert.deepEqual(requests[1].data, [2, 13])
+})

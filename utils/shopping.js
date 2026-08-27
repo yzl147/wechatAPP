@@ -1,6 +1,7 @@
 const STORAGE_KEY = 'meal_shopping_checked_items'
 const inventoryUtil = require('./inventory')
 const { createVersionedStorage, getBackupData, parseStoredValue } = require('./versioned-storage')
+const { createUserDataSync } = require('./user-data-sync')
 
 const storage = createVersionedStorage({
   key: STORAGE_KEY,
@@ -28,14 +29,23 @@ function getCheckedMap() {
   return storage.get()
 }
 
-function setItemChecked(key, checked) {
-  const checkedMap = getCheckedMap()
-  if (checked) {
-    checkedMap[key] = true
-  } else {
-    delete checkedMap[key]
-  }
+function saveCheckedMap(checkedMap) {
   storage.save(checkedMap)
+}
+
+const cloudSync = createUserDataSync({ kind: 'shopping', getLocal: getCheckedMap, saveLocal: saveCheckedMap })
+
+function syncShopping() {
+  return cloudSync.sync()
+}
+
+function setItemChecked(key, checked) {
+  return cloudSync.mutate(checkedMap => {
+    const next = { ...checkedMap }
+    if (checked) next[key] = true
+    else delete next[key]
+    return next
+  })
 }
 
 function createShoppingItems(cartList) {
@@ -124,4 +134,4 @@ function formatNumber(value) {
   return Number.isInteger(value) ? value : Number(value.toFixed(1))
 }
 
-module.exports = { createShoppingItems, setItemChecked }
+module.exports = { syncShopping, createShoppingItems, setItemChecked }

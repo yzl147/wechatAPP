@@ -1,4 +1,4 @@
-const KINDS = new Set(['life', 'inventory'])
+const KINDS = new Set(['life', 'inventory', 'favorites', 'shopping'])
 
 function mergeById(cloudItems, localItems, getTime = item => item.updatedAt || item.createdAt || 0) {
   const merged = new Map()
@@ -12,6 +12,8 @@ function mergeById(cloudItems, localItems, getTime = item => item.updatedAt || i
 
 function mergeData(kind, cloudData, localData) {
   if (kind === 'inventory') return mergeById(cloudData, localData)
+  if (kind === 'favorites') return Array.from(new Set([...(cloudData || []), ...(localData || [])]))
+  if (kind === 'shopping') return { ...(cloudData || {}), ...(localData || {}) }
   return {
     lists: mergeById(cloudData && cloudData.lists, localData && localData.lists),
     templates: mergeById(cloudData && cloudData.templates, localData && localData.templates),
@@ -22,7 +24,9 @@ function mergeData(kind, cloudData, localData) {
 }
 
 function defaultData(kind) {
-  return kind === 'life' ? { lists: [], templates: [], history: [] } : []
+  if (kind === 'life') return { lists: [], templates: [], history: [] }
+  if (kind === 'shopping') return {}
+  return []
 }
 
 function isText(value, max) {
@@ -56,8 +60,22 @@ function validateLife(data) {
   return validLists && validTemplates && validHistory
 }
 
+function validateFavorites(data) {
+  return Array.isArray(data) && data.length <= 500 &&
+    data.every(id => Number.isSafeInteger(id) && id > 0) && new Set(data).size === data.length
+}
+
+function validateShopping(data) {
+  return data && typeof data === 'object' && !Array.isArray(data) &&
+    Object.keys(data).length <= 500 && Object.keys(data).every(key => key.length > 0 && key.length <= 120 && data[key] === true)
+}
+
 function validateData(kind, data) {
-  return kind === 'inventory' ? validateInventory(data) : kind === 'life' ? validateLife(data) : false
+  if (kind === 'inventory') return validateInventory(data)
+  if (kind === 'life') return validateLife(data)
+  if (kind === 'favorites') return validateFavorites(data)
+  if (kind === 'shopping') return validateShopping(data)
+  return false
 }
 
 function validateEvent(event) {

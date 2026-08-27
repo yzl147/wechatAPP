@@ -16,6 +16,10 @@ Page({
     this.loadDishDetail(id)
   },
 
+  onShow() {
+    if (this.data.dishId) this.loadFavoriteStatus(this.data.dishId)
+  },
+
   // 从云端加载菜品详情
   async loadDishDetail(id) {
     this.setData({ loadStatus: 'loading' })
@@ -38,17 +42,23 @@ Page({
   onRetryLoad() { this.loadDishDetail(this.data.dishId) },
 
   async loadFavoriteStatus(foodId) {
+    const loadToken = (this._favoriteLoadToken || 0) + 1
+    this._favoriteLoadToken = loadToken
     try {
       const favoriteIds = await favoriteUtil.getFavoriteIds()
-      this.setData({ isFavorite: favoriteIds.includes(foodId) })
+      if (loadToken === this._favoriteLoadToken) this.setData({ isFavorite: favoriteIds.includes(Number(foodId)) })
     } catch (e) {
-      console.error('加载收藏状态失败', e)
+      console.warn('同步收藏状态失败，详情页继续使用本地缓存', e && e.code)
+      const favoriteIds = favoriteUtil.getFavoriteIdsSync()
+      if (loadToken === this._favoriteLoadToken) this.setData({ isFavorite: favoriteIds.includes(Number(foodId)) })
     }
   },
 
   async onToggleFavorite() {
     const { food, isFavorite } = this.data
-    if (!food) return
+    if (!food || this._favoriteMutationPending) return
+    this._favoriteMutationPending = true
+    this._favoriteLoadToken = (this._favoriteLoadToken || 0) + 1
     try {
       const nextStatus = !isFavorite
       await favoriteUtil.setFavorite(food.id, nextStatus)
@@ -56,6 +66,8 @@ Page({
       wx.showToast({ title: nextStatus ? '已收藏菜谱' : '已取消收藏', icon: 'none' })
     } catch (e) {
       wx.showToast({ title: cloudUtil.getErrorMessage(e, '操作失败，请重试'), icon: 'none' })
+    } finally {
+      this._favoriteMutationPending = false
     }
   },
 

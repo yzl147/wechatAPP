@@ -51,3 +51,15 @@ test('用户数据云函数拒绝越界内容和错误修订号', () => {
   assert.equal(validateData('inventory', [inventoryItem('egg', 6, 20)]), true)
   assert.equal(validateData('inventory', [inventoryItem('egg', -1, 20)]), false)
 })
+
+test('收藏与采购状态首次迁移合并后不会重复或丢失', () => {
+  assert.deepEqual(mergeData('favorites', [2, 13], [13, 20]), [2, 13, 20])
+  assert.deepEqual(mergeData('shopping', { '鸡蛋-个': true }, { '葱-根': true }), {
+    '鸡蛋-个': true,
+    '葱-根': true
+  })
+  assert.equal(validateData('favorites', [2, 13, 20]), true)
+  assert.equal(validateData('favorites', [2, 2]), false)
+  assert.equal(validateData('shopping', { '鸡蛋-个': true }), true)
+  assert.equal(validateData('shopping', { '鸡蛋-个': false }), false)
+})
