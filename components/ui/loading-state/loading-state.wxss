@@ -1,0 +1,4 @@
+.loading-state { display: flex; min-height: 240rpx; align-items: center; justify-content: center; gap: var(--space-sm); color: var(--color-text-secondary); font-size: var(--font-body); }
+.loading-state--compact { min-height: 0; justify-content: flex-start; gap: var(--space-xs); font-size: var(--font-caption); }
+.loading-dot { width: 14rpx; height: 14rpx; border: 4rpx solid rgba(244, 91, 42, 0.22); border-top-color: var(--color-primary); border-radius: 50%; animation: loading-spin 800ms linear infinite; }
+@keyframes loading-spin { to { transform: rotate(360deg); } }

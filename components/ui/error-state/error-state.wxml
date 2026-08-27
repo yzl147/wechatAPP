@@ -1,0 +1,7 @@
+<view class="error-state {{compact ? 'error-state--compact' : ''}}">
+  <view class="error-copy">
+    <text class="error-title">{{title}}</text>
+    <text class="error-description" wx:if="{{!compact && description}}">{{description}}</text>
+  </view>
+  <view class="error-action" catchtap="onRetry">{{actionText}}</view>
+</view>

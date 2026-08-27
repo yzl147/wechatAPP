@@ -3,7 +3,7 @@ const path = require('node:path')
 const { spawnSync } = require('node:child_process')
 
 const ROOT = path.resolve(__dirname, '..')
-const SOURCE_DIRS = ['cloudfunctions', 'data', 'pages', 'utils']
+const SOURCE_DIRS = ['cloudfunctions', 'components', 'data', 'pages', 'utils']
 const failures = []
 const warnings = []
 
@@ -79,14 +79,14 @@ function checkPages() {
 }
 
 function checkWxmlHandlers() {
-  const files = walk(path.join(ROOT, 'pages'), file => file.endsWith('.wxml'))
+  const files = ['pages', 'components'].flatMap(directory => walk(path.join(ROOT, directory), file => file.endsWith('.wxml')))
   let handlerCount = 0
   files.forEach(wxmlFile => {
     const jsFile = wxmlFile.replace(/\.wxml$/, '.js')
     if (!fs.existsSync(jsFile)) return
     const wxml = fs.readFileSync(wxmlFile, 'utf8')
     const js = fs.readFileSync(jsFile, 'utf8')
-    const eventPattern = /(?:bind|catch)[a-zA-Z]+\s*=\s*"([^"]+)"/g
+    const eventPattern = /(?:bind|catch):?[a-zA-Z]+\s*=\s*"([^"]+)"/g
     const handlers = new Set()
     for (const match of wxml.matchAll(eventPattern)) {
       const value = match[1]

@@ -1,0 +1,8 @@
+<view
+  class="app-card app-card--{{variant}} {{interactive ? 'app-card--interactive' : ''}}"
+  hover-class="{{interactive ? 'app-card--pressed' : 'none'}}"
+  hover-stay-time="80"
+  bindtap="onTap"
+>
+  <slot></slot>
+</view>

@@ -1,0 +1,37 @@
+page {
+  --color-primary: #f45b2a;
+  --color-primary-pressed: #dc491c;
+  --color-meal: #f45b2a;
+  --color-meal-soft: #fff2eb;
+  --color-life: #477aa9;
+  --color-life-soft: #edf5fc;
+  --color-success: #248a58;
+  --color-warning: #a96a00;
+  --color-danger: #c43d38;
+  --color-text-primary: #282832;
+  --color-text-secondary: #666974;
+  --color-text-muted: #858892;
+  --color-text-disabled: #b4b6bc;
+  --color-surface: #ffffff;
+  --color-background: #f5f6f8;
+  --color-border: #e7e8eb;
+  --font-display: 48rpx;
+  --font-page-title: 38rpx;
+  --font-section-title: 30rpx;
+  --font-card-title: 34rpx;
+  --font-body: 27rpx;
+  --font-caption: 24rpx;
+  --space-xs: 8rpx;
+  --space-sm: 16rpx;
+  --space-md: 24rpx;
+  --space-lg: 32rpx;
+  --space-xl: 48rpx;
+  --space-page: 24rpx;
+  --space-card: 24rpx;
+  --radius-sm: 12rpx;
+  --radius-card: 20rpx;
+  --radius-emphasis: 24rpx;
+  --shadow-card: 0 6rpx 22rpx rgba(32, 37, 45, 0.06);
+  --shadow-floating: 0 -6rpx 20rpx rgba(32, 37, 45, 0.08);
+  --tap-min-size: 88rpx;
+}

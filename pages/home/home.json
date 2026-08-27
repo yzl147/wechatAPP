@@ -1,4 +1,7 @@
 {
   "navigationBarTitleText": "记事微清单",
-  "usingComponents": {}
+  "usingComponents": {
+    "app-card": "/components/ui/app-card/app-card",
+    "scene-card": "/components/business/scene-card/scene-card"
+  }
 }

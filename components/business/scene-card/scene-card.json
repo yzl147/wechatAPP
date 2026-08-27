@@ -1,0 +1,8 @@
+{
+  "component": true,
+  "usingComponents": {
+    "app-card": "/components/ui/app-card/app-card",
+    "loading-state": "/components/ui/loading-state/loading-state",
+    "error-state": "/components/ui/error-state/error-state"
+  }
+}

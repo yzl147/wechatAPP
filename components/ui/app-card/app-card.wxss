@@ -1,0 +1,13 @@
+.app-card {
+  box-sizing: border-box;
+  padding: var(--space-card);
+  border: 1rpx solid rgba(231, 232, 235, 0.72);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+.app-card--meal { border-color: rgba(244, 91, 42, 0.1); background: linear-gradient(135deg, var(--color-meal-soft), #fffaf7); }
+.app-card--life { border-color: rgba(71, 122, 169, 0.1); background: linear-gradient(135deg, var(--color-life-soft), #f8fbfe); }
+.app-card--warning { border-color: rgba(169, 106, 0, 0.14); background: #fff8e8; }
+.app-card--interactive { transition: transform 100ms ease, opacity 100ms ease; }
+.app-card--pressed { opacity: 0.88; transform: scale(0.992); }

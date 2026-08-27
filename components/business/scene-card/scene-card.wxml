@@ -1,0 +1,13 @@
+<app-card variant="{{tone}}" interactive bind:tap="onTap">
+  <view class="scene-layout">
+    <view class="scene-symbol scene-symbol--{{tone}}">{{symbol}}</view>
+    <view class="scene-content">
+      <text class="scene-title">{{title}}</text>
+      <text class="scene-description">{{description}}</text>
+      <loading-state wx:if="{{loadStatus === 'loading'}}" compact text="正在加载概览..." />
+      <error-state wx:elif="{{loadStatus === 'error'}}" compact title="概览加载失败" actionText="重试" bind:retry="onRetry" />
+      <text class="scene-status scene-status--{{tone}}" wx:else>{{status}}</text>
+    </view>
+    <view class="scene-arrow" aria-label="进入{{title}}">›</view>
+  </view>
+</app-card>
