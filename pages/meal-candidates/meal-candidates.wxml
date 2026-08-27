@@ -1,0 +1,73 @@
+<view class="candidate-page">
+  <view class="page-intro">
+    <text class="page-title">候选餐单</text>
+    <text class="page-description">整理平时愿意去吃或常点的选择，关闭的项目会保留但不参与抽取。</text>
+  </view>
+
+  <view class="source-tabs">
+    <view
+      class="source-tab {{currentSource === item.type ? 'source-tab--active' : ''}}"
+      wx:for="{{tabs}}"
+      wx:key="type"
+      data-source="{{item.type}}"
+      bindtap="onSourceTap"
+    >
+      <text class="source-name">{{item.label}}</text>
+      <text class="source-count">启用 {{item.enabledCount || 0}} / {{item.count || 0}}</text>
+    </view>
+  </view>
+
+  <loading-state wx:if="{{loadStatus === 'loading'}}" text="正在同步候选餐单..." />
+  <error-state wx:elif="{{loadStatus === 'error'}}" title="候选餐单加载失败" description="请检查网络后重试，本次没有覆盖本地数据" bind:retry="onRetryLoad" />
+
+  <block wx:else>
+    <view class="sync-warning" wx:if="{{syncWarning}}">{{syncWarning}}</view>
+
+    <view class="editor-card">
+      <app-card variant="{{currentSource === 'dine_in' ? 'default' : 'meal'}}">
+        <view class="editor-header">
+          <text class="editor-title">{{editingId ? '编辑候选' : '添加' + (currentSource === 'dine_in' ? '堂食' : '外卖') + '候选'}}</text>
+          <text class="cancel-edit" wx:if="{{editingId}}" bindtap="onCancelEdit">取消编辑</text>
+        </view>
+        <input class="candidate-input" placeholder="例如：牛肉面、公司食堂" value="{{name}}" maxlength="40" bindinput="onNameInput" />
+        <input class="candidate-input note-input" placeholder="地点或店铺备注（可选）" value="{{note}}" maxlength="80" bindinput="onNoteInput" />
+        <view class="save-button {{operationPending ? 'save-button--disabled' : ''}}" bindtap="onSaveCandidate">
+          {{operationPending ? '正在保存...' : (editingId ? '保存修改' : '添加候选')}}
+        </view>
+      </app-card>
+    </view>
+
+    <view class="list-header">
+      <text class="list-title">{{currentSource === 'dine_in' ? '堂食候选' : '外卖候选'}}</text>
+      <text class="restore-button" bindtap="onRestoreDefaults">恢复默认</text>
+    </view>
+
+    <empty-state
+      wx:if="{{candidates.length === 0}}"
+      symbol="＋"
+      title="当前还没有候选"
+      description="添加至少一个候选后，这种用餐方式才能参与转盘。"
+      actionText="去添加"
+      bind:action="onEmptyAction"
+    />
+
+    <view class="candidate-list" wx:else>
+      <app-card wx:for="{{candidates}}" wx:key="id">
+        <view class="candidate-row {{item.enabled ? '' : 'candidate-row--disabled'}}">
+          <view class="candidate-copy">
+            <view class="candidate-title-row">
+              <text class="candidate-name">{{item.name}}</text>
+              <text class="candidate-status">{{item.enabled ? '参与抽取' : '已关闭'}}</text>
+            </view>
+            <text class="candidate-note" wx:if="{{item.note}}">{{item.note}}</text>
+          </view>
+          <switch class="candidate-switch" checked="{{item.enabled}}" color="#f45b2a" data-id="{{item.id}}" bindchange="onEnabledChange" />
+        </view>
+        <view class="candidate-actions">
+          <view class="candidate-action" data-id="{{item.id}}" bindtap="onStartEdit">编辑</view>
+          <view class="candidate-action candidate-action--danger" data-id="{{item.id}}" bindtap="onDeleteCandidate">删除</view>
+        </view>
+      </app-card>
+    </view>
+  </block>
+</view>
