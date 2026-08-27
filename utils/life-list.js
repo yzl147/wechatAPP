@@ -1,14 +1,45 @@
 const STORAGE_KEY = 'life_checklists'
 const TEMPLATE_STORAGE_KEY = 'life_list_custom_templates'
 const HISTORY_STORAGE_KEY = 'life_list_completion_history'
+const { createVersionedStorage, getBackupData, parseStoredValue } = require('./versioned-storage')
+
+const listStorage = createVersionedStorage({
+  key: STORAGE_KEY,
+  version: 2,
+  defaultValue: [],
+  migrations: {
+    1: migrateLists,
+    2: value => mergeById(migrateLists(getBackupData(STORAGE_KEY, 1)), migrateLists(value))
+  },
+  validate: value => Array.isArray(value) && value.every(isLifeList)
+})
+const templateStorage = createVersionedStorage({
+  key: TEMPLATE_STORAGE_KEY,
+  version: 2,
+  defaultValue: [],
+  migrations: {
+    1: migrateTemplates,
+    2: value => mergeById(migrateTemplates(getBackupData(TEMPLATE_STORAGE_KEY, 1)), migrateTemplates(value))
+  },
+  validate: value => Array.isArray(value) && value.every(item => item && typeof item.id === 'string' && typeof item.title === 'string' && Array.isArray(item.items))
+})
+const historyStorage = createVersionedStorage({
+  key: HISTORY_STORAGE_KEY,
+  version: 2,
+  defaultValue: [],
+  migrations: {
+    1: migrateHistory,
+    2: value => mergeById(migrateHistory(getBackupData(HISTORY_STORAGE_KEY, 1)), migrateHistory(value))
+  },
+  validate: value => Array.isArray(value) && value.every(item => item && typeof item.id === 'string' && typeof item.title === 'string' && Number.isSafeInteger(item.completedAt) && Array.isArray(item.items))
+})
 
 function getLists() {
-  const lists = wx.getStorageSync(STORAGE_KEY)
-  return Array.isArray(lists) ? lists : []
+  return listStorage.get()
 }
 
 function saveLists(lists) {
-  wx.setStorageSync(STORAGE_KEY, lists)
+  listStorage.save(lists)
 }
 
 function createList(title, itemTexts, repeat = 'none') {
@@ -71,8 +102,7 @@ function removeList(id) {
 }
 
 function getCustomTemplates() {
-  const templates = wx.getStorageSync(TEMPLATE_STORAGE_KEY)
-  return Array.isArray(templates) ? templates : []
+  return templateStorage.get()
 }
 
 function saveAsTemplate(list) {
@@ -85,7 +115,7 @@ function saveAsTemplate(list) {
     createdAt: Date.now()
   }
   templates.unshift(template)
-  wx.setStorageSync(TEMPLATE_STORAGE_KEY, templates)
+  templateStorage.save(templates)
   return template
 }
 
@@ -150,16 +180,71 @@ function formatDate(timestamp) {
 function addCompletionHistory(record) {
   const history = getCompletionHistory()
   history.unshift({ id: `${record.completedAt}-${record.listId}`, ...record })
-  wx.setStorageSync(HISTORY_STORAGE_KEY, history.slice(0, 200))
+  historyStorage.save(history.slice(0, 200))
 }
 
 function getCompletionHistory() {
-  const history = wx.getStorageSync(HISTORY_STORAGE_KEY)
-  return Array.isArray(history) ? history : []
+  return historyStorage.get()
 }
 
 function getCompletionRecord(id) {
   return getCompletionHistory().find(item => item.id === id) || null
+}
+
+function migrateLists(value) {
+  const parsed = parseStoredValue(value)
+  const source = Array.isArray(parsed) ? parsed : (parsed && Array.isArray(parsed.lists) ? parsed.lists : [])
+  return source.filter(item => item && typeof item === 'object' && String(item.title || '').trim()).map((item, index) => {
+    const createdAt = Number.isSafeInteger(item.createdAt) ? item.createdAt : 0
+    const rawItems = Array.isArray(item.items) ? item.items : []
+    return {
+      id: typeof item.id === 'string' && item.id ? item.id : `legacy-list-${createdAt}-${index}`,
+      title: String(item.title).trim(),
+      createdAt,
+      updatedAt: Number.isSafeInteger(item.updatedAt) ? item.updatedAt : createdAt,
+      repeat: ['none', 'daily', 'weekly', 'monthly'].includes(item.repeat) ? item.repeat : 'none',
+      lastCompletedAt: Number.isSafeInteger(item.lastCompletedAt) ? item.lastCompletedAt : null,
+      items: rawItems.map((entry, itemIndex) => ({
+        id: entry && typeof entry === 'object' && typeof entry.id === 'string' ? entry.id : `${createdAt}-${itemIndex}`,
+        text: String(entry && typeof entry === 'object' ? entry.text || '' : entry || '').trim(),
+        done: !!(entry && typeof entry === 'object' && entry.done)
+      })).filter(entry => entry.text)
+    }
+  })
+}
+
+function migrateTemplates(value) {
+  const parsed = parseStoredValue(value)
+  const source = Array.isArray(parsed) ? parsed : []
+  return source.filter(item => item && String(item.title || '').trim()).map((item, index) => ({
+    id: typeof item.id === 'string' && item.id ? item.id : `legacy-template-${index}`,
+    title: String(item.title).trim(),
+    items: Array.isArray(item.items) ? item.items.map(text => String(text).trim()).filter(Boolean) : [],
+    createdAt: Number.isSafeInteger(item.createdAt) ? item.createdAt : 0
+  }))
+}
+
+function migrateHistory(value) {
+  const parsed = parseStoredValue(value)
+  const source = Array.isArray(parsed) ? parsed : []
+  return source.filter(item => item && String(item.title || '').trim() && Number.isSafeInteger(item.completedAt)).map((item, index) => ({
+    id: typeof item.id === 'string' && item.id ? item.id : `${item.completedAt}-legacy-${index}`,
+    listId: typeof item.listId === 'string' ? item.listId : '',
+    title: String(item.title).trim(),
+    completedAt: item.completedAt,
+    items: Array.isArray(item.items) ? item.items.map(text => String(text).trim()).filter(Boolean) : []
+  }))
+}
+
+function isLifeList(item) {
+  return item && typeof item.id === 'string' && typeof item.title === 'string' &&
+    Number.isSafeInteger(item.createdAt) && Number.isSafeInteger(item.updatedAt) &&
+    Array.isArray(item.items) && item.items.every(entry => entry && typeof entry.id === 'string' && typeof entry.text === 'string' && typeof entry.done === 'boolean')
+}
+
+function mergeById(recovered, current) {
+  const currentIds = new Set(current.map(item => item.id))
+  return current.concat(recovered.filter(item => !currentIds.has(item.id)))
 }
 
 module.exports = { createList, getList, getDisplayLists, toggleItem, addItem, removeItem, removeList, getCustomTemplates, saveAsTemplate, getCompletionHistory, getCompletionRecord }

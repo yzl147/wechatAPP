@@ -1,9 +1,31 @@
 const STORAGE_KEY = 'meal_shopping_checked_items'
 const inventoryUtil = require('./inventory')
+const { createVersionedStorage, getBackupData, parseStoredValue } = require('./versioned-storage')
+
+const storage = createVersionedStorage({
+  key: STORAGE_KEY,
+  version: 2,
+  defaultValue: {},
+  migrations: {
+    1: migrateCheckedMap,
+    2: value => ({ ...migrateCheckedMap(getBackupData(STORAGE_KEY, 1)), ...migrateCheckedMap(value) })
+  },
+  validate: value => value && typeof value === 'object' && !Array.isArray(value) &&
+    Object.keys(value).every(key => value[key] === true)
+})
+
+function migrateCheckedMap(value) {
+  const parsed = parseStoredValue(value)
+  if (Array.isArray(parsed)) return parsed.reduce((map, key) => { map[String(key)] = true; return map }, {})
+  if (!parsed || typeof parsed !== 'object') return {}
+  return Object.keys(parsed).reduce((map, key) => {
+    if (parsed[key]) map[key] = true
+    return map
+  }, {})
+}
 
 function getCheckedMap() {
-  const value = wx.getStorageSync(STORAGE_KEY)
-  return value && typeof value === 'object' ? value : {}
+  return storage.get()
 }
 
 function setItemChecked(key, checked) {
@@ -13,7 +35,7 @@ function setItemChecked(key, checked) {
   } else {
     delete checkedMap[key]
   }
-  wx.setStorageSync(STORAGE_KEY, checkedMap)
+  storage.save(checkedMap)
 }
 
 function createShoppingItems(cartList) {

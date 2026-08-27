@@ -1,12 +1,23 @@
 const STORAGE_KEY = 'ingredient_inventory'
+const { createVersionedStorage, getBackupData, parseStoredValue } = require('./versioned-storage')
+
+const storage = createVersionedStorage({
+  key: STORAGE_KEY,
+  version: 2,
+  defaultValue: [],
+  migrations: {
+    1: migrateInventory,
+    2: value => mergeById(migrateInventory(getBackupData(STORAGE_KEY, 1)), migrateInventory(value))
+  },
+  validate: value => Array.isArray(value) && value.every(isInventoryItem)
+})
 
 function getInventory() {
-  const items = wx.getStorageSync(STORAGE_KEY)
-  return Array.isArray(items) ? items : []
+  return storage.get()
 }
 
 function saveInventory(items) {
-  wx.setStorageSync(STORAGE_KEY, items)
+  storage.save(items)
 }
 
 function addInventory(item) {
@@ -54,6 +65,33 @@ function getExpiryInfo(expiryDate) {
 function getDisplayInventory() {
   return getInventory().map(item => ({ ...item, expiry: getExpiryInfo(item.expiryDate) }))
     .sort((a, b) => a.expiry.order - b.expiry.order || a.createdAt - b.createdAt)
+}
+
+function migrateInventory(value) {
+  const parsed = parseStoredValue(value)
+  const items = Array.isArray(parsed) ? parsed : (parsed && Array.isArray(parsed.items) ? parsed.items : [])
+  return items.filter(item => item && typeof item === 'object' && String(item.name || '').trim()).map((item, index) => {
+    const createdAt = Number.isSafeInteger(item.createdAt) ? item.createdAt : 0
+    return {
+      id: typeof item.id === 'string' && item.id ? item.id : `legacy-inventory-${createdAt}-${index}`,
+      name: String(item.name).trim(),
+      quantity: Math.max(0, Number(item.quantity) || 0),
+      unit: String(item.unit || '份').trim() || '份',
+      expiryDate: typeof item.expiryDate === 'string' ? item.expiryDate : '',
+      createdAt
+    }
+  })
+}
+
+function mergeById(recovered, current) {
+  const currentIds = new Set(current.map(item => item.id))
+  return current.concat(recovered.filter(item => !currentIds.has(item.id)))
+}
+
+function isInventoryItem(item) {
+  return item && typeof item.id === 'string' && typeof item.name === 'string' && item.name.length > 0 &&
+    Number.isFinite(item.quantity) && item.quantity >= 0 && typeof item.unit === 'string' &&
+    typeof item.expiryDate === 'string' && Number.isSafeInteger(item.createdAt)
 }
 
 module.exports = { getInventory, addInventory, updateQuantity, removeInventory, getDisplayInventory }
