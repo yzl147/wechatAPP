@@ -2,6 +2,7 @@ const STORAGE_KEY = 'life_checklists'
 const TEMPLATE_STORAGE_KEY = 'life_list_custom_templates'
 const HISTORY_STORAGE_KEY = 'life_list_completion_history'
 const { createVersionedStorage, getBackupData, parseStoredValue } = require('./versioned-storage')
+const { createUserDataSync } = require('./user-data-sync')
 
 const listStorage = createVersionedStorage({
   key: STORAGE_KEY,
@@ -38,11 +39,27 @@ function getLists() {
   return listStorage.get()
 }
 
-function saveLists(lists) {
-  listStorage.save(lists)
+function getLocalData() {
+  return { lists: getLists(), templates: templateStorage.get(), history: historyStorage.get() }
 }
 
-function createList(title, itemTexts, repeat = 'none') {
+function saveLocalData(data) {
+  listStorage.save(data.lists)
+  templateStorage.save(data.templates)
+  historyStorage.save(data.history)
+}
+
+const cloudSync = createUserDataSync({ kind: 'life', getLocal: getLocalData, saveLocal: saveLocalData })
+
+async function syncLifeData() {
+  await cloudSync.sync()
+  const now = Date.now()
+  const normalized = normalizeLifeData(getLocalData(), now)
+  if (normalized.changed) await cloudSync.mutate(data => normalizeLifeData(data, now).data)
+  return getLocalData()
+}
+
+async function createList(title, itemTexts, repeat = 'none') {
   const now = Date.now()
   const list = {
     id: `${now}-${Math.floor(Math.random() * 1000)}`,
@@ -57,27 +74,24 @@ function createList(title, itemTexts, repeat = 'none') {
       done: false
     }))
   }
-  const lists = getLists()
-  lists.unshift(list)
-  saveLists(lists)
+  await cloudSync.mutate(data => ({ ...data, lists: [list, ...data.lists] }))
   return list
 }
 
 function getList(id) {
-  const lists = refreshRecurringLists(getLists())
-  return toDisplayList(lists.find(list => list.id === id))
+  return toDisplayList(getLists().find(list => list.id === id))
 }
 
-function updateList(id, updater) {
-  const lists = getLists().map(list => {
-    if (list.id !== id) return list
-    return { ...updater(list), updatedAt: Date.now() }
-  })
-  saveLists(lists)
-  return lists.find(list => list.id === id) || null
+async function updateList(id, updater) {
+  const updatedAt = Date.now()
+  const result = await cloudSync.mutate(data => normalizeLifeData({
+    ...data,
+    lists: data.lists.map(list => list.id === id ? { ...updater(list), updatedAt } : list)
+  }, updatedAt).data)
+  return result.lists.find(list => list.id === id) || null
 }
 
-function toggleItem(listId, itemId) {
+async function toggleItem(listId, itemId) {
   return updateList(listId, list => ({
     ...list,
     items: list.items.map(item => item.id === itemId ? { ...item, done: !item.done } : item),
@@ -85,83 +99,49 @@ function toggleItem(listId, itemId) {
   }))
 }
 
-function addItem(listId, text) {
+async function addItem(listId, text) {
+  const itemId = `${Date.now()}-${Math.floor(Math.random() * 1000)}`
   return updateList(listId, list => ({
     ...list,
     lastCompletedAt: null,
-    items: list.items.concat({ id: `${Date.now()}-${list.items.length}`, text: text.trim(), done: false })
+    items: list.items.concat({ id: itemId, text: text.trim(), done: false })
   }))
 }
 
-function removeItem(listId, itemId) {
+async function removeItem(listId, itemId) {
   return updateList(listId, list => ({ ...list, items: list.items.filter(item => item.id !== itemId) }))
 }
 
-function removeList(id) {
-  saveLists(getLists().filter(list => list.id !== id))
+async function removeList(id) {
+  await cloudSync.mutate(data => ({ ...data, lists: data.lists.filter(list => list.id !== id) }))
 }
 
 function getCustomTemplates() {
   return templateStorage.get()
 }
 
-function saveAsTemplate(list) {
+async function saveAsTemplate(list) {
   if (!list || !list.title || !list.items || list.items.length === 0) return null
-  const templates = getCustomTemplates()
+  const now = Date.now()
   const template = {
-    id: `${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+    id: `${now}-${Math.floor(Math.random() * 1000)}`,
     title: list.title,
     items: list.items.map(item => item.text).filter(Boolean),
-    createdAt: Date.now()
+    createdAt: now
   }
-  templates.unshift(template)
-  templateStorage.save(templates)
+  await cloudSync.mutate(data => ({ ...data, templates: [template, ...data.templates] }))
   return template
 }
 
 function getDisplayLists() {
-  return refreshRecurringLists(getLists()).map(toDisplayList)
+  return getLists().map(toDisplayList)
     .sort((a, b) => b.updatedAt - a.updatedAt)
-}
-
-function refreshRecurringLists(lists) {
-  let changed = false
-  const refreshed = lists.map(list => {
-    if (!shouldStartNextRound(list)) return list
-    changed = true
-    return {
-      ...list,
-      items: list.items.map(item => ({ ...item, done: false })),
-      lastCompletedAt: null,
-      updatedAt: Date.now()
-    }
-  })
-  if (changed) saveLists(refreshed)
-  return refreshed
-}
-
-function shouldStartNextRound(list) {
-  if (!list.repeat || list.repeat === 'none' || !list.lastCompletedAt) return false
-  const interval = { daily: 86400000, weekly: 7 * 86400000, monthly: 30 * 86400000 }[list.repeat]
-  return Date.now() - list.lastCompletedAt >= interval
 }
 
 function toDisplayList(list) {
   if (!list) return null
   const doneCount = list.items.filter(item => item.done).length
   const isCompleted = list.items.length > 0 && doneCount === list.items.length
-  if (isCompleted && !list.lastCompletedAt) {
-    const completedAt = Date.now()
-    const lists = getLists().map(item => item.id === list.id ? { ...item, lastCompletedAt: completedAt, updatedAt: completedAt } : item)
-    saveLists(lists)
-    addCompletionHistory({
-      listId: list.id,
-      title: list.title,
-      completedAt,
-      items: list.items.map(item => item.text)
-    })
-    list = lists.find(item => item.id === list.id)
-  }
   return {
     ...list,
     doneCount,
@@ -177,18 +157,40 @@ function formatDate(timestamp) {
   return `${date.getMonth() + 1}-${date.getDate()}`
 }
 
-function addCompletionHistory(record) {
-  const history = getCompletionHistory()
-  history.unshift({ id: `${record.completedAt}-${record.listId}`, ...record })
-  historyStorage.save(history.slice(0, 200))
-}
-
 function getCompletionHistory() {
   return historyStorage.get()
 }
 
 function getCompletionRecord(id) {
   return getCompletionHistory().find(item => item.id === id) || null
+}
+
+function normalizeLifeData(data, now) {
+  let changed = false
+  const history = [...data.history]
+  const historyIds = new Set(history.map(item => item.id))
+  const lists = data.lists.map(list => {
+    if (shouldStartNextRound(list, now)) {
+      changed = true
+      return { ...list, items: list.items.map(item => ({ ...item, done: false })), lastCompletedAt: null, updatedAt: now }
+    }
+    const completed = list.items.length > 0 && list.items.every(item => item.done)
+    if (!completed || list.lastCompletedAt) return list
+    changed = true
+    const historyId = `${now}-${list.id}`
+    if (!historyIds.has(historyId)) {
+      history.unshift({ id: historyId, listId: list.id, title: list.title, completedAt: now, items: list.items.map(item => item.text) })
+      historyIds.add(historyId)
+    }
+    return { ...list, lastCompletedAt: now, updatedAt: now }
+  })
+  return { changed, data: { lists, templates: data.templates, history: history.slice(0, 200) } }
+}
+
+function shouldStartNextRound(list, now) {
+  if (!list.repeat || list.repeat === 'none' || !list.lastCompletedAt) return false
+  const interval = { daily: 86400000, weekly: 7 * 86400000, monthly: 30 * 86400000 }[list.repeat]
+  return now - list.lastCompletedAt >= interval
 }
 
 function migrateLists(value) {
@@ -247,4 +249,4 @@ function mergeById(recovered, current) {
   return current.concat(recovered.filter(item => !currentIds.has(item.id)))
 }
 
-module.exports = { createList, getList, getDisplayLists, toggleItem, addItem, removeItem, removeList, getCustomTemplates, saveAsTemplate, getCompletionHistory, getCompletionRecord }
+module.exports = { syncLifeData, createList, getList, getDisplayLists, toggleItem, addItem, removeItem, removeList, getCustomTemplates, saveAsTemplate, getCompletionHistory, getCompletionRecord }

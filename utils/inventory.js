@@ -1,13 +1,15 @@
 const STORAGE_KEY = 'ingredient_inventory'
 const { createVersionedStorage, getBackupData, parseStoredValue } = require('./versioned-storage')
+const { createUserDataSync } = require('./user-data-sync')
 
 const storage = createVersionedStorage({
   key: STORAGE_KEY,
-  version: 2,
+  version: 3,
   defaultValue: [],
   migrations: {
     1: migrateInventory,
-    2: value => mergeById(migrateInventory(getBackupData(STORAGE_KEY, 1)), migrateInventory(value))
+    2: value => mergeById(migrateInventory(getBackupData(STORAGE_KEY, 1)), migrateInventory(value)),
+    3: migrateInventory
   },
   validate: value => Array.isArray(value) && value.every(isInventoryItem)
 })
@@ -20,34 +22,36 @@ function saveInventory(items) {
   storage.save(items)
 }
 
-function addInventory(item) {
-  const items = getInventory()
+const cloudSync = createUserDataSync({ kind: 'inventory', getLocal: getInventory, saveLocal: saveInventory })
+
+function syncInventory() {
+  return cloudSync.sync()
+}
+
+async function addInventory(item) {
+  const now = Date.now()
   const inventoryItem = {
-    id: `${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+    id: `${now}-${Math.floor(Math.random() * 1000)}`,
     name: item.name.trim(),
     quantity: Number(item.quantity),
     unit: item.unit.trim() || '份',
     expiryDate: item.expiryDate || '',
-    createdAt: Date.now()
+    createdAt: now,
+    updatedAt: now
   }
-  items.unshift(inventoryItem)
-  saveInventory(items)
+  await cloudSync.mutate(items => [inventoryItem, ...items])
   return inventoryItem
 }
 
-function updateQuantity(id, delta) {
-  const items = getInventory().map(item => {
+async function updateQuantity(id, delta) {
+  return cloudSync.mutate(items => items.map(item => {
     if (item.id !== id) return item
-    return { ...item, quantity: Math.max(0, Number(item.quantity) + delta) }
-  })
-  saveInventory(items)
-  return items
+    return { ...item, quantity: Math.max(0, Number(item.quantity) + delta), updatedAt: Date.now() }
+  }))
 }
 
-function removeInventory(id) {
-  const items = getInventory().filter(item => item.id !== id)
-  saveInventory(items)
-  return items
+async function removeInventory(id) {
+  return cloudSync.mutate(items => items.filter(item => item.id !== id))
 }
 
 function getExpiryInfo(expiryDate) {
@@ -78,7 +82,8 @@ function migrateInventory(value) {
       quantity: Math.max(0, Number(item.quantity) || 0),
       unit: String(item.unit || '份').trim() || '份',
       expiryDate: typeof item.expiryDate === 'string' ? item.expiryDate : '',
-      createdAt
+      createdAt,
+      updatedAt: Number.isSafeInteger(item.updatedAt) ? item.updatedAt : createdAt
     }
   })
 }
@@ -91,7 +96,7 @@ function mergeById(recovered, current) {
 function isInventoryItem(item) {
   return item && typeof item.id === 'string' && typeof item.name === 'string' && item.name.length > 0 &&
     Number.isFinite(item.quantity) && item.quantity >= 0 && typeof item.unit === 'string' &&
-    typeof item.expiryDate === 'string' && Number.isSafeInteger(item.createdAt)
+    typeof item.expiryDate === 'string' && Number.isSafeInteger(item.createdAt) && Number.isSafeInteger(item.updatedAt)
 }
 
-module.exports = { getInventory, addInventory, updateQuantity, removeInventory, getDisplayInventory }
+module.exports = { syncInventory, getInventory, addInventory, updateQuantity, removeInventory, getDisplayInventory }

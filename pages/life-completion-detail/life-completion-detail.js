@@ -3,7 +3,8 @@ const lifeListUtil = require('../../utils/life-list')
 Page({
   data: { record: null, timeText: '', hasCurrentList: false },
 
-  onLoad(options) {
+  async onLoad(options) {
+    try { await lifeListUtil.syncLifeData() } catch (error) { wx.showToast({ title: '云端同步失败，显示本地缓存', icon: 'none' }) }
     const record = lifeListUtil.getCompletionRecord(options.id)
     if (!record) {
       wx.showToast({ title: '完成记录不存在', icon: 'none' })

@@ -13,34 +13,43 @@ Page({
 
   onShow() { this.loadLists() },
 
-  loadLists() { this.setData({ lists: lifeListUtil.getDisplayLists(), customTemplates: lifeListUtil.getCustomTemplates() }) },
+  async loadLists() {
+    try { await lifeListUtil.syncLifeData() } catch (error) { wx.showToast({ title: '云端同步失败，显示本地缓存', icon: 'none' }) }
+    this.setData({ lists: lifeListUtil.getDisplayLists(), customTemplates: lifeListUtil.getCustomTemplates() })
+  },
   onTitleInput(e) { this.setData({ title: e.detail.value }) },
   onItemsInput(e) { this.setData({ itemsText: e.detail.value }) },
   onRepeatChange(e) { this.setData({ repeatIndex: Number(e.detail.value) }) },
 
-  onCreateList() {
+  async onCreateList() {
     const { title, itemsText } = this.data
     if (!title.trim()) {
       wx.showToast({ title: '请填写清单名称', icon: 'none' })
       return
     }
     const repeat = ['none', 'daily', 'weekly', 'monthly'][this.data.repeatIndex]
-    const list = lifeListUtil.createList(title, itemsText.split(/\n|，|,/), repeat)
-    this.setData({ title: '', itemsText: '', repeatIndex: 0 })
-    wx.navigateTo({ url: `/pages/life-list-detail/life-list-detail?id=${list.id}` })
+    try {
+      const list = await lifeListUtil.createList(title, itemsText.split(/\n|，|,/), repeat)
+      this.setData({ title: '', itemsText: '', repeatIndex: 0 })
+      wx.navigateTo({ url: `/pages/life-list-detail/life-list-detail?id=${list.id}` })
+    } catch (error) { wx.showToast({ title: '创建失败，请检查网络', icon: 'none' }) }
   },
 
-  onUseTemplate(e) {
+  async onUseTemplate(e) {
     const template = TEMPLATES[e.currentTarget.dataset.index]
-    const list = lifeListUtil.createList(template.title, template.items, template.repeat)
-    wx.navigateTo({ url: `/pages/life-list-detail/life-list-detail?id=${list.id}` })
+    try {
+      const list = await lifeListUtil.createList(template.title, template.items, template.repeat)
+      wx.navigateTo({ url: `/pages/life-list-detail/life-list-detail?id=${list.id}` })
+    } catch (error) { wx.showToast({ title: '创建失败，请检查网络', icon: 'none' }) }
   },
 
-  onUseCustomTemplate(e) {
+  async onUseCustomTemplate(e) {
     const template = this.data.customTemplates.find(item => item.id === e.currentTarget.dataset.id)
     if (!template) return
-    const list = lifeListUtil.createList(template.title, template.items)
-    wx.navigateTo({ url: `/pages/life-list-detail/life-list-detail?id=${list.id}` })
+    try {
+      const list = await lifeListUtil.createList(template.title, template.items)
+      wx.navigateTo({ url: `/pages/life-list-detail/life-list-detail?id=${list.id}` })
+    } catch (error) { wx.showToast({ title: '创建失败，请检查网络', icon: 'none' }) }
   },
 
   onListTap(e) {

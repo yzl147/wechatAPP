@@ -31,9 +31,10 @@ Page({
     }
   },
 
-  loadLifeOverview() {
+  async loadLifeOverview() {
     this.setData({ lifeLoadStatus: 'loading' })
     try {
+      await lifeListUtil.syncLifeData()
       const lists = lifeListUtil.getDisplayLists()
       this.setData({
         lifeListCount: lists.length,

@@ -1,5 +1,6 @@
 const cartUtil = require('../../utils/cart')
 const shoppingUtil = require('../../utils/shopping')
+const inventoryUtil = require('../../utils/inventory')
 
 Page({
   data: {
@@ -14,7 +15,13 @@ Page({
 
   async loadShoppingList() {
     try {
-      const { list } = await cartUtil.getCartInfo()
+      const [, cartInfo] = await Promise.all([
+        inventoryUtil.syncInventory().catch(error => {
+          console.warn('同步库存失败，采购清单继续使用本地缓存', error && error.code)
+        }),
+        cartUtil.getCartInfo()
+      ])
+      const { list } = cartInfo
       const items = shoppingUtil.createShoppingItems(list)
       this.updateItems(items)
     } catch (e) {

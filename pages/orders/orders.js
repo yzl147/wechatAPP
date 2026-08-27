@@ -40,6 +40,11 @@ Page({
 
   onShow() {
     this.loadOrders(true)
+    this.syncLifeAndLoadCalendar()
+  },
+
+  async syncLifeAndLoadCalendar() {
+    try { await lifeListUtil.syncLifeData() } catch (error) { wx.showToast({ title: '生活清单同步失败，显示本地缓存', icon: 'none' }) }
     this.loadCalendarMonth()
   },
 

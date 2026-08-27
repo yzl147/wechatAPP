@@ -36,6 +36,17 @@ test('客户端安全显示业务错误和 requestId', async () => {
   )
 })
 
+test('客户端保留服务端提供的安全冲突详情', async () => {
+  const details = { data: [{ id: 'cloud-item' }], revision: 3 }
+  const cloudUtil = loadCloudUtil(async () => ({
+    result: { code: 40901, message: '数据已更新', data: details, requestId: 'req-conflict' }
+  }))
+  await assert.rejects(
+    cloudUtil.callFunction('manageUserData', { action: 'replace' }),
+    error => error.code === 40901 && error.details === details
+  )
+})
+
 test('客户端不会向页面透传 SDK 原始异常', async () => {
   const rawMessage = 'cloud.callFunction:fail collection not exists: secret_table'
   const cloudUtil = loadCloudUtil(async () => { throw new Error(rawMessage) })

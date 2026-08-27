@@ -1,8 +1,9 @@
-function createSafeError(message, code, requestId) {
+function createSafeError(message, code, requestId, details) {
   const error = new Error(message)
   error.code = code
   error.requestId = requestId || ''
   error.isSafeCloudError = true
+  error.details = details
   return error
 }
 
@@ -13,7 +14,7 @@ function callFunction(name, data) {
       throw createSafeError('服务返回异常，请稍后重试', 'INVALID_RESPONSE')
     }
     if (result.code !== 0) {
-      throw createSafeError(result.message || '操作未成功', result.code, result.requestId)
+      throw createSafeError(result.message || '操作未成功', result.code, result.requestId, result.data)
     }
     return result
   }).catch(error => {

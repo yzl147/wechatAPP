@@ -34,11 +34,11 @@ test('旧库存数组迁移为带版本信封并保留原始备份', () => {
 
   const first = inventory.getInventory()
   const saved = values.get('ingredient_inventory')
-  const backup = values.get('ingredient_inventory__backup_before_v2')
+  const backup = values.get('ingredient_inventory__backup_before_v3')
 
   assert.equal(first[0].name, '鸡蛋')
   assert.equal(first[0].quantity, 6)
-  assert.equal(saved.schemaVersion, 2)
+  assert.equal(saved.schemaVersion, 3)
   assert.deepEqual(backup.data, legacy)
   assert.deepEqual(inventory.getInventory(), first)
 })
@@ -56,9 +56,24 @@ test('另一种旧库存对象结构也能得到相同规范数据', () => {
     quantity: 2,
     unit: '个',
     expiryDate: '',
-    createdAt: 10
+    createdAt: 10,
+    updatedAt: 10
   }])
-  assert.equal(values.get('ingredient_inventory').schemaVersion, 2)
+  assert.equal(values.get('ingredient_inventory').schemaVersion, 3)
+})
+
+test('v2 库存升级到 v3 时补充更新时间', () => {
+  const values = installStorage({
+    ingredient_inventory: {
+      schemaVersion: 2,
+      data: [{ id: 'egg', name: '鸡蛋', quantity: 6, unit: '个', expiryDate: '', createdAt: 10 }],
+      updatedAt: 20
+    }
+  })
+  const inventory = reload('../utils/inventory')
+
+  assert.equal(inventory.getInventory()[0].updatedAt, 10)
+  assert.equal(values.get('ingredient_inventory').schemaVersion, 3)
 })
 
 test('v2 会从首次 v1 备份补回丢失库存且保留当前新增项', () => {
@@ -72,7 +87,7 @@ test('v2 会从首次 v1 备份补回丢失库存且保留当前新增项', () =
   const items = inventory.getInventory()
 
   assert.deepEqual(items.map(item => item.id), ['new-milk', 'old-egg'])
-  assert.equal(values.get('ingredient_inventory').schemaVersion, 2)
+  assert.equal(values.get('ingredient_inventory').schemaVersion, 3)
 })
 
 test('v2 会从首次 v1 备份恢复生活清单和收藏', async () => {

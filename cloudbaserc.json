@@ -19,6 +19,12 @@
       "runtime": "Nodejs18.15",
       "handler": "index.main",
       "timeout": 10
+    },
+    {
+      "name": "manageUserData",
+      "runtime": "Nodejs18.15",
+      "handler": "index.main",
+      "timeout": 10
     }
   ]
 }

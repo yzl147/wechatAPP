@@ -21,7 +21,15 @@ Page({
       const now = new Date()
       const startTime = new Date(now.getFullYear(), now.getMonth(), 1).getTime()
       const endTime = new Date(now.getFullYear(), now.getMonth() + 1, 1).getTime()
-      const orders = await orderUtil.getOrdersInRange(startTime, endTime)
+      const [orders] = await Promise.all([
+        orderUtil.getOrdersInRange(startTime, endTime),
+        inventoryUtil.syncInventory().catch(error => {
+          console.warn('同步库存失败，统计页继续使用本地缓存', error && error.code)
+        }),
+        lifeListUtil.syncLifeData().catch(error => {
+          console.warn('同步生活清单失败，统计页继续使用本地缓存', error && error.code)
+        })
+      ])
       const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
       const monthOrders = orders
       const cookOrders = monthOrders.filter(order => !order.mealType || order.mealType === 'cook')
