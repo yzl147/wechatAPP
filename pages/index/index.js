@@ -1,6 +1,6 @@
 const cartUtil = require('../../utils/cart')
-const favoriteUtil = require('../../utils/favorite')
 const cloudUtil = require('../../utils/cloud')
+const dishService = require('../../services/dish-service')
 
 Page({
   data: {
@@ -18,7 +18,6 @@ Page({
 
   onLoad() {
     this.loadDishes()
-    this.loadFavorites()
     this.updateCartBadge()
   },
 
@@ -31,10 +30,10 @@ Page({
   async loadDishes() {
     this.setData({ loadStatus: 'loading' })
     try {
-      const result = await cloudUtil.callFunction('manageDishes', { action: 'list' })
-      const dishes = result.data || []
-      this._allDishes = dishes
-      this.setData({ loadStatus: 'success' })
+      const result = await dishService.loadCatalog()
+      this._allDishes = result.dishes
+      this.setData({ favoriteIds: result.favoriteIds, loadStatus: 'success' })
+      if (result.syncError) console.warn('同步收藏菜谱失败，菜单页继续使用本地缓存', result.syncError.code)
       this.filterFoods()
     } catch (e) {
       console.error('加载菜品失败', e && e.code, e && e.requestId)
@@ -46,14 +45,12 @@ Page({
 
   async loadFavorites() {
     try {
-      const favoriteIds = await favoriteUtil.getFavoriteIds()
-      this.setData({ favoriteIds })
+      const result = await dishService.loadFavoriteIds()
+      this.setData({ favoriteIds: result.favoriteIds })
       this.filterFoods()
-    } catch (e) {
-      console.warn('同步收藏菜谱失败，菜单页继续使用本地缓存', e && e.code)
-      const favoriteIds = favoriteUtil.getFavoriteIdsSync()
-      this.setData({ favoriteIds })
-      this.filterFoods()
+      if (result.syncError) console.warn('同步收藏菜谱失败，菜单页继续使用本地缓存', result.syncError.code)
+    } catch (error) {
+      console.error('读取收藏菜谱缓存失败', error)
     }
   },
 
@@ -87,7 +84,7 @@ Page({
     const favoriteIdSet = new Set(favoriteIds)
 
     if (currentCategory === '收藏') {
-      list = list.filter(item => favoriteIdSet.has(item.id))
+      list = list.filter(item => favoriteIdSet.has(Number(item.id)))
     } else if (currentCategory !== '全部') {
       list = list.filter(item => item.category === currentCategory)
     }
@@ -101,7 +98,7 @@ Page({
     }
 
     this.setData({
-      filteredList: list.map(item => ({ ...item, isFavorite: favoriteIdSet.has(item.id) }))
+      filteredList: list.map(item => ({ ...item, isFavorite: favoriteIdSet.has(Number(item.id)) }))
     })
   },
 

@@ -3,7 +3,7 @@ const path = require('node:path')
 const { spawnSync } = require('node:child_process')
 
 const ROOT = path.resolve(__dirname, '..')
-const SOURCE_DIRS = ['cloudfunctions', 'components', 'data', 'domain', 'pages', 'utils']
+const SOURCE_DIRS = ['cloudfunctions', 'components', 'data', 'domain', 'pages', 'repositories', 'services', 'utils']
 const failures = []
 const warnings = []
 

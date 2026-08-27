@@ -1,6 +1,6 @@
 const cartUtil = require('../../utils/cart')
-const favoriteUtil = require('../../utils/favorite')
 const cloudUtil = require('../../utils/cloud')
+const dishService = require('../../services/dish-service')
 
 Page({
   data: {
@@ -24,12 +24,12 @@ Page({
   async loadDishDetail(id) {
     this.setData({ loadStatus: 'loading' })
     try {
-      const result = await cloudUtil.callFunction('manageDishes', { action: 'detail', id })
-      const food = result.data
+      const result = await dishService.loadDetail(id)
+      const food = result.dish
       if (food) {
         wx.setNavigationBarTitle({ title: food.name })
-        this.setData({ food, loadStatus: 'success' })
-        this.loadFavoriteStatus(food.id)
+        this.setData({ food, isFavorite: food.isFavorite, loadStatus: 'success' })
+        if (result.syncError) console.warn('同步收藏状态失败，详情页继续使用本地缓存', result.syncError.code)
       } else {
         this.setData({ food: null, loadStatus: 'empty' })
       }
@@ -45,12 +45,11 @@ Page({
     const loadToken = (this._favoriteLoadToken || 0) + 1
     this._favoriteLoadToken = loadToken
     try {
-      const favoriteIds = await favoriteUtil.getFavoriteIds()
-      if (loadToken === this._favoriteLoadToken) this.setData({ isFavorite: favoriteIds.includes(Number(foodId)) })
-    } catch (e) {
-      console.warn('同步收藏状态失败，详情页继续使用本地缓存', e && e.code)
-      const favoriteIds = favoriteUtil.getFavoriteIdsSync()
-      if (loadToken === this._favoriteLoadToken) this.setData({ isFavorite: favoriteIds.includes(Number(foodId)) })
+      const result = await dishService.loadFavoriteIds()
+      if (loadToken === this._favoriteLoadToken) this.setData({ isFavorite: result.favoriteIds.includes(Number(foodId)) })
+      if (result.syncError) console.warn('同步收藏状态失败，详情页继续使用本地缓存', result.syncError.code)
+    } catch (error) {
+      console.error('读取收藏状态缓存失败', error)
     }
   },
 
@@ -61,9 +60,9 @@ Page({
     this._favoriteLoadToken = (this._favoriteLoadToken || 0) + 1
     try {
       const nextStatus = !isFavorite
-      await favoriteUtil.setFavorite(food.id, nextStatus)
-      this.setData({ isFavorite: nextStatus })
-      wx.showToast({ title: nextStatus ? '已收藏菜谱' : '已取消收藏', icon: 'none' })
+      const result = await dishService.setFavorite(food.id, nextStatus)
+      this.setData({ isFavorite: result.isFavorite })
+      wx.showToast({ title: result.isFavorite ? '已收藏菜谱' : '已取消收藏', icon: 'none' })
     } catch (e) {
       wx.showToast({ title: cloudUtil.getErrorMessage(e, '操作失败，请重试'), icon: 'none' })
     } finally {
