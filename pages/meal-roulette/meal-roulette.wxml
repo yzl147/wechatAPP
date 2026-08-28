@@ -1,0 +1,116 @@
+<view class="decision-page">
+  <view class="page-intro">
+    <text class="page-title">今天吃什么</text>
+    <text class="page-description">先决定怎么吃，再从对应餐单里挑一个。</text>
+  </view>
+
+  <loading-state wx:if="{{loadStatus === 'loading'}}" text="正在准备今天的候选..." />
+  <error-state wx:elif="{{loadStatus === 'error'}}" title="暂时无法准备候选" description="请检查网络后重新加载" actionText="重新加载" bind:retry="onRetryLoad" />
+
+  <block wx:else>
+    <view class="notice notice--warning" wx:if="{{syncWarning}}">{{syncWarning}}</view>
+    <view class="notice notice--warning" wx:if="{{dishWarning}}">
+      <text>{{dishWarning}}</text>
+      <text class="notice-action" bindtap="onRetryDishes" aria-role="button">重试菜谱</text>
+    </view>
+    <view class="notice notice--warning" wx:if="{{storageWarning}}">{{storageWarning}}</view>
+    <view class="notice notice--warning" wx:if="{{renderWarning}}">{{renderWarning}}</view>
+
+    <view class="source-panel" wx:if="{{phase === 'source_selection'}}">
+      <view class="section-heading">
+        <text class="section-title">今天允许哪些方式？</text>
+        <text class="manage-link" bindtap="onManageCandidates" aria-role="button">管理候选</text>
+      </view>
+      <view class="source-grid">
+        <view
+          class="source-option {{item.selected ? 'source-option--selected' : ''}} {{item.unavailable ? 'source-option--unavailable' : ''}}"
+          wx:for="{{sourceOptions}}"
+          wx:key="sourceType"
+          data-source="{{item.sourceType}}"
+          bindtap="onToggleSource"
+          aria-role="checkbox"
+          aria-checked="{{item.selected}}"
+          aria-label="{{item.name}}，{{item.count}} 个候选"
+        >
+          <view class="source-check">{{item.selected ? '✓' : ''}}</view>
+          <text class="source-name">{{item.name}}</text>
+          <text class="source-description">{{item.description}}</text>
+          <text class="source-count">{{item.available ? item.count + ' 个候选' : '暂无候选'}}</text>
+        </view>
+      </view>
+      <text class="selected-summary">{{selectedSummary}}</text>
+      <text class="unavailable-message" wx:if="{{unavailableMessage}}">{{unavailableMessage}}</text>
+    </view>
+
+    <view class="stage-heading" wx:elif="{{!isSourceStage && phase !== 'accepted'}}">
+      <text class="stage-kicker">已选用餐方式</text>
+      <text class="stage-title">{{activeSourceName}}</text>
+      <text class="stage-description">现在从 {{activeSourceName}} 候选中决定具体吃什么</text>
+    </view>
+
+    <decision-wheel
+      wx:if="{{phase !== 'accepted'}}"
+      items="{{wheelItems}}"
+      selectedId="{{wheelSelectedId}}"
+      spinToken="{{wheelSpinToken}}"
+      duration="{{wheelDuration}}"
+      centerText="{{wheelCenterText}}"
+      emptyText="{{wheelEmptyText}}"
+      bind:finish="onWheelFinish"
+      bind:blocked="onWheelBlocked"
+      bind:rendererror="onWheelRenderError"
+    />
+
+    <view class="action-panel" wx:if="{{phase === 'source_selection'}}">
+      <view class="primary-button {{canStartSource ? '' : 'button--disabled'}}" bindtap="onStartSource" aria-role="button" aria-disabled="{{!canStartSource}}">开始转</view>
+      <view class="secondary-button {{canStartSource ? '' : 'button--disabled'}}" bindtap="onDirectSource" aria-role="button" aria-disabled="{{!canStartSource}}">直接告诉我</view>
+      <text class="action-hint" wx:if="{{!sourceOptions.length || !canStartSource}}">请至少选择一种有候选餐单的用餐方式</text>
+    </view>
+
+    <view class="spinning-status" wx:elif="{{phase === 'source_spinning'}}">正在决定今天怎么吃，请稍候…</view>
+
+    <app-card wx:elif="{{phase === 'source_result'}}" variant="meal">
+      <view class="result-card">
+        <text class="result-eyebrow">今天选择</text>
+        <text class="result-name">{{sourceResult.name}}</text>
+        <view class="result-actions">
+          <view class="primary-button" bindtap="onConfirmSource" aria-role="button">就这个</view>
+          <view class="secondary-button" bindtap="onRerollSource" aria-role="button">再转一次</view>
+        </view>
+      </view>
+    </app-card>
+
+    <view class="action-panel" wx:elif="{{phase === 'candidate_ready'}}">
+      <view class="primary-button" bindtap="onStartCandidate" aria-role="button">开始转餐单</view>
+      <view class="secondary-button" bindtap="onDirectCandidate" aria-role="button">直接告诉我</view>
+    </view>
+
+    <view class="spinning-status" wx:elif="{{phase === 'candidate_spinning'}}">正在挑选具体餐单，请稍候…</view>
+
+    <app-card wx:elif="{{phase === 'candidate_result'}}" variant="meal">
+      <view class="result-card">
+        <text class="result-eyebrow">{{activeSourceName}}结果</text>
+        <text class="result-name">{{candidateResult.name}}</text>
+        <text class="result-note" wx:if="{{candidateResult.note}}">{{candidateResult.note}}</text>
+        <text class="result-hint">{{candidateActionHint}}</text>
+        <view class="result-actions">
+          <view class="primary-button" bindtap="onAcceptResult" aria-role="button">就这个</view>
+          <view class="secondary-button" bindtap="onRerollCandidate" aria-role="button">再转一次</view>
+        </view>
+      </view>
+    </app-card>
+
+    <app-card wx:elif="{{phase === 'accepted'}}" variant="meal">
+      <view class="accepted-card">
+        <text class="accepted-mark">已决定</text>
+        <text class="result-name">{{acceptedResult.name}}</text>
+        <text class="result-note" wx:if="{{acceptedResult.note}}">{{acceptedResult.note}}</text>
+        <text class="result-hint">{{candidateActionHint}}</text>
+        <view class="result-actions">
+          <view class="primary-button" wx:if="{{acceptedResult.sourceType === 'takeout'}}" bindtap="onCopyResult" aria-role="button">复制名称</view>
+          <view class="secondary-button" bindtap="onResetDecision" aria-role="button">重新决定</view>
+        </view>
+      </view>
+    </app-card>
+  </block>
+</view>

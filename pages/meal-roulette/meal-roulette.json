@@ -1,0 +1,9 @@
+{
+  "navigationBarTitleText": "今天吃什么",
+  "usingComponents": {
+    "app-card": "/components/ui/app-card/app-card",
+    "decision-wheel": "/components/business/roulette/roulette",
+    "error-state": "/components/ui/error-state/error-state",
+    "loading-state": "/components/ui/loading-state/loading-state"
+  }
+}

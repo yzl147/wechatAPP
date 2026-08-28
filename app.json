@@ -6,6 +6,7 @@
     "pages/detail/detail",
     "pages/cart/cart",
     "pages/meal-record/meal-record",
+    "pages/meal-roulette/meal-roulette",
     "pages/meal-candidates/meal-candidates",
     "pages/life-lists/life-lists",
     "pages/life-list-detail/life-list-detail",
