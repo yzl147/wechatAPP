@@ -2,6 +2,7 @@ const { createMealDecisionService, PHASES } = require('../../services/meal-decis
 const candidateService = require('../../services/meal-candidate-service')
 const dishService = require('../../services/dish-service')
 const preferenceRepository = require('../../repositories/local/meal-decision-preference-repository')
+const cartUtil = require('../../utils/cart')
 const cloudUtil = require('../../utils/cloud')
 
 const SOURCE_DEFINITIONS = [
@@ -35,6 +36,8 @@ Page({
     acceptedResult: null,
     activeSourceName: '',
     candidateActionHint: '',
+    addPending: false,
+    addedToMealList: false,
     returningFromCandidates: false
   },
 
@@ -159,14 +162,54 @@ Page({
 
   onAcceptResult() {
     try {
-      this.renderSnapshot(this._decision.acceptResult())
+      this.renderSnapshot(this._decision.acceptResult(), { addPending: false, addedToMealList: false })
     } catch (error) {
       this.showDecisionError(error)
     }
   },
 
   onResetDecision() {
-    this.renderSnapshot(this._decision.reset(), { wheelSelectedId: '' })
+    this.renderSnapshot(this._decision.reset(), {
+      wheelSelectedId: '',
+      addPending: false,
+      addedToMealList: false
+    })
+  },
+
+  onViewDish() {
+    const result = this.data.acceptedResult
+    const dishId = Number(result && result.dishId)
+    if (!Number.isSafeInteger(dishId) || dishId <= 0) {
+      wx.showToast({ title: '菜谱信息不完整，请重新选择', icon: 'none' })
+      return
+    }
+    wx.navigateTo({ url: `/pages/detail/detail?id=${dishId}` })
+  },
+
+  async onAddCookResult() {
+    if (this.data.addPending) return
+    if (this.data.addedToMealList) {
+      wx.switchTab({ url: '/pages/cart/cart' })
+      return
+    }
+    const result = this.data.acceptedResult
+    const dishId = Number(result && result.dishId)
+    if (!Number.isSafeInteger(dishId) || dishId <= 0) {
+      wx.showToast({ title: '菜谱信息不完整，请重新选择', icon: 'none' })
+      return
+    }
+
+    this.setData({ addPending: true })
+    try {
+      await cartUtil.addToCart({ id: dishId })
+      this.setData({ addedToMealList: true })
+      wx.showToast({ title: `${result.name} 已加入今日清单`, icon: 'none' })
+      if (wx.vibrateShort) wx.vibrateShort({ type: 'light' })
+    } catch (error) {
+      wx.showToast({ title: cloudUtil.getErrorMessage(error, '加入失败，请重试'), icon: 'none' })
+    } finally {
+      this.setData({ addPending: false })
+    }
   },
 
   onCopyResult() {
@@ -264,7 +307,7 @@ Page({
 
 function getCandidateActionHint(result) {
   if (!result) return ''
-  if (result.sourceType === 'cook') return '后续可查看菜谱详情并加入今日饮食清单'
+  if (result.sourceType === 'cook') return '可以查看做法，或加入今日饮食清单准备食材'
   if (result.sourceType === 'takeout') return '可以复制名称，去常用外卖平台搜索'
   return result.note || '按这个选择安排今天这一餐'
 }

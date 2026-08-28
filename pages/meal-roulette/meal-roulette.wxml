@@ -106,10 +106,17 @@
         <text class="result-name">{{acceptedResult.name}}</text>
         <text class="result-note" wx:if="{{acceptedResult.note}}">{{acceptedResult.note}}</text>
         <text class="result-hint">{{candidateActionHint}}</text>
-        <view class="result-actions">
+        <view class="result-actions" wx:if="{{acceptedResult.sourceType === 'cook'}}">
+          <view class="secondary-button" bindtap="onViewDish" aria-role="button">查看菜谱</view>
+          <view class="primary-button {{addPending ? 'button--disabled' : ''}}" bindtap="onAddCookResult" aria-role="button" aria-disabled="{{addPending}}">
+            {{addPending ? '正在加入...' : (addedToMealList ? '查看今日清单' : '加入今日清单')}}
+          </view>
+        </view>
+        <view class="result-actions" wx:else>
           <view class="primary-button" wx:if="{{acceptedResult.sourceType === 'takeout'}}" bindtap="onCopyResult" aria-role="button">复制名称</view>
           <view class="secondary-button" bindtap="onResetDecision" aria-role="button">重新决定</view>
         </view>
+        <view class="reset-link" wx:if="{{acceptedResult.sourceType === 'cook'}}" bindtap="onResetDecision" aria-role="button">重新决定</view>
       </view>
     </app-card>
   </block>

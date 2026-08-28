@@ -37,4 +37,5 @@
 .result-note, .result-hint { display: block; margin-top: var(--space-sm); color: var(--color-text-secondary); font-size: var(--font-caption); line-height: 1.55; }
 .result-hint { color: var(--color-text-muted); }
 .result-actions { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-sm); margin-top: var(--space-lg); }
+.reset-link { display: flex; min-height: var(--tap-min-size); align-items: center; justify-content: center; margin-top: var(--space-sm); color: var(--color-text-secondary); font-size: var(--font-caption); }
 @media (max-width: 340px) { .source-grid { grid-template-columns: 1fr; } .source-option { min-height: 128rpx; } }
