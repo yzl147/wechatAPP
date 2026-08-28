@@ -10,7 +10,11 @@ Page({
     filteredList: [],
     favoriteIds: [],
     cartCount: 0,
-    loadStatus: 'loading'
+    loadStatus: 'loading',
+    addingDishId: null,
+    resultText: '',
+    emptyTitle: '没有找到相关菜谱',
+    emptyDescription: '可以换个关键词或分类试试'
   },
 
   // 全量菜品数据（用于筛选）
@@ -70,6 +74,11 @@ Page({
     this.filterFoods()
   },
 
+  onClearSearch() {
+    this.setData({ searchText: '' })
+    this.filterFoods()
+  },
+
   // 分类切换
   onCategoryTap(e) {
     const category = e.currentTarget.dataset.category
@@ -92,14 +101,24 @@ Page({
     if (searchText) {
       const keyword = searchText.toLowerCase()
       list = list.filter(item =>
-        item.name.toLowerCase().includes(keyword) ||
-        item.brief.toLowerCase().includes(keyword)
+        String(item.name || '').toLowerCase().includes(keyword) ||
+        String(item.brief || '').toLowerCase().includes(keyword)
       )
     }
 
     this.setData({
-      filteredList: list.map(item => ({ ...item, isFavorite: favoriteIdSet.has(Number(item.id)) }))
+      filteredList: list.map(item => ({ ...item, isFavorite: favoriteIdSet.has(Number(item.id)) })),
+      resultText: `共 ${list.length} 道菜谱`,
+      emptyTitle: currentCategory === '收藏' && !searchText ? '还没有收藏菜谱' : '没有找到相关菜谱',
+      emptyDescription: currentCategory === '收藏' && !searchText
+        ? '打开菜谱详情，把常做的菜收藏起来'
+        : '可以换个关键词或分类试试'
     })
+  },
+
+  onResetFilters() {
+    this.setData({ searchText: '', currentCategory: '全部' })
+    this.filterFoods()
   },
 
   // 点击查看详情
@@ -126,6 +145,8 @@ Page({
   // 加入购物车（从列表）
   async onAddToCart(e) {
     const food = e.currentTarget.dataset.food
+    if (!food || this.data.addingDishId !== null) return
+    this.setData({ addingDishId: food.id })
     try {
       const result = await cartUtil.addToCart(food)
       this.setData({ cartCount: result.count })
@@ -135,6 +156,12 @@ Page({
       })
     } catch (e) {
       wx.showToast({ title: cloudUtil.getErrorMessage(e, '加入失败，请重试'), icon: 'none' })
+    } finally {
+      this.setData({ addingDishId: null })
     }
+  },
+
+  goToCart() {
+    wx.switchTab({ url: '/pages/cart/cart' })
   }
 })

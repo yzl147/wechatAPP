@@ -1,54 +1,86 @@
-<view class="container">
-  <!-- 搜索栏 -->
-  <view class="search-bar">
-    <input class="search-input" placeholder="搜索菜谱..." value="{{searchText}}" bindinput="onSearchInput" confirm-type="search" />
+<view class="catalog-page">
+  <view class="page-intro">
+    <view class="page-intro__copy">
+      <text class="page-title">挑一道想做的菜</text>
+      <text class="page-description">查看食材和步骤，再加入今天的饮食清单</text>
+    </view>
+    <view class="today-list" bindtap="goToCart" aria-role="button">
+      <text class="today-list__count">{{cartCount}}</text>
+      <text class="today-list__label">今日已选</text>
+    </view>
   </view>
 
-  <!-- 分类标签 -->
+  <view class="search-box">
+    <input
+      class="search-input"
+      placeholder="搜索菜名或特点"
+      placeholder-class="search-placeholder"
+      value="{{searchText}}"
+      bindinput="onSearchInput"
+      confirm-type="search"
+    />
+    <view class="search-clear" wx:if="{{searchText}}" bindtap="onClearSearch" aria-role="button">清除</view>
+  </view>
+
   <scroll-view class="category-scroll" scroll-x enhanced show-scrollbar="{{false}}">
     <view class="category-list">
-      <text 
-        class="category-item {{currentCategory === item ? 'active' : ''}}" 
-        wx:for="{{categories}}" 
+      <view
+        class="category-item {{currentCategory === item ? 'category-item--active' : ''}}"
+        wx:for="{{categories}}"
         wx:key="*this"
         data-category="{{item}}"
         bindtap="onCategoryTap"
-      >{{item}}</text>
+      >{{item}}</view>
     </view>
   </scroll-view>
 
-  <!-- 菜谱加载状态和列表 -->
-  <view class="page-state" wx:if="{{loadStatus === 'loading'}}">正在加载菜谱...</view>
-  <view class="page-state" wx:elif="{{loadStatus === 'error'}}">
-    <text>菜谱加载失败</text>
-    <button class="retry-btn" bindtap="onRetryLoad">重新加载</button>
-  </view>
-  <view class="food-list" wx:else>
-    <view class="food-card" wx:for="{{filteredList}}" wx:key="id" bindtap="onFoodTap" data-id="{{item.id}}">
-      <view class="food-image-wrap" catchtap="onPreviewImage" data-url="{{item.image}}">
-        <image class="food-image" src="{{item.image}}" mode="aspectFill" lazy-load />
-      </view>
-      <view class="food-info">
-        <view class="food-header">
-          <text class="food-name">{{item.name}}</text>
-          <view class="food-tag tag-{{item.catClass}}">{{item.category}}</view>
-          <text class="favorite-mark" wx:if="{{item.isFavorite}}">♥</text>
-        </view>
-        <text class="food-brief">{{item.brief}}</text>
-        <view class="food-meta">
-          <text class="meta-item">⏱ {{item.time}}</text>
-          <text class="meta-item">📊 {{item.difficulty}}</text>
-        </view>
-      </view>
-      <!-- 价格和加购 -->
-      <view class="price-area" catchtap="onAddToCart" data-food="{{item}}">
-        <view class="add-btn">+</view>
+  <loading-state wx:if="{{loadStatus === 'loading'}}" text="正在加载菜谱" />
+  <error-state wx:elif="{{loadStatus === 'error'}}" title="菜谱加载失败" description="请检查网络后重新加载" bind:retry="onRetryLoad" />
+
+  <block wx:else>
+    <view class="result-bar"><text>{{currentCategory}}{{searchText ? ' · “' + searchText + '”' : ''}}</text><text>{{resultText}}</text></view>
+
+    <empty-state
+      wx:if="{{filteredList.length === 0}}"
+      symbol="菜"
+      title="{{emptyTitle}}"
+      description="{{emptyDescription}}"
+      actionText="查看全部菜谱"
+      bind:action="onResetFilters"
+    />
+
+    <view class="dish-list" wx:else>
+      <view class="dish-card" wx:for="{{filteredList}}" wx:key="id">
+        <app-card>
+          <view class="dish-main" bindtap="onFoodTap" data-id="{{item.id}}">
+            <view class="dish-image-wrap" catchtap="onPreviewImage" data-url="{{item.image}}">
+              <image class="dish-image" src="{{item.image}}" mode="aspectFill" lazy-load />
+              <text class="image-hint">查看大图</text>
+            </view>
+            <view class="dish-copy">
+              <view class="dish-title-row">
+                <text class="dish-name">{{item.name}}</text>
+                <text class="favorite-tag" wx:if="{{item.isFavorite}}">已收藏</text>
+              </view>
+              <text class="category-tag">{{item.category}}</text>
+              <text class="dish-brief">{{item.brief}}</text>
+              <view class="dish-meta">
+                <text>用时 {{item.time}}</text>
+                <text>难度 {{item.difficulty}}</text>
+              </view>
+            </view>
+          </view>
+          <view class="dish-actions">
+            <view class="detail-action" bindtap="onFoodTap" data-id="{{item.id}}">查看食材与步骤</view>
+            <view
+              class="add-action {{addingDishId !== null ? 'add-action--disabled' : ''}}"
+              catchtap="onAddToCart"
+              data-food="{{item}}"
+              aria-role="button"
+            >{{addingDishId === item.id ? '加入中…' : '+ 加入'}}</view>
+          </view>
+        </app-card>
       </view>
     </view>
-  </view>
-
-  <!-- 空状态 -->
-  <view class="empty" wx:if="{{loadStatus === 'success' && filteredList.length === 0}}">
-    <text class="empty-text">没有找到相关美食</text>
-  </view>
+  </block>
 </view>

@@ -7,17 +7,23 @@ Page({
     food: null,
     isFavorite: false,
     dishId: null,
-    loadStatus: 'loading'
+    loadStatus: 'loading',
+    favoritePending: false,
+    addPending: false
   },
 
   onLoad(options) {
-    const id = parseInt(options.id)
+    const id = Number(options.id)
+    if (!Number.isInteger(id) || id <= 0) {
+      this.setData({ loadStatus: 'empty' })
+      return
+    }
     this.setData({ dishId: id })
     this.loadDishDetail(id)
   },
 
   onShow() {
-    if (this.data.dishId) this.loadFavoriteStatus(this.data.dishId)
+    if (this.data.dishId && this.data.loadStatus === 'success') this.loadFavoriteStatus(this.data.dishId)
   },
 
   // 从云端加载菜品详情
@@ -54,9 +60,9 @@ Page({
   },
 
   async onToggleFavorite() {
-    const { food, isFavorite } = this.data
-    if (!food || this._favoriteMutationPending) return
-    this._favoriteMutationPending = true
+    const { food, isFavorite, favoritePending } = this.data
+    if (!food || favoritePending) return
+    this.setData({ favoritePending: true })
     this._favoriteLoadToken = (this._favoriteLoadToken || 0) + 1
     try {
       const nextStatus = !isFavorite
@@ -66,15 +72,16 @@ Page({
     } catch (e) {
       wx.showToast({ title: cloudUtil.getErrorMessage(e, '操作失败，请重试'), icon: 'none' })
     } finally {
-      this._favoriteMutationPending = false
+      this.setData({ favoritePending: false })
     }
   },
 
   // 加入购物车
   async onAddToCart() {
-    const { food } = this.data
-    if (!food) return
+    const { food, addPending } = this.data
+    if (!food || addPending) return
 
+    this.setData({ addPending: true })
     try {
       await cartUtil.addToCart(food)
       wx.showToast({
@@ -86,7 +93,15 @@ Page({
       }
     } catch (e) {
       wx.showToast({ title: cloudUtil.getErrorMessage(e, '加入失败，请重试'), icon: 'none' })
+    } finally {
+      this.setData({ addPending: false })
     }
+  },
+
+  onBackToCatalog() {
+    wx.navigateBack({
+      fail: () => wx.redirectTo({ url: '/pages/index/index' })
+    })
   },
 
   // 预览菜品图片
