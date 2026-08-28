@@ -1,68 +1,79 @@
-<view class="cart-page">
-  <!-- 清单加载状态、空状态和内容 -->
-  <view class="page-state" wx:if="{{loadStatus === 'loading'}}">正在加载今日清单...</view>
-  <view class="page-state" wx:elif="{{loadStatus === 'error'}}">
-    <text>今日清单加载失败</text>
-    <button class="retry-btn" bindtap="onRetryLoad">重新加载</button>
+<view class="meal-list-page">
+  <view class="page-intro">
+    <text class="page-title">今日饮食清单</text>
+    <text class="page-description">整理今天准备做的菜、食材缺口和饮食记录。</text>
   </view>
-  <view class="empty-cart" wx:elif="{{cartList.length === 0}}">
-    <text class="empty-icon">🍳</text>
-    <text class="empty-text">今日清单还是空的</text>
-    <text class="empty-sub">去挑选想做的菜吧~</text>
-    <view class="go-shop" bindtap="goToIndex">
-      <text>去选菜</text>
-    </view>
-  </view>
-  <view class="cart-content" wx:else>
-    <!-- 购物车头部 -->
-    <view class="cart-header">
-      <text class="cart-title">今日清单 ({{totalCount}})</text>
-      <text class="clear-btn" bindtap="onClearCart">清空清单</text>
-    </view>
 
-    <view class="shopping-entry" bindtap="goToShoppingList">
+  <loading-state wx:if="{{loadStatus === 'loading'}}" text="正在加载今日饮食清单..." />
+  <error-state wx:elif="{{loadStatus === 'error'}}" title="今日饮食清单加载失败" description="请检查网络后重新加载" bind:retry="onRetryLoad" />
+  <empty-state wx:elif="{{cartList.length === 0}}" symbol="饮" title="今天还没有选菜" description="从菜谱中挑几道想做的菜，再回来准备食材。" actionText="去选菜" bind:action="goToIndex" />
+
+  <block wx:else>
+    <view class="section-header">
       <view>
-        <text class="shopping-entry-title">🧺 食材采购清单</text>
-        <text class="shopping-entry-tip">勾选家里已有的食材，查看还需要买什么</text>
+        <text class="section-title">今天准备做什么？</text>
+        <text class="section-caption">共 {{cartList.length}} 道菜，{{totalCount}} 份</text>
       </view>
-      <text class="shopping-entry-arrow">›</text>
+      <text class="clear-action {{clearPending || mutationPendingId || savePending ? 'action-disabled' : ''}}" bindtap="onClearCart" aria-role="button" aria-disabled="{{clearPending || mutationPendingId || savePending}}">
+        {{clearPending ? '正在清空...' : '清空清单'}}
+      </text>
     </view>
 
-    <!-- 商品列表 -->
-    <view class="cart-list">
-      <view class="cart-item" wx:for="{{cartList}}" wx:key="_id">
-        <view class="item-left">
-          <view class="item-img-wrap" catchtap="onPreviewImage" data-url="{{item.image}}">
-            <image class="item-img" src="{{item.image}}" mode="aspectFill" lazy-load />
+    <view class="dish-list">
+      <app-card wx:for="{{cartList}}" wx:key="_id">
+        <view class="dish-main">
+          <view class="dish-image-wrap" catchtap="onPreviewImage" data-url="{{item.image}}">
+            <image class="dish-image" src="{{item.image}}" mode="aspectFill" lazy-load />
           </view>
-          <view class="item-info">
-            <text class="item-name">{{item.name}}</text>
-            <text class="item-brief">{{item.brief}}</text>
+          <view class="dish-copy">
+            <text class="dish-name">{{item.name}}</text>
+            <text class="dish-brief">{{item.brief || '查看采购清单，准备这道菜需要的食材'}}</text>
           </view>
         </view>
-
-        <!-- 数量控制 -->
-        <view class="quantity-control">
-          <view class="qty-btn minus" bindtap="onDecrease" data-id="{{item.foodId}}">-</view>
-          <text class="qty-num">{{item.quantity}}</text>
-          <view class="qty-btn plus" bindtap="onIncrease" data-id="{{item.foodId}}">+</view>
+        <view class="dish-actions">
+          <quantity-stepper
+            itemId="{{item.itemId}}"
+            value="{{item.quantity}}"
+            disabled="{{mutationPendingId > 0 || clearPending || savePending}}"
+            decreaseLabel="减少 {{item.name}} 一份"
+            increaseLabel="增加 {{item.name}} 一份"
+            bind:decrease="onDecrease"
+            bind:increase="onIncrease"
+          />
+          <view class="delete-action {{mutationPendingId || clearPending || savePending ? 'action-disabled' : ''}}" data-id="{{item.itemId}}" catchtap="onDeleteItem" aria-role="button" aria-disabled="{{mutationPendingId || clearPending || savePending}}">删除</view>
         </view>
+      </app-card>
+    </view>
 
-        <!-- 小计和删除 -->
-        <view class="item-right">
-          <text class="delete-btn" catchtap="onDeleteItem" data-id="{{item.foodId}}">删除</text>
-        </view>
+    <view class="section-header ingredient-heading">
+      <view>
+        <text class="section-title">还缺什么食材？</text>
+        <text class="section-caption">库存和采购状态会自动合并计算</text>
       </view>
     </view>
 
-    <!-- 底部结算栏 -->
-    <view class="checkout-bar">
-      <view class="checkout-info">
-        <text class="total-label">已选 {{totalCount}} 份</text>
+    <app-card variant="warning" interactive bind:tap="goToShoppingList">
+      <view class="shopping-summary" aria-role="button" aria-label="进入食材采购清单">
+        <view class="shopping-symbol">备</view>
+        <view class="shopping-copy">
+          <text class="shopping-title" wx:if="{{shoppingLoadStatus === 'loading'}}">正在计算食材缺口...</text>
+          <text class="shopping-title" wx:elif="{{shoppingLoadStatus === 'error'}}">食材缺口暂时无法计算</text>
+          <text class="shopping-title" wx:else>{{shoppingSummaryText}}</text>
+          <text class="shopping-description">{{shoppingWarning || '查看每种食材的库存、缺口和采购状态'}}</text>
+        </view>
+        <view class="shopping-arrow" aria-hidden="true">›</view>
       </view>
-      <view class="checkout-btn {{cartList.length > 0 ? 'active' : ''}}" bindtap="onCheckout">
-        保存今日记录
-      </view>
+    </app-card>
+
+    <view class="save-card-wrap">
+      <app-card variant="meal">
+        <view class="save-explanation">
+          <text class="save-title">保存今天的饮食记录</text>
+          <text class="save-description">确认后会清空今日清单，并在记录页保留今天准备的菜。</text>
+        </view>
+      </app-card>
     </view>
-  </view>
+
+    <bottom-action-bar summary="已选 {{totalCount}} 份" primaryText="保存今日记录" pendingText="正在保存..." pending="{{savePending}}" bind:primary="onCheckout" />
+  </block>
 </view>

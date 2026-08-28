@@ -1,0 +1,5 @@
+.quantity-stepper { display: flex; min-height: var(--tap-min-size); align-items: center; }
+.quantity-stepper--disabled { opacity: 0.5; }
+.step-button { display: flex; width: var(--tap-min-size); height: var(--tap-min-size); flex-shrink: 0; align-items: center; justify-content: center; border-radius: var(--radius-sm); background: var(--color-background); color: var(--color-text-secondary); font-size: 36rpx; font-weight: 700; }
+.step-button--increase { background: var(--color-primary); color: #fff; }
+.step-value { min-width: 58rpx; color: var(--color-text-primary); font-size: var(--font-body); font-weight: 700; text-align: center; }

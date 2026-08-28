@@ -1,0 +1,9 @@
+<view class="bottom-action-bar">
+  <text class="action-summary" wx:if="{{summary}}">{{summary}}</text>
+  <view class="action-buttons">
+    <view class="secondary-action" wx:if="{{secondaryText}}" bindtap="onSecondary" aria-role="button">{{secondaryText}}</view>
+    <view class="primary-action {{disabled || pending ? 'primary-action--disabled' : ''}}" bindtap="onPrimary" aria-role="button" aria-disabled="{{disabled || pending}}">
+      {{pending ? pendingText : primaryText}}
+    </view>
+  </view>
+</view>

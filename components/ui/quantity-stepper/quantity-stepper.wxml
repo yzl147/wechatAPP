@@ -1,0 +1,5 @@
+<view class="quantity-stepper {{disabled ? 'quantity-stepper--disabled' : ''}}" aria-label="当前 {{value}} 份">
+  <view class="step-button" bindtap="onDecrease" aria-role="button" aria-label="{{decreaseLabel}}" aria-disabled="{{disabled}}">−</view>
+  <text class="step-value">{{value}}</text>
+  <view class="step-button step-button--increase" bindtap="onIncrease" aria-role="button" aria-label="{{increaseLabel}}" aria-disabled="{{disabled}}">＋</view>
+</view>

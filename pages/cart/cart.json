@@ -1,4 +1,11 @@
 {
-  "navigationBarTitleText": "今日清单",
-  "usingComponents": {}
+  "navigationBarTitleText": "今日饮食清单",
+  "usingComponents": {
+    "app-card": "/components/ui/app-card/app-card",
+    "bottom-action-bar": "/components/ui/bottom-action-bar/bottom-action-bar",
+    "empty-state": "/components/ui/empty-state/empty-state",
+    "error-state": "/components/ui/error-state/error-state",
+    "loading-state": "/components/ui/loading-state/loading-state",
+    "quantity-stepper": "/components/ui/quantity-stepper/quantity-stepper"
+  }
 }
