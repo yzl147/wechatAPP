@@ -1,0 +1,20 @@
+<view class="roulette-container">
+  <view
+    class="roulette-shell"
+    wx:if="{{hasItems}}"
+    aria-role="img"
+    aria-label="{{accessibleLabel}}"
+  >
+    <view class="roulette-pointer" aria-hidden="true"></view>
+    <view
+      class="roulette-motion"
+      style="transition-duration: {{transitionMs}}ms; transform: rotate({{rotation}}deg);"
+    >
+      <canvas type="2d" id="rouletteCanvas" class="roulette-canvas"></canvas>
+    </view>
+    <view class="roulette-center {{spinning ? 'roulette-center--spinning' : ''}}">
+      <text>{{displayCenterText}}</text>
+    </view>
+  </view>
+  <view class="roulette-empty" wx:else aria-role="text">{{emptyText}}</view>
+</view>
