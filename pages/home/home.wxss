@@ -8,6 +8,13 @@
 .hero { padding: var(--space-sm) 12rpx 44rpx; }
 .hero-title { display: block; color: var(--color-text-primary); font-size: var(--font-display); font-weight: 800; letter-spacing: 2rpx; }
 .hero-subtitle { display: block; margin-top: 14rpx; color: var(--color-text-secondary); font-size: var(--font-caption); line-height: 1.6; }
+.decision-entry-wrap { margin-bottom: var(--space-lg); }
+.decision-entry { display: flex; min-height: 112rpx; align-items: center; }
+.decision-symbol { display: flex; width: var(--tap-min-size); height: var(--tap-min-size); flex-shrink: 0; align-items: center; justify-content: center; border-radius: 50%; background: var(--color-primary); color: #fff; font-size: var(--font-section-title); font-weight: 800; box-shadow: 0 6rpx 16rpx rgba(244, 91, 42, 0.2); }
+.decision-copy { min-width: 0; flex: 1; margin-left: var(--space-md); }
+.decision-title { display: block; color: var(--color-text-primary); font-size: var(--font-card-title); font-weight: 800; }
+.decision-description { display: block; margin-top: var(--space-xs); color: var(--color-text-secondary); font-size: var(--font-caption); line-height: 1.45; }
+.decision-arrow { display: flex; min-width: var(--tap-min-size); min-height: var(--tap-min-size); flex-shrink: 0; align-items: center; justify-content: flex-end; color: var(--color-primary); font-size: 48rpx; }
 .section-title { margin: 0 var(--space-xs) 18rpx; color: var(--color-text-primary); font-size: var(--font-section-title); font-weight: 700; }
 scene-card { display: block; margin-bottom: 18rpx; }
 .quick-links { display: grid; gap: 14rpx; margin-top: 34rpx; }

@@ -55,6 +55,7 @@ Page({
   retryMealOverview() { this.loadMealOverview() },
   retryLifeOverview() { this.loadLifeOverview() },
 
+  goToMealRoulette() { wx.navigateTo({ url: '/pages/meal-roulette/meal-roulette' }) },
   goToMealList() { wx.switchTab({ url: '/pages/cart/cart' }) },
   goToLifeLists() { wx.navigateTo({ url: '/pages/life-lists/life-lists' }) },
   goToRecords() { wx.switchTab({ url: '/pages/orders/orders' }) },

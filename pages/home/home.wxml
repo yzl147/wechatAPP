@@ -4,6 +4,19 @@
     <text class="hero-subtitle">把日常琐事，整理成轻松可完成的清单</text>
   </view>
 
+  <view class="decision-entry-wrap">
+    <app-card variant="meal" interactive bind:tap="goToMealRoulette">
+      <view class="decision-entry" aria-role="button" aria-label="不知道吃什么，进入今天吃什么转盘">
+        <view class="decision-symbol">转</view>
+        <view class="decision-copy">
+          <text class="decision-title">不知道吃什么？转一下</text>
+          <text class="decision-description">堂食、外卖、自己做，帮你快速做决定</text>
+        </view>
+        <view class="decision-arrow" aria-hidden="true">›</view>
+      </view>
+    </app-card>
+  </view>
+
   <view class="section-title">今天要做什么</view>
   <scene-card
     tone="meal"
