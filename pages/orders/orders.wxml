@@ -1,116 +1,147 @@
-<view class="orders-page">
-  <view class="page-state" wx:if="{{loadStatus === 'loading'}}">正在加载饮食记录...</view>
-  <view class="page-state" wx:elif="{{loadStatus === 'error'}}"><text>饮食记录加载失败</text><button class="retry-btn" bindtap="onRetryLoad">重新加载</button></view>
+<view class="records-page {{selectMode ? 'records-page--managing' : ''}}">
+  <view class="page-intro">
+    <text class="page-title">记录</text>
+    <text class="page-description">回看每一天吃了什么、完成了哪些生活清单</text>
+  </view>
+
+  <view class="view-switch" wx:if="{{!selectMode}}">
+    <view class="view-switch__item {{viewMode === 'calendar' ? 'view-switch__item--active' : ''}}" bindtap="onViewModeTap" data-mode="calendar">日历</view>
+    <view class="view-switch__item {{viewMode === 'list' ? 'view-switch__item--active' : ''}}" bindtap="onViewModeTap" data-mode="list">列表</view>
+  </view>
+
+  <loading-state wx:if="{{loadStatus === 'loading'}}" text="正在加载记录" />
+  <error-state wx:elif="{{loadStatus === 'error'}}" title="记录加载失败" description="请检查网络后重新加载" bind:retry="onRetryLoad" />
+
   <block wx:else>
-  <!-- 统计卡片 -->
-  <view class="stats-card" wx:if="{{!selectMode}}">
-    <view class="stat-item">
-      <text class="stat-num">{{summary.total}}</text>
-      <text class="stat-label">总记录</text>
-    </view>
-    <view class="stat-divider"></view>
-    <view class="stat-item">
-      <text class="stat-num done-num">{{summary.completedCount}}</text>
-      <text class="stat-label">已记录</text>
-    </view>
-  </view>
-
-  <view class="calendar-card" wx:if="{{!selectMode}}">
-    <view class="calendar-header">
-      <text class="month-change" bindtap="onPreviousMonth">‹</text>
-      <text class="month-title">{{monthTitle}}</text>
-      <text class="month-change" bindtap="onNextMonth">›</text>
-    </view>
-    <view class="week-row"><text wx:for="{{weekDays}}" wx:key="*this">{{item}}</text></view>
-    <view class="day-grid">
-      <view class="day-cell {{item.hasRecord ? 'has-record' : ''}} {{item.hasLifeRecord ? 'has-life-record' : ''}} {{item.isSelected ? 'selected' : ''}} {{item.isToday ? 'today' : ''}}" wx:for="{{calendarDays}}" wx:key="key" bindtap="onCalendarDateTap" data-date="{{item.date}}">
-        <text>{{item.day}}</text>
-      </view>
-    </view>
-    <view class="calendar-footer"><text>{{calendarHint}}</text><text wx:if="{{selectedDate}}" bindtap="onClearDate">查看全部</text></view>
-  </view>
-
-  <view class="life-record-card" wx:if="{{selectedLifeRecords.length > 0}}">
-    <text class="life-record-title">📝 当天完成的生活清单</text>
-    <view class="life-record-item" wx:for="{{selectedLifeRecords}}" wx:key="id" bindtap="onLifeRecordTap" data-id="{{item.id}}"><text>{{item.title}}</text><text>查看 ›</text></view>
-  </view>
-
-  <view class="quick-meal-entry" wx:if="{{!selectMode}}" bindtap="goToMealRecord"><view><text class="quick-meal-title">＋ 快速记录一餐</text><text class="quick-meal-tip">外出吃或点外卖，简单记下就好</text></view><text class="quick-meal-arrow">›</text></view>
-
-  <!-- 选择模式顶部栏 -->
-  <view class="select-bar" wx:if="{{selectMode}}">
-    <view class="select-left">
-      <view class="checkbox-wrap {{isAllSelected ? 'checked' : ''}}" bindtap="onToggleSelectAll">
-        <text class="{{isAllSelected ? 'check-icon' : 'uncheck-icon'}}">{{isAllSelected ? '✓' : '○'}}</text>
-        <text class="select-all-text">全选</text>
-      </view>
-      <text class="select-count">已选 {{selectedIds.length}} 项</text>
-    </view>
-    <text class="cancel-select" bindtap="onCancelSelect">取消</text>
-  </view>
-
-  <!-- 订单列表 -->
-  <scroll-view scroll-y class="order-list {{selectMode ? 'in-select-mode' : ''}}" enhanced show-scrollbar="{{false}}" lower-threshold="120" bindscrolltolower="onLoadMore">
-    <!-- 空状态 -->
-    <view class="empty-orders" wx:if="{{displayOrders.length === 0}}">
-      <text class="empty-icon-2">📋</text>
-      <text class="empty-text-2">{{selectedDate ? '当天暂无饮食记录' : '暂无饮食记录'}}</text>
-      <text class="empty-sub-2">去挑选今天想做的菜吧~</text>
-    </view>
-
-    <!-- 订单卡片 -->
-    <view
-      class="order-card {{item._selected ? 'card-selected' : ''}} {{selectMode ? 'card-selectable' : ''}}"
-      wx:for="{{displayOrders}}"
-      wx:key="orderId"
-      bindlongpress="onLongPressCard"
-      data-id="{{item.orderId}}"
-    >
-      <!-- 选择模式下的复选框 -->
-      <view class="card-checkbox-area" wx:if="{{selectMode}}" catchtap="onToggleItem" data-id="{{item.orderId}}">
-        <view class="checkbox-box {{item._selected ? 'checked' : ''}}">
-          <text>{{item._selected ? '✓' : ''}}</text>
-        </view>
-      </view>
-
-      <!-- 卡片主体（非选择模式下点击进入详情） -->
-      <view class="oc-body" bindtap="{{selectMode ? 'onToggleItem' : 'onOrderTap'}}" data-id="{{item.orderId}}">
-        <view class="oc-header">
-          <view class="oc-left">
-            <text class="oc-id">{{item.venue || item.orderId}}</text>
-            <text class="oc-time">{{item._timeText}}</text>
+    <view class="quick-entry" wx:if="{{!selectMode}}">
+      <app-card variant="meal" interactive bind:tap="goToMealRecord">
+        <view class="quick-entry__content">
+          <view>
+            <text class="quick-entry__title">快速记一餐</text>
+            <text class="quick-entry__description">外出吃或点外卖，简单记下地点和餐食</text>
           </view>
-          <view class="oc-status completed">{{item.mealTypeIcon}} {{item.mealTypeText}}</view>
+          <text class="quick-entry__action">去记录</text>
+        </view>
+      </app-card>
+    </view>
+
+    <block wx:if="{{viewMode === 'calendar'}}">
+      <view class="calendar-section">
+        <app-card>
+          <view class="calendar-header">
+            <view class="month-action" bindtap="onPreviousMonth" aria-label="上个月">‹</view>
+            <text class="month-title">{{monthTitle}}</text>
+            <view class="month-action {{isCurrentMonth ? 'month-action--disabled' : ''}}" bindtap="onNextMonth" aria-label="下个月">›</view>
+          </view>
+          <view class="week-row"><text wx:for="{{weekDays}}" wx:key="*this">{{item}}</text></view>
+          <view class="day-grid">
+            <view
+              class="day-cell {{item.isSelected ? 'day-cell--selected' : ''}} {{item.isToday ? 'day-cell--today' : ''}} {{!item.date ? 'day-cell--empty' : ''}}"
+              wx:for="{{calendarDays}}"
+              wx:key="key"
+              bindtap="onCalendarDateTap"
+              data-date="{{item.date}}"
+            >
+              <text class="day-number">{{item.day}}</text>
+              <view class="day-markers">
+                <text class="day-marker day-marker--meal" wx:if="{{item.hasRecord}}">饮</text>
+                <text class="day-marker day-marker--life" wx:if="{{item.hasLifeRecord}}">事</text>
+              </view>
+            </view>
+          </view>
+          <view class="calendar-footer">
+            <view class="calendar-legend">
+              <text class="legend-item legend-item--meal">饮 饮食</text>
+              <text class="legend-item legend-item--life">事 生活</text>
+            </view>
+            <text class="today-action" wx:if="{{!isCurrentMonth || selectedDate !== today}}" bindtap="onGoToday">回到今天</text>
+          </view>
+        </app-card>
+      </view>
+
+      <empty-state wx:if="{{!selectedDate}}" symbol="日" title="选择一个日期" description="有“饮”或“事”标记的日期保存了记录" />
+
+      <block wx:else>
+        <view class="day-heading">
+          <view><text class="section-title">{{selectedDateTitle}}</text><text class="section-description">当天记录</text></view>
         </view>
 
-        <!-- 商品摘要行 -->
-        <view class="oc-items">
-          <view class="oc-item-row" wx:for="{{item.items}}" wx:for-item="food" wx:for-index="fidx" wx:key="id">
-            <image class="oci-img" wx:if="{{food.image}}" src="{{food.image}}" mode="aspectFill" lazy-load />
-            <text class="oci-icon" wx:else>{{item.mealTypeIcon}}</text>
-            <text class="oci-name">{{food.name}}</text>
-            <text class="oci-qty">x{{food.quantity}}</text>
+        <empty-state
+          wx:if="{{displayOrders.length === 0 && selectedLifeRecords.length === 0}}"
+          symbol="○"
+          title="当天还没有记录"
+          description="可以快速记一餐，或完成一份生活清单"
+          action-text="快速记一餐"
+          bind:action="goToMealRecord"
+        />
+
+        <view class="record-section" wx:if="{{selectedLifeRecords.length > 0}}">
+          <text class="subsection-title">生活记录</text>
+          <view class="record-card" wx:for="{{selectedLifeRecords}}" wx:key="id">
+            <app-card variant="life" interactive>
+              <view class="life-record" bindtap="onLifeRecordTap" data-id="{{item.id}}">
+                <text class="record-mark record-mark--life">事</text>
+                <view class="record-main"><text class="record-title">{{item.title}}</text><text class="record-meta">完成 {{item._itemCount}} 项 · 点击查看详情</text></view>
+                <text class="record-arrow">›</text>
+              </view>
+            </app-card>
           </view>
         </view>
 
-        <view class="oc-footer">
-          <text class="oc-count">共 {{item.totalCount}} 份</text>
-          <view class="oc-footer-right">
-            <text class="oc-delete-btn" catchtap="onDeleteOrder" data-id="{{item.orderId}}" wx:if="{{!selectMode}}">删除</text>
+        <view class="record-section" wx:if="{{displayOrders.length > 0}}">
+          <text class="subsection-title">饮食记录</text>
+          <view class="record-card" wx:for="{{displayOrders}}" wx:key="orderId">
+            <app-card interactive>
+              <view class="meal-record" bindtap="onOrderTap" data-id="{{item.orderId}}">
+                <text class="record-mark record-mark--meal">{{item.mealTypeMark}}</text>
+                <view class="record-main">
+                  <view class="record-title-row"><text class="record-title">{{item._titleText}}</text><text class="meal-type">{{item.mealTypeText}}</text></view>
+                  <text class="record-meta">{{item._timeText}} · 共 {{item._totalCount}} 份</text>
+                  <text class="record-items" wx:if="{{item._itemsText}}">{{item._itemsText}}</text>
+                </view>
+                <text class="record-arrow">›</text>
+              </view>
+            </app-card>
           </view>
         </view>
+      </block>
+    </block>
+
+    <block wx:else>
+      <view class="list-toolbar">
+        <view><text class="section-title">全部饮食记录</text><text class="section-description">按时间从近到远排列</text></view>
+        <text class="manage-action" wx:if="{{!selectMode && displayOrders.length > 0}}" bindtap="onEnterManage">管理</text>
       </view>
-    </view>
-    <view class="load-more" wx:if="{{!selectedDate && displayOrders.length > 0}}">{{loadingMore ? '正在加载更多...' : (hasMore ? '继续上滑加载更多' : '已加载全部记录')}}</view>
-  </scroll-view>
 
-  <!-- 批量操作底部栏 -->
-  <view class="batch-bar" wx:if="{{selectMode && selectedIds.length > 0}}">
-    <view class="batch-btn batch-delete" bindtap="onBatchDelete">
-      🗑 批量删除 ({{selectedIds.length}})
-    </view>
-  </view>
+      <view class="select-bar" wx:if="{{selectMode}}">
+        <view class="select-action" bindtap="onToggleSelectAll"><text class="select-box {{isAllSelected ? 'select-box--checked' : ''}}">{{isAllSelected ? '✓' : ''}}</text><text>{{isAllSelected ? '取消全选' : '全选'}}</text></view>
+        <text class="selected-count">已选 {{selectedIds.length}} 条</text>
+        <text class="cancel-action" bindtap="onCancelSelect">完成</text>
+      </view>
 
-  <view class="bottom-space {{selectMode ? 'with-batch' : ''}}"></view>
+      <empty-state wx:if="{{displayOrders.length === 0}}" symbol="录" title="还没有饮食记录" description="做饭、外出吃和外卖都可以保存在这里" action-text="快速记一餐" bind:action="goToMealRecord" />
+
+      <view class="record-list" wx:else>
+        <view class="record-card record-card--selectable {{item._selected ? 'record-card--selected' : ''}}" wx:for="{{displayOrders}}" wx:key="orderId">
+          <app-card>
+            <view class="meal-record" bindtap="{{selectMode ? 'onToggleItem' : 'onOrderTap'}}" data-id="{{item.orderId}}">
+              <text class="select-box {{item._selected ? 'select-box--checked' : ''}}" wx:if="{{selectMode}}">{{item._selected ? '✓' : ''}}</text>
+              <text class="record-mark record-mark--meal">{{item.mealTypeMark}}</text>
+              <view class="record-main">
+                <view class="record-title-row"><text class="record-title">{{item._titleText}}</text><text class="meal-type">{{item.mealTypeText}}</text></view>
+                <text class="record-meta">{{item._timeText}} · 共 {{item._totalCount}} 份</text>
+                <text class="record-items" wx:if="{{item._itemsText}}">{{item._itemsText}}</text>
+              </view>
+              <text class="record-arrow" wx:if="{{!selectMode}}">›</text>
+            </view>
+          </app-card>
+        </view>
+        <view class="load-more" wx:if="{{!selectMode}}">{{loadingMore ? '正在加载更多…' : (hasMore ? '继续上滑加载更多' : '已加载全部记录')}}</view>
+      </view>
+    </block>
   </block>
+
+  <view class="batch-bar" wx:if="{{selectMode}}">
+    <button class="batch-delete" disabled="{{selectedIds.length === 0 || batchPending}}" bindtap="onBatchDelete">{{batchPending ? '正在删除…' : '删除所选（' + selectedIds.length + '）'}}</button>
+  </view>
 </view>
