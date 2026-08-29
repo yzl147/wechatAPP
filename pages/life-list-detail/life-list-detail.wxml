@@ -19,7 +19,7 @@
         <text class="section-title">添加项目</text>
         <view class="add-row">
           <input class="add-input" placeholder="输入一件要完成的事" value="{{newItem}}" bindinput="onNewItemInput" confirm-type="done" bindconfirm="onAddItem" maxlength="40" />
-          <view class="add-action {{addPending || mutationPendingId || templatePending || deletePending ? 'action-disabled' : ''}}" bindtap="onAddItem" aria-role="button">{{addPending ? '添加中…' : '添加'}}</view>
+          <view class="add-action {{addPending || mutationPendingId || deletePendingItemId || templatePending || deletePending ? 'action-disabled' : ''}}" bindtap="onAddItem" aria-role="button" aria-disabled="{{addPending || mutationPendingId || deletePendingItemId || templatePending || deletePending}}">{{addPending ? '添加中…' : '添加'}}</view>
         </view>
       </app-card>
     </view>
@@ -34,9 +34,9 @@
           <view class="item-content">
             <view class="item-toggle" bindtap="onToggleItem" data-id="{{item.id}}">
               <text class="item-check {{item.done ? 'item-check--done' : ''}}">{{item.done ? '✓' : ''}}</text>
-              <view class="item-copy"><text class="item-text {{item.done ? 'item-text--done' : ''}}">{{item.text}}</text><text class="item-state">{{mutationPendingId === item.id ? '更新中…' : (item.done ? '已完成' : '待完成')}}</text></view>
+              <view class="item-copy"><text class="item-text {{item.done ? 'item-text--done' : ''}}">{{item.text}}</text><text class="item-state">{{deletePendingItemId === item.id ? '删除中…' : (mutationPendingId === item.id ? '更新中…' : (item.done ? '已完成' : '待完成'))}}</text></view>
             </view>
-            <view class="remove-action {{mutationPendingId || addPending || templatePending || deletePending ? 'action-disabled-text' : ''}}" catchtap="onRemoveItem" data-id="{{item.id}}" aria-role="button">删除</view>
+            <view class="remove-action {{mutationPendingId || deletePendingItemId || addPending || templatePending || deletePending ? 'action-disabled-text' : ''}}" catchtap="onRemoveItem" data-id="{{item.id}}" aria-role="button" aria-disabled="{{mutationPendingId || deletePendingItemId || addPending || templatePending || deletePending}}">{{deletePendingItemId === item.id ? '删除中…' : '删除'}}</view>
           </view>
         </app-card>
       </view>
@@ -47,8 +47,8 @@
         <text class="section-title">管理清单</text>
         <text class="manage-description">保存模板便于以后复用；删除清单不会影响已经保存的历史完成记录。</text>
         <view class="manage-actions">
-          <view class="template-save {{templatePending || deletePending || mutationPendingId || addPending ? 'action-disabled-text' : ''}}" bindtap="onSaveAsTemplate" aria-role="button">{{templatePending ? '保存中…' : '保存为我的模板'}}</view>
-          <view class="list-delete {{deletePending || templatePending || mutationPendingId || addPending ? 'action-disabled-text' : ''}}" bindtap="onDeleteList" aria-role="button">{{deletePending ? '删除中…' : '删除这张清单'}}</view>
+          <view class="template-save {{templatePending || deletePending || mutationPendingId || deletePendingItemId || addPending ? 'action-disabled-text' : ''}}" bindtap="onSaveAsTemplate" aria-role="button" aria-disabled="{{templatePending || deletePending || mutationPendingId || deletePendingItemId || addPending}}">{{templatePending ? '保存中…' : '保存为我的模板'}}</view>
+          <view class="list-delete {{deletePending || templatePending || mutationPendingId || deletePendingItemId || addPending ? 'action-disabled-text' : ''}}" bindtap="onDeleteList" aria-role="button" aria-disabled="{{deletePending || templatePending || mutationPendingId || deletePendingItemId || addPending}}">{{deletePending ? '删除中…' : '删除这张清单'}}</view>
         </view>
       </app-card>
     </view>

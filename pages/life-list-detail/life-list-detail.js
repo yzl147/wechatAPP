@@ -1,4 +1,5 @@
 const lifeListUtil = require('../../utils/life-list')
+const cloudUtil = require('../../utils/cloud')
 
 Page({
   data: {
@@ -8,6 +9,7 @@ Page({
     progressPercent: 0,
     remainingCount: 0,
     mutationPendingId: '',
+    deletePendingItemId: '',
     addPending: false,
     templatePending: false,
     deletePending: false
@@ -54,7 +56,7 @@ Page({
 
   async onToggleItem(e) {
     const id = e.currentTarget.dataset.id
-    if (!id || this.data.mutationPendingId || this.data.addPending || this.data.templatePending || this.data.deletePending) return
+    if (!id || this.data.mutationPendingId || this.data.deletePendingItemId || this.data.addPending || this.data.templatePending || this.data.deletePending) return
     this.setData({ mutationPendingId: id })
     try {
       await lifeListUtil.toggleItem(this.listId, id)
@@ -68,7 +70,7 @@ Page({
   onNewItemInput(e) { this.setData({ newItem: e.detail.value }) },
   async onAddItem() {
     const text = this.data.newItem.trim()
-    if (!text || this.data.addPending || this.data.mutationPendingId || this.data.templatePending || this.data.deletePending) return
+    if (!text || this.data.addPending || this.data.mutationPendingId || this.data.deletePendingItemId || this.data.templatePending || this.data.deletePending) return
     this.setData({ addPending: true })
     try {
       await lifeListUtil.addItem(this.listId, text)
@@ -83,27 +85,30 @@ Page({
   onRemoveItem(e) {
     const id = e.currentTarget.dataset.id
     const item = this.data.list.items.find(entry => entry.id === id)
-    if (!item || this.data.mutationPendingId || this.data.addPending || this.data.templatePending || this.data.deletePending) return
+    if (!item || this.data.mutationPendingId || this.data.deletePendingItemId || this.data.addPending || this.data.templatePending || this.data.deletePending) return
     wx.showModal({
       title: '删除清单项目',
-      content: `确定删除“${item.text}”吗？`,
+      content: `确定删除“${item.text}”吗？删除后无法恢复。`,
+      confirmText: '删除',
+      cancelText: '取消',
       confirmColor: '#c43d38',
       success: async result => {
         if (!result.confirm) return
-        this.setData({ mutationPendingId: id })
+        this.setData({ deletePendingItemId: id })
         try {
           await lifeListUtil.removeItem(this.listId, id)
           this.loadList()
+          wx.showToast({ title: '已删除清单项目', icon: 'success' })
         } catch (error) {
-          wx.showToast({ title: '删除失败，请重试', icon: 'none' })
+          wx.showToast({ title: cloudUtil.getErrorMessage(error, '删除清单项目失败，请重试'), icon: 'none' })
         } finally {
-          this.setData({ mutationPendingId: '' })
+          this.setData({ deletePendingItemId: '' })
         }
       }
     })
   },
   async onSaveAsTemplate() {
-    if (this.data.templatePending || this.data.deletePending || this.data.mutationPendingId || this.data.addPending) return
+    if (this.data.templatePending || this.data.deletePending || this.data.mutationPendingId || this.data.deletePendingItemId || this.data.addPending) return
     this.setData({ templatePending: true })
     try {
       const template = await lifeListUtil.saveAsTemplate(this.data.list)
@@ -115,20 +120,24 @@ Page({
     }
   },
   onDeleteList() {
-    if (this.data.deletePending || this.data.templatePending || this.data.mutationPendingId || this.data.addPending) return
+    if (this.data.deletePending || this.data.templatePending || this.data.mutationPendingId || this.data.deletePendingItemId || this.data.addPending) return
+    const title = this.data.list ? this.data.list.title : '这张清单'
     wx.showModal({
-      title: '删除清单',
-      content: '确定删除这张清单吗？已保存的历史完成记录不会受到影响。',
+      title: '删除生活清单',
+      content: `确定删除“${title}”吗？删除后无法恢复，已保存的历史完成记录不受影响。`,
+      confirmText: '删除',
+      cancelText: '取消',
       confirmColor: '#c43d38',
       success: async result => {
         if (!result.confirm) return
         this.setData({ deletePending: true })
         try {
           await lifeListUtil.removeList(this.listId)
+          wx.showToast({ title: '已删除生活清单', icon: 'success' })
           wx.navigateBack()
         } catch (error) {
           this.setData({ deletePending: false })
-          wx.showToast({ title: '删除失败，请重试', icon: 'none' })
+          wx.showToast({ title: cloudUtil.getErrorMessage(error, '删除生活清单失败，请重试'), icon: 'none' })
         }
       }
     })

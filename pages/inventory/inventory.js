@@ -1,4 +1,5 @@
 const inventoryUtil = require('../../utils/inventory')
+const cloudUtil = require('../../utils/cloud')
 
 Page({
   data: {
@@ -121,8 +122,10 @@ Page({
     if (!id || this.data.deletePendingId || this.data.mutationPendingId || this.data.addPending) return
     const item = this.data.items.find(entry => entry.id === id)
     wx.showModal({
-      title: '删除食材',
-      content: `确定从库存中删除“${item ? item.name : '这项食材'}”吗？`,
+      title: '删除库存食材',
+      content: `确定从库存中删除“${item ? item.name : '这项食材'}”吗？删除后无法恢复。`,
+      confirmText: '删除',
+      cancelText: '取消',
       confirmColor: '#c43d38',
       success: async res => {
         if (!res.confirm) return
@@ -130,8 +133,9 @@ Page({
         try {
           await inventoryUtil.removeInventory(id)
           this.loadInventory()
+          wx.showToast({ title: '已从库存删除', icon: 'success' })
         } catch (error) {
-          wx.showToast({ title: '删除失败，请重试', icon: 'none' })
+          wx.showToast({ title: cloudUtil.getErrorMessage(error, '删除库存食材失败，请重试'), icon: 'none' })
         } finally {
           this.setData({ deletePendingId: '' })
         }
