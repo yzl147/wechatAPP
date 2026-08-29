@@ -16,6 +16,8 @@
 
 历史页面路由 `pages/cart`、`pages/orders`、`pages/order-detail`，云函数 `manageCart`、`manageOrders`，以及集合 `carts`、`orders` 暂时保留用于兼容已有链接和云端数据。旧名称只能出现在 repository、云函数协议或迁移说明等兼容边界中，不能扩散到新业务代码。
 
+`carts` 与 `orders` 的新文档不再持久化 `price/subtotal/totalPrice/status` 等点餐字段；云函数只在返回旧客户端时临时补充默认值。不要据此重新把这些字段写回数据库。
+
 ## 页面结构
 
 - `pages/home/`：首页与场景入口。

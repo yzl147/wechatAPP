@@ -6,6 +6,12 @@ const $ = db.command.aggregate
 const { validateOrderEvent } = require('./validation')
 const { runCloudRequest } = require('./runtime')
 const { fetchOrderPage, fetchAllOrders } = require('./pagination')
+const {
+  createCookedItemSnapshot,
+  createExternalItemSnapshot,
+  createMealRecordDocument,
+  toLegacyCompatibleRecord
+} = require('./record-model')
 
 async function handleRequest(event, OPENID) {
   const { action } = event || {}
@@ -21,55 +27,23 @@ async function handleRequest(event, OPENID) {
       const { data: dishes } = await db.collection('dishes').where({ id: _.in(dishIds) }).get()
       const dishMap = new Map(dishes.map(dish => [dish.id, dish]))
       if (dishIds.some(dishId => !dishMap.has(dishId))) return { code: 40401, message: '包含不存在的菜谱' }
-      trustedItems = items.map(item => {
-        const dish = dishMap.get(item.dishId)
-        const price = Number(dish.price) || 0
-        return {
-          id: dish.id,
-          name: dish.name,
-          icon: dish.icon || '',
-          image: dish.image || '',
-          bgStyle: dish.bgStyle || '',
-          brief: dish.brief || '',
-          category: dish.category || '',
-          ingredients: Array.isArray(dish.ingredients) ? dish.ingredients : [],
-          price,
-          quantity: item.quantity,
-          subtotal: parseFloat((price * item.quantity).toFixed(2))
-        }
-      })
+      trustedItems = items.map(item => createCookedItemSnapshot(dishMap.get(item.dishId), item.quantity))
     } else {
-      trustedItems = [{
-        id: `meal-${Date.now()}`,
-        name: event.dishes.trim(),
-        quantity: 1,
-        price: 0,
-        image: '',
-        subtotal: 0
-      }]
+      trustedItems = [createExternalItemSnapshot(event.dishes, Date.now())]
     }
 
-    let totalPrice = 0
-    let totalCount = 0
-    trustedItems.forEach(item => {
-      totalPrice += item.price * item.quantity
-      totalCount += item.quantity
-    })
     const orderId = 'FO' + (1000 + Math.floor(Math.random() * 9000)) + Date.now().toString().slice(-4)
-    const orderData = {
+    const orderData = createMealRecordDocument({
       orderId,
-      _openid: OPENID,
+      openid: OPENID,
       orderTime: Date.now(),
-      status: 'completed',
       items: trustedItems,
-      totalCount,
-      totalPrice: parseFloat(totalPrice.toFixed(2)),
-      remark: (remark || '').trim(),
-      mealType: mealType || 'cook',
-      venue: (venue || '').trim()
-    }
+      remark,
+      mealType,
+      venue
+    })
     await db.collection('orders').add({ data: orderData })
-    return { code: 0, data: orderData }
+    return { code: 0, data: toLegacyCompatibleRecord(orderData) }
   }
 
   // 获取当前用户饮食记录列表
@@ -81,7 +55,13 @@ async function handleRequest(event, OPENID) {
       cursor: event.cursor || null,
       limit: event.limit
     })
-    return { code: 0, data: page }
+    return {
+      code: 0,
+      data: {
+        ...page,
+        items: page.items.map(toLegacyCompatibleRecord)
+      }
+    }
   }
 
   // 获取自然月等有限日期范围内的完整记录，不依赖数据库默认查询上限
@@ -95,14 +75,14 @@ async function handleRequest(event, OPENID) {
         orderTime: _.gte(startTime).and(_.lt(endTime))
       }
     })
-    return { code: 0, data }
+    return { code: 0, data: data.map(toLegacyCompatibleRecord) }
   }
 
   // 获取饮食记录详情
   if (action === 'detail') {
     const { orderId } = event
     const { data } = await db.collection('orders').where({ orderId, _openid: OPENID }).get()
-    return { code: 0, data: data[0] || null }
+    return { code: 0, data: toLegacyCompatibleRecord(data[0] || null) }
   }
 
   // 旧版本兼容：更新已废弃的状态字段

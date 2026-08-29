@@ -3,6 +3,7 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 const { MAX_QUANTITY, validateCartEvent } = require('./validation')
 const { runCloudRequest } = require('./runtime')
+const { createMealListDocument, toLegacyCompatibleItem } = require('./meal-list-model')
 
 async function handleRequest(event, OPENID) {
   const { action } = event || {}
@@ -12,7 +13,7 @@ async function handleRequest(event, OPENID) {
   // 获取今日饮食清单（集合名 carts 为旧版本兼容字段）
   if (action === 'get') {
     const { data } = await db.collection('carts').where({ _openid: OPENID }).get()
-    return { code: 0, data }
+    return { code: 0, data: data.map(toLegacyCompatibleItem) }
   }
 
   // 获取今日饮食清单份数
@@ -45,20 +46,12 @@ async function handleRequest(event, OPENID) {
       })
     } else {
       await db.collection('carts').add({
-        data: {
-          _openid: OPENID,
-          foodId: dish.id,
-          name: dish.name,
-          icon: dish.icon || '',
-          image: dish.image || '',
-          bgStyle: dish.bgStyle || '',
-          price: Number(dish.price) || 0,
-          category: dish.category || '',
-          brief: dish.brief || '',
-          ingredients: Array.isArray(dish.ingredients) ? dish.ingredients : [],
+        data: createMealListDocument({
+          openid: OPENID,
+          dish,
           quantity,
           addedTime: Date.now()
-        }
+        })
       })
     }
     return { code: 0, message: '添加成功' }
