@@ -28,10 +28,16 @@ test('饮食记录 repository 隔离旧 manageOrders 参数', async () => {
 
   await repository.getRecord('FO1')
   await repository.createCookedRecord([{ dishId: 13, quantity: 2 }])
+  const deletion = await repository.deleteRecord('FO1')
+  const restoration = await repository.restoreRecord('FO1')
   await repository.deleteRecords(['FO1'])
+  assert.deepEqual(deletion, { recordId: 'FO1', recoverable: false })
+  assert.deepEqual(restoration, { recordId: 'FO1', restored: false })
   assert.deepEqual(calls, [
     { name: 'manageOrders', data: { action: 'detail', orderId: 'FO1' } },
     { name: 'manageOrders', data: { action: 'create', items: [{ dishId: 13, quantity: 2 }], remark: '', mealType: 'cook' } },
+    { name: 'manageOrders', data: { action: 'delete', orderId: 'FO1' } },
+    { name: 'manageOrders', data: { action: 'restore', orderId: 'FO1' } },
     { name: 'manageOrders', data: { action: 'batchDelete', orderIds: ['FO1'] } }
   ])
 })

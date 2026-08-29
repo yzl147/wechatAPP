@@ -45,8 +45,19 @@ function createMealRecordRepository(client) {
       return normalizeRecord(result.data)
     },
 
-    deleteRecord(recordId) {
-      return callLegacyProtocol('delete', { orderId: recordId })
+    async deleteRecord(recordId) {
+      const result = await callLegacyProtocol('delete', { orderId: recordId })
+      const data = result.data || {}
+      return {
+        recordId: data.recordId || recordId,
+        recoverable: data.recoverable === true
+      }
+    },
+
+    async restoreRecord(recordId) {
+      const result = await callLegacyProtocol('restore', { orderId: recordId })
+      const data = result.data || {}
+      return { recordId: data.recordId || recordId, restored: data.restored === true }
     },
 
     deleteRecords(recordIds) {
@@ -71,6 +82,7 @@ function normalizeRecord(record) {
   delete normalized.status
   delete normalized.completedTime
   delete normalized.totalPrice
+  delete normalized.deletedAt
   normalized.items.forEach(item => {
     delete item.foodId
     delete item.price

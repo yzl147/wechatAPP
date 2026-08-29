@@ -34,6 +34,11 @@ function createMealRecordDocument({ orderId, openid, orderTime, items, remark, m
   }
 }
 
+function isRecordDeleted(record) {
+  const deletedAt = Number(record && record.deletedAt)
+  return Number.isSafeInteger(deletedAt) && deletedAt > 0
+}
+
 // 历史文档原样保留在数据库中，当前响应不再暴露点餐金额和订单状态。
 function toCurrentRecord(record) {
   if (!record) return null
@@ -41,6 +46,7 @@ function toCurrentRecord(record) {
   delete currentRecord.status
   delete currentRecord.completedTime
   delete currentRecord.totalPrice
+  delete currentRecord.deletedAt
   currentRecord.items = Array.isArray(record.items)
     ? record.items.map(item => {
       const currentItem = { ...item }
@@ -56,5 +62,6 @@ module.exports = {
   createCookedItemSnapshot,
   createExternalItemSnapshot,
   createMealRecordDocument,
+  isRecordDeleted,
   toCurrentRecord
 }

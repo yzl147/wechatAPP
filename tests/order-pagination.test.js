@@ -92,3 +92,25 @@ test('范围查询分批读取超过 120 条记录且不重复遗漏', async () 
   assert.deepEqual(collection.calls.limit, [51, 51, 51])
   assert.equal(collection.calls.where[1].op, 'and')
 })
+
+test('分页跳过软删除记录并继续扫描到完整可见页', async () => {
+  const records = createRecords(5)
+  records[1].deletedAt = 100
+  records[2].deletedAt = 200
+  const collection = createQueuedCollection([
+    records.slice(0, 3),
+    records.slice(3)
+  ])
+  const page = await fetchOrderPage({
+    collection,
+    command: createCommandRecorder(),
+    baseCondition: { _openid: 'user' },
+    limit: 2,
+    includeRecord: record => !record.deletedAt
+  })
+
+  assert.deepEqual(page.items.map(item => item.orderId), ['FO0', 'FO3'])
+  assert.equal(page.hasMore, true)
+  assert.deepEqual(page.nextCursor, createCursor(records[3]))
+  assert.deepEqual(collection.calls.limit, [3, 3])
+})

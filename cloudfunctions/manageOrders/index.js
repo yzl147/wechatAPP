@@ -9,6 +9,7 @@ const {
   createCookedItemSnapshot,
   createExternalItemSnapshot,
   createMealRecordDocument,
+  isRecordDeleted,
   toCurrentRecord
 } = require('./record-model')
 
@@ -52,7 +53,8 @@ async function handleRequest(event, OPENID) {
       command: _,
       baseCondition: { _openid: OPENID },
       cursor: event.cursor || null,
-      limit: event.limit
+      limit: event.limit,
+      includeRecord: record => !isRecordDeleted(record)
     })
     return {
       code: 0,
@@ -72,7 +74,8 @@ async function handleRequest(event, OPENID) {
       baseCondition: {
         _openid: OPENID,
         orderTime: _.gte(startTime).and(_.lt(endTime))
-      }
+      },
+      includeRecord: record => !isRecordDeleted(record)
     })
     return { code: 0, data: data.map(toCurrentRecord) }
   }
@@ -81,21 +84,31 @@ async function handleRequest(event, OPENID) {
   if (action === 'detail') {
     const { orderId } = event
     const { data } = await db.collection('orders').where({ orderId, _openid: OPENID }).get()
-    return { code: 0, data: toCurrentRecord(data[0] || null) }
+    const record = data[0] || null
+    return { code: 0, data: isRecordDeleted(record) ? null : toCurrentRecord(record) }
   }
 
-  // 删除饮食记录
+  // 软删除饮食记录，保留当前页面撤销和后续恢复能力
   if (action === 'delete') {
     const { orderId } = event
-    await db.collection('orders').where({ orderId, _openid: OPENID }).remove()
-    return { code: 0, message: '删除成功' }
+    const deletedAt = Date.now()
+    await db.collection('orders').where({ orderId, _openid: OPENID }).update({ data: { deletedAt } })
+    return { code: 0, message: '删除成功', data: { recordId: orderId, recoverable: true, deletedAt } }
   }
 
-  // 批量删除
+  // 撤销单条饮食记录删除；null 表示当前有效且兼容未带字段的旧记录
+  if (action === 'restore') {
+    const { orderId } = event
+    await db.collection('orders').where({ orderId, _openid: OPENID }).update({ data: { deletedAt: null } })
+    return { code: 0, message: '恢复成功', data: { recordId: orderId, restored: true } }
+  }
+
+  // 批量操作同样只做软删除，当前版本暂不提供批量撤销入口
   if (action === 'batchDelete') {
     const { orderIds } = event
+    const deletedAt = Date.now()
     const deletePromises = orderIds.map(orderId =>
-      db.collection('orders').where({ orderId, _openid: OPENID }).remove()
+      db.collection('orders').where({ orderId, _openid: OPENID }).update({ data: { deletedAt } })
     )
     await Promise.all(deletePromises)
     return { code: 0, message: '批量删除成功' }

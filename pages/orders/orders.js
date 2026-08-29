@@ -272,7 +272,7 @@ Page({
     if (!count || batchPending) return
     wx.showModal({
       title: '删除饮食记录',
-      content: `确定删除选中的 ${count} 条记录吗？删除后无法恢复。`,
+      content: `确定删除选中的 ${count} 条记录吗？批量删除后暂时无法在页面撤销。`,
       confirmColor: '#c43d38',
       success: async (result) => {
         if (!result.confirm) return

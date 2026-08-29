@@ -7,7 +7,10 @@ Page({
     record: null,
     recordId: '',
     loadStatus: 'loading',
-    fromHistory: false
+    fromHistory: false,
+    isDeleted: false,
+    deletePending: false,
+    restorePending: false
   },
 
   onLoad(options) {
@@ -36,7 +39,7 @@ Page({
           totalCount: getRecordCount(record),
           _timeText: mealRecordService.formatTime(record.recordedAt)
         }
-        this.setData({ record: recordData, loadStatus: 'success' })
+        this.setData({ record: recordData, loadStatus: 'success', isDeleted: false })
         wx.setNavigationBarTitle({ title: '饮食记录' })
       } else {
         this.setData({ record: null, loadStatus: 'empty' })
@@ -74,25 +77,46 @@ Page({
 
   onDeleteRecord() {
     const record = this.data.record
+    if (!record || this.data.deletePending || this.data.restorePending) return
     const dishNames = (record && record.items) ? record.items.map(item => item.name).join('、') : ''
     wx.showModal({
-      title: '确认删除',
-      content: `确定要删除这条饮食记录吗？\n（${dishNames}）`,
+      title: '删除饮食记录',
+      content: `确定删除这条饮食记录吗？删除后可在当前页面撤销。\n（${dishNames}）`,
       confirmColor: '#e74c3c',
       success: async (res) => {
         if (res.confirm) {
+          this.setData({ deletePending: true })
           try {
-            await mealRecordService.deleteRecord(record.recordId)
-            wx.showToast({ title: '已删除', icon: 'none' })
-            setTimeout(() => {
-              wx.switchTab({ url: '/pages/orders/orders' })
-            }, 800)
+            const deletion = await mealRecordService.deleteRecord(record.recordId)
+            if (!deletion.recoverable) {
+              wx.showToast({ title: '已删除', icon: 'none' })
+              setTimeout(() => wx.switchTab({ url: '/pages/orders/orders' }), 800)
+              return
+            }
+            this.setData({ isDeleted: true, deletePending: false })
+            wx.showToast({ title: '已删除，可撤销', icon: 'none' })
           } catch (e) {
+            this.setData({ deletePending: false })
             wx.showToast({ title: cloudUtil.getErrorMessage(e, '删除失败，请重试'), icon: 'none' })
           }
         }
       }
     })
+  },
+
+  async onUndoDelete() {
+    const { record, isDeleted, restorePending } = this.data
+    if (!record || !isDeleted || restorePending) return
+    this.setData({ restorePending: true })
+    try {
+      const result = await mealRecordService.restoreRecord(record.recordId)
+      if (!result.restored) throw new Error('记录未恢复')
+      this.setData({ isDeleted: false, restorePending: false })
+      wx.showToast({ title: '记录已恢复', icon: 'success' })
+    } catch (e) {
+      this.setData({ restorePending: false })
+      wx.showToast({ title: cloudUtil.getErrorMessage(e, '恢复失败，请重试'), icon: 'none' })
+    }
   },
 
   // 继续选菜

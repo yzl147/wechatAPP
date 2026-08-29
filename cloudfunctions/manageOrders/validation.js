@@ -86,12 +86,12 @@ function validateOrderEvent(event) {
   if (!event || typeof event !== 'object' || Array.isArray(event)) {
     return validationError('请求参数格式不正确', 'event')
   }
-  const actions = ['create', 'list', 'range', 'detail', 'delete', 'batchDelete']
+  const actions = ['create', 'list', 'range', 'detail', 'delete', 'restore', 'batchDelete']
   if (!actions.includes(event.action)) return validationError('操作类型不正确', 'action')
   if (event.action === 'create') return validateCreateEvent(event)
   if (event.action === 'list') return validateListEvent(event)
   if (event.action === 'range') return validateRangeEvent(event)
-  if (['detail', 'delete'].includes(event.action) && !isOrderId(event.orderId)) {
+  if (['detail', 'delete', 'restore'].includes(event.action) && !isOrderId(event.orderId)) {
     return validationError('记录 ID 不正确', 'orderId')
   }
   if (event.action === 'batchDelete') return validateOrderIds(event.orderIds)

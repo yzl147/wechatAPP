@@ -8,6 +8,7 @@ function createMealRecordService(repository) {
     saveCookedMeal(mealList, remark = '') { return repository.createCookedRecord(mealList, remark) },
     saveExternalMeal(input) { return repository.createExternalRecord(input) },
     deleteRecord(recordId) { return repository.deleteRecord(recordId) },
+    restoreRecord(recordId) { return repository.restoreRecord(recordId) },
     deleteRecords(recordIds) { return repository.deleteRecords(recordIds) },
     formatTime
   }

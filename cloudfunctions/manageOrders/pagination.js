@@ -21,19 +21,37 @@ function buildCursorCondition(command, cursor) {
   ])
 }
 
-async function fetchOrderPage({ collection, command, baseCondition, cursor, limit }) {
+async function fetchOrderPage({ collection, command, baseCondition, cursor, limit, includeRecord = () => true }) {
   const pageSize = normalizePageSize(limit)
-  const condition = cursor
-    ? command.and([baseCondition, buildCursorCondition(command, cursor)])
-    : baseCondition
-  const { data } = await collection
-    .where(condition)
-    .orderBy('orderTime', 'desc')
-    .orderBy('_id', 'desc')
-    .limit(pageSize + 1)
-    .get()
-  const hasMore = data.length > pageSize
-  const items = data.slice(0, pageSize)
+  const fetchSize = pageSize + 1
+  const visibleItems = []
+  let scanCursor = cursor || null
+
+  while (visibleItems.length < fetchSize) {
+    const condition = scanCursor
+      ? command.and([baseCondition, buildCursorCondition(command, scanCursor)])
+      : baseCondition
+    const { data } = await collection
+      .where(condition)
+      .orderBy('orderTime', 'desc')
+      .orderBy('_id', 'desc')
+      .limit(fetchSize)
+      .get()
+    const records = Array.isArray(data) ? data : []
+    if (records.length === 0) break
+
+    for (const record of records) {
+      if (includeRecord(record)) visibleItems.push(record)
+      if (visibleItems.length >= fetchSize) break
+    }
+
+    if (visibleItems.length >= fetchSize || records.length < fetchSize) break
+    scanCursor = createCursor(records[records.length - 1])
+    if (!scanCursor) break
+  }
+
+  const hasMore = visibleItems.length > pageSize
+  const items = visibleItems.slice(0, pageSize)
   return {
     items,
     hasMore,

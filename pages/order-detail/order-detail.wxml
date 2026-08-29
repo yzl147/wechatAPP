@@ -53,10 +53,19 @@
       <text class="remark-text">{{record.remark}}</text>
     </view>
 
-    <!-- 操作按钮 -->
-    <view class="action-area">
+    <!-- 删除后保留当前详情，允许用户在离开前撤销 -->
+    <view class="deletion-recovery" wx:if="{{isDeleted}}">
+      <text class="deletion-recovery__title">这条记录已删除</text>
+      <text class="deletion-recovery__description">离开当前页面前仍可撤销，恢复后会重新出现在记录和月历中。</text>
+      <view class="deletion-recovery__actions">
+        <view class="btn-undo {{restorePending ? 'action-disabled' : ''}}" bindtap="onUndoDelete" aria-role="button" aria-disabled="{{restorePending}}">{{restorePending ? '正在恢复…' : '撤销删除'}}</view>
+        <view class="btn-secondary" bindtap="onViewMealRecords" aria-role="button">返回记录</view>
+      </view>
+    </view>
+
+    <view class="action-area" wx:else>
       <view class="btn-reuse" wx:if="{{record.isCook}}" bindtap="onReuseMeal">复用这一餐</view>
-      <view class="btn-delete" bindtap="onDeleteRecord">删除记录</view>
+      <view class="btn-delete {{deletePending ? 'action-disabled' : ''}}" bindtap="onDeleteRecord" aria-role="button" aria-disabled="{{deletePending}}">{{deletePending ? '正在删除…' : '删除记录'}}</view>
       <view class="btn-primary" bindtap="onViewMealRecords">
         查看饮食记录
       </view>

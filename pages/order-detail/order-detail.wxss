@@ -226,6 +226,14 @@
   border-radius: 44rpx;
 }
 
+.action-disabled { opacity: 0.5; pointer-events: none; }
+
+.deletion-recovery { margin: 20rpx; padding: 28rpx 32rpx; border: 1rpx solid #f1d59a; border-radius: 20rpx; background: #fff8e8; }
+.deletion-recovery__title { display: block; color: #8a5600; font-size: 30rpx; font-weight: 700; }
+.deletion-recovery__description { display: block; margin-top: 10rpx; color: #78684e; font-size: 24rpx; line-height: 1.6; }
+.deletion-recovery__actions { display: flex; gap: 20rpx; margin-top: 24rpx; }
+.btn-undo { flex: 1; padding: 20rpx 0; border-radius: 40rpx; background: #ff6b35; color: #fff; font-size: 28rpx; font-weight: 600; text-align: center; }
+
 .btn-reuse {
   flex: 1;
   text-align: center;

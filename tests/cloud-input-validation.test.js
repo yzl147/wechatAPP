@@ -59,7 +59,9 @@ test('外出和外卖记录校验枚举及文本长度', () => {
 
 test('记录操作校验单条 ID、废弃动作和批量上限', () => {
   assert.equal(validateOrderEvent({ action: 'detail', orderId: 'FO12345678' }), null)
+  assert.equal(validateOrderEvent({ action: 'restore', orderId: 'FO12345678' }), null)
   assert.equal(validateOrderEvent({ action: 'delete', orderId: '' }).code, 40001)
+  assert.equal(validateOrderEvent({ action: 'restore', orderId: '' }).code, 40001)
   assert.equal(validateOrderEvent({ action: 'updateStatus', orderId: 'FO12345678', status: 'completed' }).code, 40001)
   assert.equal(validateOrderEvent({ action: 'batchComplete', orderIds: ['FO1'] }).code, 40001)
   assert.equal(validateOrderEvent({ action: 'summary' }).code, 40001)
