@@ -12,7 +12,7 @@ async function handleRequest(event, OPENID) {
   const validationError = validateOrderEvent(event)
   if (validationError) return validationError
 
-  // 创建订单
+  // 保存饮食记录（orders 集合和旧字段暂用于历史数据兼容）
   if (action === 'create') {
     const { items, remark, mealType, venue } = event
     let trustedItems
@@ -72,7 +72,7 @@ async function handleRequest(event, OPENID) {
     return { code: 0, data: orderData }
   }
 
-  // 获取当前用户订单列表
+  // 获取当前用户饮食记录列表
   if (action === 'list') {
     const page = await fetchOrderPage({
       collection: db.collection('orders'),
@@ -98,14 +98,14 @@ async function handleRequest(event, OPENID) {
     return { code: 0, data }
   }
 
-  // 获取订单详情
+  // 获取饮食记录详情
   if (action === 'detail') {
     const { orderId } = event
     const { data } = await db.collection('orders').where({ orderId, _openid: OPENID }).get()
     return { code: 0, data: data[0] || null }
   }
 
-  // 更新订单状态（标记完成）
+  // 旧版本兼容：更新已废弃的状态字段
   if (action === 'updateStatus') {
     const { orderId, status } = event
     const updateData = { status }
@@ -116,14 +116,14 @@ async function handleRequest(event, OPENID) {
     return { code: 0, message: '更新成功' }
   }
 
-  // 删除订单
+  // 删除饮食记录
   if (action === 'delete') {
     const { orderId } = event
     await db.collection('orders').where({ orderId, _openid: OPENID }).remove()
     return { code: 0, message: '删除成功' }
   }
 
-  // 批量完成
+  // 旧版本兼容：批量更新已废弃的状态字段
   if (action === 'batchComplete') {
     const { orderIds } = event
     const updatePromises = orderIds.map(orderId =>
@@ -145,7 +145,7 @@ async function handleRequest(event, OPENID) {
     return { code: 0, message: '批量删除成功' }
   }
 
-  // 获取订单统计
+  // 旧版本兼容：读取包含历史价格字段的统计
   if (action === 'summary') {
     const collection = db.collection('orders')
     const [countResult, amountResult] = await Promise.all([

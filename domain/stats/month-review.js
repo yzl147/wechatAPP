@@ -16,17 +16,17 @@ function isCurrentMonth(year, month, now = new Date()) {
   return year === now.getFullYear() && month === now.getMonth()
 }
 
-function summarizeMeals(orders = []) {
+function summarizeMeals(mealRecords = []) {
   const summary = { cookCount: 0, dineOutCount: 0, takeoutCount: 0, totalCount: 0, topDishes: [] }
   const dishCounts = new Map()
 
-  orders.forEach(order => {
-    const mealType = order && order.mealType ? order.mealType : 'cook'
+  mealRecords.forEach(record => {
+    const mealType = record && record.mealType ? record.mealType : 'cook'
     if (mealType === 'dine_out') summary.dineOutCount += 1
     else if (mealType === 'takeout') summary.takeoutCount += 1
     else {
       summary.cookCount += 1
-      const items = Array.isArray(order && order.items) ? order.items : []
+      const items = Array.isArray(record && record.items) ? record.items : []
       items.forEach(item => {
         const name = String(item && item.name || '').trim()
         if (!name) return

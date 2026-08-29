@@ -72,6 +72,8 @@
 | `cloudfunctions/manageDishes/` | 菜品数据与云存储图片映射 |
 | `repositories/cloud/meal-list-repository.js` | 隔离今日饮食清单的数据访问及旧云协议 |
 | `services/meal-list-service.js` | 今日饮食清单的页面无关业务接口 |
+| `repositories/cloud/meal-record-repository.js` | 隔离饮食记录的数据访问及旧云协议 |
+| `services/meal-record-service.js` | 饮食记录的保存、查询和删除接口 |
 | `cloudfunctions/manageCart/` | 今日饮食清单云函数；函数名和 `carts` 集合暂为旧数据兼容名称 |
 | `cloudfunctions/manageOrders/` | 饮食记录云函数；函数名和 `orders` 集合暂为旧数据兼容名称 |
 | `utils/` | 兼容入口、日期和版本化本地缓存等通用能力 |

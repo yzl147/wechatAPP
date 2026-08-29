@@ -1,20 +1,20 @@
-const orderUtil = require('../../utils/order')
+const mealRecordService = require('../../services/meal-record-service')
 const mealListService = require('../../services/meal-list-service')
 const cloudUtil = require('../../utils/cloud')
 
 Page({
   data: {
-    order: null,
-    orderId: '',
+    record: null,
+    recordId: '',
     loadStatus: 'loading',
-    showPush: true,
     fromHistory: false
   },
 
   onLoad(options) {
-    if (options.orderId) {
-      this.setData({ orderId: options.orderId })
-      this.loadOrderDetail(options.orderId)
+    const recordId = options.recordId || options.orderId
+    if (recordId) {
+      this.setData({ recordId })
+      this.loadMealRecord(recordId)
     } else {
       this.setData({ loadStatus: 'empty' })
     }
@@ -23,30 +23,23 @@ Page({
     }
   },
 
-  // 从云端加载订单详情
-  async loadOrderDetail(orderId) {
+  async loadMealRecord(recordId) {
     this.setData({ loadStatus: 'loading' })
     try {
-      const result = await cloudUtil.callFunction('manageOrders', { action: 'detail', orderId })
-      const order = result.data
-      if (order) {
-        const items = order.items.map(item => ({
-          ...item,
-          subtotalText: (item.price * item.quantity).toFixed(2)
-        }))
-        const orderData = {
-          ...order,
-          mealType: order.mealType || 'cook',
-          mealTypeText: getMealTypeText(order.mealType),
-          isCook: !order.mealType || order.mealType === 'cook',
-          items,
-          priceText: order.totalPrice.toFixed(2),
-          _timeText: orderUtil.formatTime(order.orderTime)
+      const record = await mealRecordService.getRecord(recordId)
+      if (record) {
+        const recordData = {
+          ...record,
+          mealType: record.mealType || 'cook',
+          mealTypeText: getMealTypeText(record.mealType),
+          isCook: !record.mealType || record.mealType === 'cook',
+          totalCount: getRecordCount(record),
+          _timeText: mealRecordService.formatTime(record.recordedAt)
         }
-        this.setData({ order: orderData, loadStatus: 'success' })
+        this.setData({ record: recordData, loadStatus: 'success' })
         wx.setNavigationBarTitle({ title: '饮食记录' })
       } else {
-        this.setData({ order: null, loadStatus: 'empty' })
+        this.setData({ record: null, loadStatus: 'empty' })
       }
     } catch (e) {
       console.error('加载饮食记录详情失败', e && e.code, e && e.requestId)
@@ -54,41 +47,9 @@ Page({
     }
   },
 
-  onRetryLoad() { this.loadOrderDetail(this.data.orderId) },
+  onRetryLoad() { this.loadMealRecord(this.data.recordId) },
 
-  // 关闭推送提示
-  onClosePush() {
-    this.setData({ showPush: false })
-  },
-
-  // 标记订单为已完成
-  onCompleteOrder() {
-    const order = this.data.order
-    wx.showModal({
-      title: '确认完成',
-      content: '确定将此订单标记为已完成吗？',
-      success: async (res) => {
-        if (res.confirm) {
-          try {
-            await orderUtil.updateOrderStatus(order.orderId, 'completed')
-            this.setData({
-              order: {
-                ...this.data.order,
-                status: 'completed',
-                completedTime: Date.now()
-              }
-            })
-            wx.showToast({ title: '已标记完成', icon: 'success' })
-          } catch (e) {
-            wx.showToast({ title: cloudUtil.getErrorMessage(e, '操作失败，请重试'), icon: 'none' })
-          }
-        }
-      }
-    })
-  },
-
-  // 查看订单历史
-  onViewOrders() {
+  onViewMealRecords() {
     wx.switchTab({
       url: '/pages/orders/orders'
     })
@@ -96,11 +57,11 @@ Page({
 
   // 按原份数将这餐菜品重新加入今日清单
   async onReuseMeal() {
-    const { order } = this.data
-    if (!order || !order.items || order.items.length === 0) return
+    const { record } = this.data
+    if (!record || !record.items || record.items.length === 0) return
     wx.showLoading({ title: '加入清单中...' })
     try {
-      for (const item of order.items) {
+      for (const item of record.items) {
         await mealListService.addDish(item, item.quantity || 1)
       }
       wx.hideLoading()
@@ -111,10 +72,9 @@ Page({
     }
   },
 
-  // 删除当前订单
-  onDeleteOrder() {
-    const order = this.data.order
-    const dishNames = (order && order.items) ? order.items.map(i => i.name).join('、') : ''
+  onDeleteRecord() {
+    const record = this.data.record
+    const dishNames = (record && record.items) ? record.items.map(item => item.name).join('、') : ''
     wx.showModal({
       title: '确认删除',
       content: `确定要删除这条饮食记录吗？\n（${dishNames}）`,
@@ -122,7 +82,7 @@ Page({
       success: async (res) => {
         if (res.confirm) {
           try {
-            await orderUtil.deleteOrder(order.orderId)
+            await mealRecordService.deleteRecord(record.recordId)
             wx.showToast({ title: '已删除', icon: 'none' })
             setTimeout(() => {
               wx.switchTab({ url: '/pages/orders/orders' })
@@ -145,4 +105,9 @@ Page({
 
 function getMealTypeText(type) {
   return { dine_out: '外出吃', takeout: '外卖' }[type] || '自己做'
+}
+
+function getRecordCount(record) {
+  if (Number.isFinite(record.totalCount)) return record.totalCount
+  return record.items.reduce((total, item) => total + (Number(item.quantity) || 0), 0)
 }

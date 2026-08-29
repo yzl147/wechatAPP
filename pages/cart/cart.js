@@ -1,5 +1,5 @@
 const mealListService = require('../../services/meal-list-service')
-const orderUtil = require('../../utils/order')
+const mealRecordService = require('../../services/meal-record-service')
 const shoppingUtil = require('../../utils/shopping')
 const inventoryUtil = require('../../utils/inventory')
 const cloudUtil = require('../../utils/cloud')
@@ -190,7 +190,7 @@ Page({
     wx.showLoading({ title: '保存中...' })
     let record = null
     try {
-      record = await orderUtil.createOrder(mealList)
+      record = await mealRecordService.saveCookedMeal(mealList)
       await mealListService.clearMealList()
     } catch (e) {
       record = null
@@ -199,7 +199,7 @@ Page({
       wx.hideLoading()
       this.setData({ savePending: false })
     }
-    if (record) wx.navigateTo({ url: `/pages/order-detail/order-detail?orderId=${record.orderId}` })
+    if (record) wx.navigateTo({ url: `/pages/order-detail/order-detail?recordId=${record.recordId}` })
   },
 
   // 去选菜

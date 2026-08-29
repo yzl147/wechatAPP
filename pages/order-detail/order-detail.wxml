@@ -2,7 +2,7 @@
   <!-- 详情加载状态、空状态和内容 -->
   <view class="detail-state" wx:if="{{loadStatus === 'loading'}}">正在加载饮食记录...</view>
   <view class="detail-state" wx:elif="{{loadStatus === 'error'}}"><text>饮食记录加载失败</text><button class="retry-btn" bindtap="onRetryLoad">重新加载</button></view>
-  <view class="empty-order" wx:elif="{{loadStatus === 'empty'}}">
+  <view class="empty-record" wx:elif="{{loadStatus === 'empty'}}">
     <text class="empty-icon">📋</text>
     <text class="empty-text">记录不存在</text>
     <view class="btn-back" bindtap="goToIndex">返回首页</view>
@@ -10,55 +10,54 @@
   <block wx:else>
     <view class="status-section" style="background: linear-gradient(135deg, #26de81, #20bf6b);">
       <text class="status-icon">🍽️</text>
-      <text class="status-text">{{order.mealTypeText}}记录</text>
-      <text class="order-id" wx:if="{{order.venue}}">{{order.venue}}</text>
-      <text class="order-id">记录编号: {{order.orderId}}</text>
-      <text class="order-time">{{order._timeText}}</text>
+      <text class="status-text">{{record.mealTypeText}}记录</text>
+      <text class="record-id" wx:if="{{record.venue}}">{{record.venue}}</text>
+      <text class="record-id">记录编号: {{record.recordId}}</text>
+      <text class="record-time">{{record._timeText}}</text>
     </view>
 
     <!-- 菜品明细 -->
     <view class="section">
       <view class="section-header">
         <view class="section-title-bar"></view>
-        <text class="section-title">{{order.isCook ? '🍳 今天做了什么' : '🍽️ 吃了什么'}}</text>
+        <text class="section-title">{{record.isCook ? '🍳 今天做了什么' : '🍽️ 吃了什么'}}</text>
       </view>
 
       <view class="item-list">
-        <view class="order-item" wx:for="{{order.items}}" wx:key="id">
+        <view class="record-item" wx:for="{{record.items}}" wx:key="id">
           <view class="oi-img-wrap">
             <image class="oi-img" wx:if="{{item.image}}" src="{{item.image}}" mode="aspectFill" lazy-load />
             <text class="oi-img oi-placeholder" wx:else>🍽️</text>
           </view>
           <view class="oi-info">
             <text class="oi-name">{{item.name}}</text>
-          <text class="oi-spec">{{order.isCook ? '准备' : '记录' }} {{item.quantity}} 份</text>
+          <text class="oi-spec">{{record.isCook ? '准备' : '记录' }} {{item.quantity}} 份</text>
           </view>
         </view>
       </view>
 
-      <!-- 价格汇总 -->
-      <view class="price-summary">
+      <view class="count-summary">
         <view class="ps-row">
           <text class="ps-label">菜品数量</text>
-          <text class="ps-value">共 {{order.totalCount}} 份</text>
+          <text class="ps-value">共 {{record.totalCount}} 份</text>
         </view>
       </view>
     </view>
 
     <!-- 备注 -->
-    <view class="section" wx:if="{{order.remark}}">
+    <view class="section" wx:if="{{record.remark}}">
       <view class="section-header">
         <view class="section-title-bar remark-bar"></view>
         <text class="section-title">📝 备注</text>
       </view>
-      <text class="remark-text">{{order.remark}}</text>
+      <text class="remark-text">{{record.remark}}</text>
     </view>
 
     <!-- 操作按钮 -->
     <view class="action-area">
-      <view class="btn-reuse" wx:if="{{order.isCook}}" bindtap="onReuseMeal">复用这一餐</view>
-      <view class="btn-delete" bindtap="onDeleteOrder">🗑 删除记录</view>
-      <view class="btn-primary" bindtap="onViewOrders">
+      <view class="btn-reuse" wx:if="{{record.isCook}}" bindtap="onReuseMeal">复用这一餐</view>
+      <view class="btn-delete" bindtap="onDeleteRecord">🗑 删除记录</view>
+      <view class="btn-primary" bindtap="onViewMealRecords">
         查看饮食记录
       </view>
       <view class="btn-secondary" bindtap="goToIndex" wx:if="{{!fromHistory}}">

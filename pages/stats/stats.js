@@ -1,4 +1,4 @@
-const orderUtil = require('../../utils/order')
+const mealRecordService = require('../../services/meal-record-service')
 const inventoryUtil = require('../../utils/inventory')
 const lifeListUtil = require('../../utils/life-list')
 const cloudUtil = require('../../utils/cloud')
@@ -50,13 +50,13 @@ Page({
           warnings.push('生活清单')
         })
       ] : []
-      const [orders] = await Promise.all([
-        orderUtil.getOrdersInRange(descriptor.startTime, descriptor.endTime),
+      const [mealRecords] = await Promise.all([
+        mealRecordService.getRange(descriptor.startTime, descriptor.endTime),
         ...syncTasks
       ])
       if (requestId !== this.loadRequestId) return
 
-      const mealSummary = summarizeMeals(orders)
+      const mealSummary = summarizeMeals(mealRecords)
       let inventory = []
       let lifeHistory = []
       try {

@@ -39,6 +39,8 @@
 
 今日饮食清单的新代码统一通过 `services/meal-list-service.js`，由 `repositories/cloud/meal-list-repository.js` 隔离旧 `manageCart` 协议。不要在页面中重新直接调用该云函数。
 
+饮食记录的新代码统一通过 `services/meal-record-service.js`，由 `repositories/cloud/meal-record-repository.js` 将旧 `orderId/orderTime` 映射为客户端的 `recordId/recordedAt`。页面不得直接调用 `manageOrders` 或继续读取旧字段。
+
 ## 数据与兼容
 
 - 菜谱和饮食记录使用微信云开发。

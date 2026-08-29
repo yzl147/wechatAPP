@@ -1,4 +1,4 @@
-const orderUtil = require('../../utils/order')
+const mealRecordService = require('../../services/meal-record-service')
 
 Page({
   data: { mealType: 'dine_out', venue: '', dishes: '', remark: '' },
@@ -16,9 +16,9 @@ Page({
     }
     wx.showLoading({ title: '保存中...' })
     try {
-      const order = await orderUtil.createExternalMeal({ mealType, venue, dishes, remark })
+      const record = await mealRecordService.saveExternalMeal({ mealType, venue, dishes, remark })
       wx.hideLoading()
-      wx.redirectTo({ url: `/pages/order-detail/order-detail?orderId=${order.orderId}` })
+      wx.redirectTo({ url: `/pages/order-detail/order-detail?recordId=${record.recordId}` })
     } catch (e) {
       wx.hideLoading()
       console.error('保存快速饮食记录失败', e)
