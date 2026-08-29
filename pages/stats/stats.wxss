@@ -1,1 +1,63 @@
-.stats-page { min-height: 100vh; box-sizing: border-box; padding: 24rpx; background: #f5f6fa; }.hero-card { padding: 34rpx 30rpx; border-radius: 24rpx; color: #fff; background: linear-gradient(135deg, #ff8a5c, #ff5b2d); }.hero-month { display: block; font-size: 38rpx; font-weight: 800; }.hero-text { display: block; margin-top: 12rpx; font-size: 23rpx; opacity: .88; }.section-title { margin: 30rpx 8rpx 16rpx; font-size: 30rpx; font-weight: 700; color: #333; }.metric-row { display: flex; gap: 16rpx; }.metric-card { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 28rpx 16rpx; border-radius: 18rpx; color: #888; font-size: 23rpx; background: #fff; }.metric-num { margin-bottom: 8rpx; color: #ff6b35; font-size: 46rpx; font-weight: 800; }.panel { padding: 10rpx 24rpx; border-radius: 18rpx; background: #fff; }.empty-panel { padding: 38rpx 24rpx; text-align: center; color: #aaa; font-size: 25rpx; }.dish-row { display: flex; align-items: center; padding: 20rpx 0; border-bottom: 1rpx solid #f3f3f3; }.dish-row:last-child { border-bottom: none; }.dish-rank { display: flex; align-items: center; justify-content: center; width: 38rpx; height: 38rpx; border-radius: 50%; color: #fff; font-size: 22rpx; background: #ff8a5c; }.dish-name { flex: 1; margin-left: 16rpx; color: #444; font-size: 28rpx; }.dish-count { color: #999; font-size: 23rpx; }.reminder-panel, .life-summary { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14rpx; padding: 24rpx; }.reminder-title { display: block; color: #444; font-size: 28rpx; font-weight: 600; }.reminder-tip { display: block; margin-top: 8rpx; color: #999; font-size: 22rpx; }.reminder-num { color: #4d7caf; font-size: 34rpx; font-weight: 800; }.reminder-num.warn { color: #e67e22; }.life-records { padding: 0 24rpx; }.life-record-row { display: flex; align-items: center; justify-content: space-between; padding: 22rpx 0; border-bottom: 1rpx solid #f3f3f3; }.life-record-row:last-child { border-bottom: none; }.life-record-name, .life-record-time { display: block; }.life-record-name { color: #444; font-size: 28rpx; font-weight: 600; }.life-record-time { margin-top: 7rpx; color: #999; font-size: 22rpx; }.life-record-action { color: #4d7caf; font-size: 25rpx; }
+.stats-page {
+  box-sizing: border-box;
+  min-height: 100vh;
+  padding: var(--space-lg) var(--space-page) calc(var(--space-xl) + env(safe-area-inset-bottom));
+  background: var(--color-background);
+}
+.page-intro { margin-bottom: var(--space-md); }
+.page-title, .page-description, .month-label, .month-caption, .section-title, .section-description,
+.warning-text, .metric-value, .metric-label, .life-record-name, .life-record-meta, .reminder-title,
+.reminder-description { display: block; }
+.page-title { color: var(--color-text-primary); font-size: var(--font-page-title); font-weight: 700; }
+.page-description { margin-top: var(--space-xs); color: var(--color-text-secondary); font-size: var(--font-body); line-height: 1.5; }
+
+.month-selector {
+  display: grid;
+  grid-template-columns: 128rpx 1fr 128rpx;
+  align-items: center;
+  margin-bottom: var(--space-xs);
+  padding: var(--space-xs);
+  border: 1rpx solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+.month-action { display: flex; min-height: var(--tap-min-size); align-items: center; justify-content: center; color: var(--color-life); font-size: var(--font-caption); font-weight: 700; }
+.month-action--disabled { color: var(--color-text-disabled); }
+.month-current { min-width: 0; text-align: center; }
+.month-label { color: var(--color-text-primary); font-size: var(--font-section-title); font-weight: 800; }
+.month-caption { margin-top: 3rpx; color: var(--color-text-muted); font-size: 20rpx; }
+.current-month-action { display: flex; min-height: var(--tap-min-size); align-items: center; justify-content: center; color: var(--color-life); font-size: var(--font-caption); }
+
+.warning-card, .dish-list, .life-record-list, .inventory-reminder { margin-bottom: var(--space-md); }
+.warning-text { color: var(--color-warning); font-size: var(--font-caption); line-height: 1.5; }
+.section-heading { display: flex; min-height: var(--tap-min-size); align-items: center; justify-content: space-between; gap: var(--space-md); }
+.section-title { color: var(--color-text-primary); font-size: var(--font-section-title); font-weight: 700; }
+.section-description { margin-top: 5rpx; color: var(--color-text-muted); font-size: var(--font-caption); line-height: 1.45; }
+.section-count { flex-shrink: 0; color: var(--color-life); font-size: var(--font-body); font-weight: 700; }
+
+.metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-sm); margin-bottom: var(--space-md); }
+.metric-content { text-align: center; }
+.metric-value { color: var(--color-meal); font-size: 42rpx; font-weight: 800; }
+.metric-value--neutral { color: var(--color-text-primary); }
+.metric-label { margin-top: 4rpx; color: var(--color-text-secondary); font-size: var(--font-caption); }
+
+.dish-row { display: flex; min-height: 76rpx; align-items: center; border-bottom: 1rpx solid var(--color-border); }
+.dish-row:last-child { border-bottom: 0; }
+.dish-rank { display: flex; width: 42rpx; height: 42rpx; flex: 0 0 42rpx; align-items: center; justify-content: center; border-radius: 50%; background: var(--color-meal-soft); color: var(--color-meal); font-size: 22rpx; font-weight: 800; }
+.dish-name { min-width: 0; flex: 1; margin-left: var(--space-sm); overflow: hidden; color: var(--color-text-primary); font-size: var(--font-body); font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.dish-count { margin-left: var(--space-sm); color: var(--color-text-secondary); font-size: var(--font-caption); }
+
+.life-record-item { margin-bottom: var(--space-sm); }
+.life-record-row, .reminder-row { display: flex; min-height: var(--tap-min-size); align-items: center; justify-content: space-between; gap: var(--space-md); }
+.life-record-copy { min-width: 0; flex: 1; }
+.life-record-name { overflow: hidden; color: var(--color-text-primary); font-size: var(--font-body); font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.life-record-meta { margin-top: 6rpx; color: var(--color-text-muted); font-size: var(--font-caption); }
+.life-record-action { flex-shrink: 0; color: var(--color-life); font-size: var(--font-caption); font-weight: 700; }
+.reminder-row > view { min-width: 0; flex: 1; }
+.reminder-title { color: var(--color-text-primary); font-size: var(--font-body); font-weight: 700; }
+.reminder-description { margin-top: 6rpx; color: var(--color-text-muted); font-size: var(--font-caption); line-height: 1.45; }
+.reminder-row > .reminder-action { flex: 0 0 auto; text-align: right; }
+.reminder-value { flex-shrink: 0; color: var(--color-life); font-size: var(--font-section-title); font-weight: 800; }
+.reminder-value--warning { color: var(--color-warning); }
+.reminder-link { display: block; margin-top: 4rpx; color: var(--color-life); font-size: 21rpx; font-weight: 700; }

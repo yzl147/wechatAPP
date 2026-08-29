@@ -1,4 +1,9 @@
 {
-  "navigationBarTitleText": "本月回顾",
-  "usingComponents": {}
+  "navigationBarTitleText": "月度回顾",
+  "usingComponents": {
+    "app-card": "../../components/ui/app-card/app-card",
+    "empty-state": "../../components/ui/empty-state/empty-state",
+    "error-state": "../../components/ui/error-state/error-state",
+    "loading-state": "../../components/ui/loading-state/loading-state"
+  }
 }

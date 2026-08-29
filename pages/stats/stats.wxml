@@ -1,26 +1,49 @@
 <view class="stats-page">
-  <view class="hero-card"><text class="hero-month">{{monthLabel}}回顾</text><text class="hero-text">把完成过的小事，变成看得见的日常</text></view>
+  <view class="page-intro"><text class="page-title">月度回顾</text><text class="page-description">回看每个月的饮食选择与生活清单完成情况</text></view>
 
-  <view class="section-title">饮食记录</view>
-  <view class="metric-row">
-    <view class="metric-card"><text class="metric-num">{{cookCount}}</text><text>自己做</text></view>
-    <view class="metric-card"><text class="metric-num">{{dineOutCount}}</text><text>外出吃</text></view>
-    <view class="metric-card"><text class="metric-num">{{takeoutCount}}</text><text>点外卖</text></view>
+  <view class="month-selector">
+    <view class="month-action" bindtap="onPreviousMonth" aria-role="button">上一月</view>
+    <view class="month-current"><text class="month-label">{{monthLabel}}</text><text class="month-caption">{{isCurrentMonth ? '本月' : '历史月份'}}</text></view>
+    <view class="month-action {{isCurrentMonth ? 'month-action--disabled' : ''}}" bindtap="onNextMonth" aria-role="button">下一月</view>
   </view>
+  <view class="current-month-action" wx:if="{{!isCurrentMonth}}" bindtap="onGoCurrentMonth" aria-role="button">回到本月</view>
 
-  <view class="section-title">常做菜</view>
-  <view class="panel empty-panel" wx:if="{{topDishes.length === 0}}">这个月还没有自己做菜的记录</view>
-  <view class="panel" wx:else>
-    <view class="dish-row" wx:for="{{topDishes}}" wx:key="name"><text class="dish-rank">{{index + 1}}</text><text class="dish-name">{{item.name}}</text><text class="dish-count">做了 {{item.count}} 份</text></view>
-  </view>
+  <loading-state wx:if="{{loadStatus === 'loading'}}" text="正在整理月度记录" />
+  <error-state wx:elif="{{loadStatus === 'error'}}" title="月度回顾加载失败" description="{{loadErrorText}}" bind:retry="onRetryLoad" />
 
-  <view class="section-title">生活清单</view>
-  <view class="panel life-summary"><view><text class="reminder-title">本月已完成</text><text class="reminder-tip">点击记录可查看完成时的项目</text></view><text class="reminder-num">{{lifeCompletionRecords.length}} 次</text></view>
-  <view class="panel empty-panel" wx:if="{{lifeCompletionRecords.length === 0}}">这个月还没有完成生活清单</view>
-  <view class="panel life-records" wx:else>
-    <view class="life-record-row" wx:for="{{lifeCompletionRecords}}" wx:key="id" bindtap="onLifeRecordTap" data-id="{{item.id}}"><view><text class="life-record-name">{{item.title}}</text><text class="life-record-time">{{item.completedDateText}}完成</text></view><text class="life-record-action">查看 ›</text></view>
-  </view>
+  <block wx:else>
+    <view class="warning-card" wx:if="{{syncWarning}}"><app-card variant="warning"><text class="warning-text">{{syncWarning}}</text></app-card></view>
 
-  <view class="section-title">日常提醒</view>
-  <view class="panel reminder-panel"><view><text class="reminder-title">🥬 临期食材</text><text class="reminder-tip">过期和三天内到期的食材</text></view><text class="reminder-num {{expiringCount ? 'warn' : ''}}">{{expiringCount}}</text></view>
+    <view class="section-heading"><view><text class="section-title">饮食方式</text><text class="section-description">本月共记录 {{totalMealCount}} 餐</text></view></view>
+    <view class="metric-grid">
+      <app-card variant="meal"><view class="metric-content"><text class="metric-value">{{cookCount}}</text><text class="metric-label">自己做</text></view></app-card>
+      <app-card><view class="metric-content"><text class="metric-value metric-value--neutral">{{dineOutCount}}</text><text class="metric-label">外出吃</text></view></app-card>
+      <app-card><view class="metric-content"><text class="metric-value metric-value--neutral">{{takeoutCount}}</text><text class="metric-label">点外卖</text></view></app-card>
+    </view>
+
+    <view class="section-heading"><view><text class="section-title">常做菜</text><text class="section-description">按本月自己做的份数排列</text></view></view>
+    <empty-state wx:if="{{topDishes.length === 0}}" symbol="菜" title="这个月还没有自己做菜" description="保存一顿饮食清单后，常做菜会出现在这里" />
+    <view class="dish-list" wx:else>
+      <app-card>
+        <view class="dish-row" wx:for="{{topDishes}}" wx:key="name"><text class="dish-rank">{{index + 1}}</text><text class="dish-name">{{item.name}}</text><text class="dish-count">{{item.count}} 份</text></view>
+      </app-card>
+    </view>
+
+    <view class="section-heading"><view><text class="section-title">生活清单</text><text class="section-description">完成时的项目快照会保留在记录中</text></view><text class="section-count">{{lifeCompletionRecords.length}} 次</text></view>
+    <empty-state wx:if="{{lifeCompletionRecords.length === 0}}" symbol="清" title="这个月还没有完成生活清单" description="完成清单后，可从这里查看当时的具体项目" />
+    <view class="life-record-list" wx:else>
+      <view class="life-record-item" wx:for="{{lifeCompletionRecords}}" wx:key="id">
+        <app-card interactive bind:tap="onLifeRecordTap" data-id="{{item.id}}">
+          <view class="life-record-row"><view class="life-record-copy"><text class="life-record-name">{{item.title}}</text><text class="life-record-meta">{{item.completedDateText}} · {{item.itemCount}} 项</text></view><text class="life-record-action">查看详情 ›</text></view>
+        </app-card>
+      </view>
+    </view>
+
+    <view class="section-heading"><view><text class="section-title">当前库存提醒</text><text class="section-description">显示现在的库存状态，不受所选月份影响</text></view></view>
+    <view class="inventory-reminder">
+      <app-card variant="{{expiringCount ? 'warning' : 'life'}}" interactive bind:tap="goToInventory">
+        <view class="reminder-row"><view><text class="reminder-title">临期或过期食材</text><text class="reminder-description">查看库存并优先使用需要处理的食材</text></view><view class="reminder-action"><text class="reminder-value {{expiringCount ? 'reminder-value--warning' : ''}}">{{expiringCount}} 项</text><text class="reminder-link">查看 ›</text></view></view>
+      </app-card>
+    </view>
+  </block>
 </view>

@@ -2,10 +2,16 @@ const orderUtil = require('../../utils/order')
 const inventoryUtil = require('../../utils/inventory')
 const lifeListUtil = require('../../utils/life-list')
 const cloudUtil = require('../../utils/cloud')
+const { createMonthDescriptor, isCurrentMonth, summarizeMeals, selectLifeRecords, formatMonthDayTime } = require('../../domain/stats/month-review')
 
 Page({
   data: {
+    loadStatus: 'loading',
+    loadErrorText: '',
+    syncWarning: '',
     monthLabel: '',
+    isCurrentMonth: true,
+    totalMealCount: 0,
     cookCount: 0,
     dineOutCount: 0,
     takeoutCount: 0,
@@ -14,67 +20,113 @@ Page({
     lifeCompletionRecords: []
   },
 
-  onShow() { this.loadStats() },
+  onLoad() {
+    const now = new Date()
+    this.statsYear = now.getFullYear()
+    this.statsMonth = now.getMonth()
+  },
 
-  async loadStats() {
+  onShow() { this.loadStats(true) },
+
+  async loadStats(syncLocal = true) {
+    const descriptor = createMonthDescriptor(this.statsYear, this.statsMonth)
+    const requestId = (this.loadRequestId || 0) + 1
+    this.loadRequestId = requestId
+    this.setData({
+      loadStatus: 'loading',
+      syncWarning: '',
+      monthLabel: descriptor.label,
+      isCurrentMonth: isCurrentMonth(descriptor.year, descriptor.month)
+    })
     try {
-      const now = new Date()
-      const startTime = new Date(now.getFullYear(), now.getMonth(), 1).getTime()
-      const endTime = new Date(now.getFullYear(), now.getMonth() + 1, 1).getTime()
-      const [orders] = await Promise.all([
-        orderUtil.getOrdersInRange(startTime, endTime),
+      const warnings = []
+      const syncTasks = syncLocal ? [
         inventoryUtil.syncInventory().catch(error => {
           console.warn('同步库存失败，统计页继续使用本地缓存', error && error.code)
+          warnings.push('库存')
         }),
         lifeListUtil.syncLifeData().catch(error => {
           console.warn('同步生活清单失败，统计页继续使用本地缓存', error && error.code)
+          warnings.push('生活清单')
         })
+      ] : []
+      const [orders] = await Promise.all([
+        orderUtil.getOrdersInRange(descriptor.startTime, descriptor.endTime),
+        ...syncTasks
       ])
-      const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-      const monthOrders = orders
-      const cookOrders = monthOrders.filter(order => !order.mealType || order.mealType === 'cook')
-      const dishMap = {}
-      cookOrders.forEach(order => (order.items || []).forEach(item => {
-        dishMap[item.name] = (dishMap[item.name] || 0) + (item.quantity || 1)
-      }))
-      const topDishes = Object.keys(dishMap)
-        .map(name => ({ name, count: dishMap[name] }))
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 3)
-      const inventory = inventoryUtil.getDisplayInventory()
+      if (requestId !== this.loadRequestId) return
+
+      const mealSummary = summarizeMeals(orders)
+      let inventory = []
+      let lifeHistory = []
+      try {
+        inventory = inventoryUtil.getDisplayInventory()
+      } catch (error) {
+        console.warn('读取库存缓存失败', error)
+        warnings.push('库存')
+      }
+      try {
+        lifeHistory = lifeListUtil.getCompletionHistory()
+      } catch (error) {
+        console.warn('读取生活清单记录失败', error)
+        warnings.push('生活清单')
+      }
       const expiringCount = inventory.filter(item => item.expiry.type === 'expired' || item.expiry.type === 'expiring').length
-      const lifeCompletionRecords = lifeListUtil.getCompletionHistory()
-        .filter(record => formatMonth(record.completedAt) === monthKey)
+      const lifeCompletionRecords = selectLifeRecords(lifeHistory, descriptor.year, descriptor.month)
         .map(record => ({
           ...record,
-          completedDateText: formatDate(record.completedAt)
+          itemCount: Array.isArray(record.items) ? record.items.length : 0,
+          completedDateText: formatMonthDayTime(record.completedAt)
         }))
       this.setData({
-        monthLabel: `${now.getFullYear()}年${now.getMonth() + 1}月`,
-        cookCount: cookOrders.length,
-        dineOutCount: monthOrders.filter(order => order.mealType === 'dine_out').length,
-        takeoutCount: monthOrders.filter(order => order.mealType === 'takeout').length,
-        topDishes,
+        loadStatus: 'success',
+        syncWarning: warnings.length ? `${Array.from(new Set(warnings)).join('、')}同步失败，当前显示本机已有数据` : '',
+        totalMealCount: mealSummary.totalCount,
+        cookCount: mealSummary.cookCount,
+        dineOutCount: mealSummary.dineOutCount,
+        takeoutCount: mealSummary.takeoutCount,
+        topDishes: mealSummary.topDishes,
         expiringCount,
         lifeCompletionRecords
       })
     } catch (e) {
+      if (requestId !== this.loadRequestId) return
       console.error('加载统计数据失败', e && e.code, e && e.requestId)
-      wx.showToast({ title: cloudUtil.getErrorMessage(e, '加载统计失败'), icon: 'none' })
+      this.setData({
+        loadStatus: 'error',
+        loadErrorText: cloudUtil.getErrorMessage(e, '请检查网络后重试')
+      })
     }
   },
+
+  onPreviousMonth() { this.changeMonth(-1) },
+
+  onNextMonth() {
+    if (this.data.isCurrentMonth) return
+    this.changeMonth(1)
+  },
+
+  onGoCurrentMonth() {
+    const now = new Date()
+    this.statsYear = now.getFullYear()
+    this.statsMonth = now.getMonth()
+    this.loadStats(false)
+  },
+
+  changeMonth(offset) {
+    const target = new Date(this.statsYear, this.statsMonth + offset, 1)
+    const now = new Date()
+    if (target.getTime() > new Date(now.getFullYear(), now.getMonth(), 1).getTime()) return
+    this.statsYear = target.getFullYear()
+    this.statsMonth = target.getMonth()
+    this.loadStats(false)
+  },
+
+  onRetryLoad() { this.loadStats(true) },
+
+  goToInventory() { wx.navigateTo({ url: '/pages/inventory/inventory' }) },
 
   onLifeRecordTap(e) {
     wx.navigateTo({ url: `/pages/life-completion-detail/life-completion-detail?id=${e.currentTarget.dataset.id}` })
   }
 })
-
-function formatMonth(timestamp) {
-  const date = new Date(timestamp)
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
-}
-
-function formatDate(timestamp) {
-  const date = new Date(timestamp)
-  return `${date.getMonth() + 1}月${date.getDate()}日`
-}
