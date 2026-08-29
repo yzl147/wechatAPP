@@ -14,16 +14,14 @@ function createMealListDocument({ openid, dish, quantity, addedTime }) {
   }
 }
 
-// 仅在响应旧客户端时补充价格；新数据不再持久化点餐业务字段。
-function toLegacyCompatibleItem(item) {
-  const price = Number(item && item.price)
-  return {
-    ...item,
-    price: Number.isFinite(price) ? price : 0
-  }
+// 历史文档原样保留在数据库中，当前响应不再暴露点餐价格字段。
+function toCurrentMealListItem(item) {
+  const currentItem = { ...item }
+  delete currentItem.price
+  return currentItem
 }
 
 module.exports = {
   createMealListDocument,
-  toLegacyCompatibleItem
+  toCurrentMealListItem
 }

@@ -1,6 +1,6 @@
 const test = require('node:test')
 const assert = require('node:assert/strict')
-const { createDishRepository } = require('../repositories/cloud/dish-repository')
+const { createDishRepository, toCurrentDish } = require('../repositories/cloud/dish-repository')
 
 test('菜谱 repository 封装列表和详情云函数协议', async () => {
   const requests = []
@@ -17,6 +17,12 @@ test('菜谱 repository 封装列表和详情云函数协议', async () => {
     { name: 'manageDishes', data: { action: 'list' } },
     { name: 'manageDishes', data: { action: 'detail', id: 13 } }
   ])
+})
+
+test('菜谱 repository 过滤历史价格字段且不修改原对象', () => {
+  const dish = { id: 13, name: '番茄炒蛋', price: 18 }
+  assert.deepEqual(toCurrentDish(dish), { id: 13, name: '番茄炒蛋' })
+  assert.equal(dish.price, 18)
 })
 
 test('菜谱列表响应不是数组时 repository 返回安全空列表', async () => {

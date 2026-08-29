@@ -12,7 +12,7 @@ function validateCartEvent(event) {
   if (!event || typeof event !== 'object' || Array.isArray(event)) {
     return validationError('请求参数格式不正确', 'event')
   }
-  const actions = ['get', 'total', 'add', 'increase', 'decrease', 'remove', 'clear']
+  const actions = ['get', 'summary', 'add', 'increase', 'decrease', 'remove', 'clear']
   if (!actions.includes(event.action)) return validationError('操作类型不正确', 'action')
   if (event.action === 'add') {
     if (!isDishId(event.dishId)) return validationError('菜谱 ID 不正确', 'dishId')

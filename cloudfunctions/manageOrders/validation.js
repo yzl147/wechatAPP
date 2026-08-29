@@ -86,7 +86,7 @@ function validateOrderEvent(event) {
   if (!event || typeof event !== 'object' || Array.isArray(event)) {
     return validationError('请求参数格式不正确', 'event')
   }
-  const actions = ['create', 'list', 'range', 'detail', 'updateStatus', 'delete', 'batchComplete', 'batchDelete', 'summary']
+  const actions = ['create', 'list', 'range', 'detail', 'delete', 'batchDelete']
   if (!actions.includes(event.action)) return validationError('操作类型不正确', 'action')
   if (event.action === 'create') return validateCreateEvent(event)
   if (event.action === 'list') return validateListEvent(event)
@@ -94,11 +94,7 @@ function validateOrderEvent(event) {
   if (['detail', 'delete'].includes(event.action) && !isOrderId(event.orderId)) {
     return validationError('记录 ID 不正确', 'orderId')
   }
-  if (event.action === 'updateStatus') {
-    if (!isOrderId(event.orderId)) return validationError('记录 ID 不正确', 'orderId')
-    if (event.status !== 'completed') return validationError('记录状态不正确', 'status')
-  }
-  if (['batchComplete', 'batchDelete'].includes(event.action)) return validateOrderIds(event.orderIds)
+  if (event.action === 'batchDelete') return validateOrderIds(event.orderIds)
   return null
 }
 

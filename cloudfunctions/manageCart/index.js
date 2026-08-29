@@ -3,7 +3,7 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 const { MAX_QUANTITY, validateCartEvent } = require('./validation')
 const { runCloudRequest } = require('./runtime')
-const { createMealListDocument, toLegacyCompatibleItem } = require('./meal-list-model')
+const { createMealListDocument, toCurrentMealListItem } = require('./meal-list-model')
 
 async function handleRequest(event, OPENID) {
   const { action } = event || {}
@@ -13,18 +13,14 @@ async function handleRequest(event, OPENID) {
   // 获取今日饮食清单（集合名 carts 为旧版本兼容字段）
   if (action === 'get') {
     const { data } = await db.collection('carts').where({ _openid: OPENID }).get()
-    return { code: 0, data: data.map(toLegacyCompatibleItem) }
+    return { code: 0, data: data.map(toCurrentMealListItem) }
   }
 
   // 获取今日饮食清单份数
-  if (action === 'total') {
+  if (action === 'summary') {
     const { data } = await db.collection('carts').where({ _openid: OPENID }).get()
-    let count = 0, total = 0
-    data.forEach(item => {
-      count += item.quantity || 0
-      total += (item.price || 0) * (item.quantity || 0)
-    })
-    return { code: 0, data: { count, total: parseFloat(total.toFixed(2)) } }
+    const count = data.reduce((total, item) => total + (Number(item.quantity) || 0), 0)
+    return { code: 0, data: { count } }
   }
 
   // 只接收菜谱 ID 和份数，菜谱快照以云数据库为准

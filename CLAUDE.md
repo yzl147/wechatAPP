@@ -17,7 +17,7 @@
 
 历史页面路由 `pages/cart`、`pages/orders`、`pages/order-detail`，云函数 `manageCart`、`manageOrders`，以及集合 `carts`、`orders` 暂时保留用于兼容已有链接和云端数据。旧名称只能出现在 repository、云函数协议或迁移说明等兼容边界中，不能扩散到新业务代码。
 
-`carts` 与 `orders` 的新文档不再持久化 `price/subtotal/totalPrice/status` 等点餐字段；云函数只在返回旧客户端时临时补充默认值。不要据此重新把这些字段写回数据库。
+`dishes`、`carts` 与 `orders` 的当前写入和响应不再使用 `price/subtotal/totalPrice/status` 等点餐字段；历史文档中的旧字段原样保留在数据库中，并在读取边界被过滤。不要批量删除旧数据或把这些字段重新写回数据库。
 
 ## 页面结构
 

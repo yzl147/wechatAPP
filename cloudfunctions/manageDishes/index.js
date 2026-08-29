@@ -6,6 +6,7 @@ const { getForbiddenActionResponse, maskIdentifier } = require('./security')
 const { ensureDishesInitialized } = require('./initializer')
 const { validateDishEvent } = require('./validation')
 const { runCloudRequest } = require('./runtime')
+const { toCurrentDish } = require('./dish-model')
 
 // 菜品图片映射（云存储路径）
 const DISH_IMAGES = {
@@ -59,14 +60,14 @@ async function handleRequest(event, OPENID) {
       const result = await db.collection('dishes').limit(100).get()
       data = result.data
     }
-    return { code: 0, data }
+    return { code: 0, data: data.map(toCurrentDish) }
   }
 
   // 获取单个菜品详情
   if (action === 'detail') {
     const { id } = event
     const { data } = await db.collection('dishes').where({ id }).get()
-    return { code: 0, data: data[0] || null }
+    return { code: 0, data: toCurrentDish(data[0] || null) }
   }
 
   return { code: -1, message: '未知操作' }

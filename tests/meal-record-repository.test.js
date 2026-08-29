@@ -6,10 +6,10 @@ test('饮食记录 repository 将旧字段映射为客户端领域字段', () =>
   assert.deepEqual(normalizeRecord({
     orderId: 'FO1234',
     orderTime: 1788000000000,
-    items: [{ id: 13, name: '麻婆豆腐' }]
+    status: 'completed',
+    totalPrice: 18,
+    items: [{ id: 13, name: '麻婆豆腐', price: 18, subtotal: 18 }]
   }), {
-    orderId: 'FO1234',
-    orderTime: 1788000000000,
     recordId: 'FO1234',
     recordedAt: 1788000000000,
     items: [{ id: 13, dishId: 13, name: '麻婆豆腐' }]

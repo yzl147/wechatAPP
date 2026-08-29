@@ -22,6 +22,8 @@ test('加入今日清单只接受菜谱 ID 和有限整数份数', () => {
 })
 
 test('今日清单增减和删除校验菜谱 ID', () => {
+  assert.equal(validateCartEvent({ action: 'summary' }), null)
+  assert.equal(validateCartEvent({ action: 'total' }).code, 40001)
   assert.equal(validateCartEvent({ action: 'increase', foodId: 1 }), null)
   assert.equal(validateCartEvent({ action: 'decrease', foodId: null }).code, 40001)
   assert.equal(validateCartEvent({ action: 'remove', foodId: {} }).code, 40001)
@@ -55,10 +57,12 @@ test('外出和外卖记录校验枚举及文本长度', () => {
   assert.equal(validateOrderEvent({ action: 'create', mealType: 'takeout', venue: '店', dishes: '饭', remark: 'a'.repeat(121) }).code, 40001)
 })
 
-test('记录操作校验单条 ID、状态枚举和批量上限', () => {
+test('记录操作校验单条 ID、废弃动作和批量上限', () => {
   assert.equal(validateOrderEvent({ action: 'detail', orderId: 'FO12345678' }), null)
   assert.equal(validateOrderEvent({ action: 'delete', orderId: '' }).code, 40001)
-  assert.equal(validateOrderEvent({ action: 'updateStatus', orderId: 'FO12345678', status: 'pending' }).code, 40001)
+  assert.equal(validateOrderEvent({ action: 'updateStatus', orderId: 'FO12345678', status: 'completed' }).code, 40001)
+  assert.equal(validateOrderEvent({ action: 'batchComplete', orderIds: ['FO1'] }).code, 40001)
+  assert.equal(validateOrderEvent({ action: 'summary' }).code, 40001)
   assert.equal(validateOrderEvent({ action: 'batchDelete', orderIds: ['FO1', 'FO2'] }), null)
   assert.equal(validateOrderEvent({ action: 'batchDelete', orderIds: Array.from({ length: 51 }, (_, i) => `FO${i}`) }).code, 40001)
   assert.equal(validateOrderEvent({ action: 'batchDelete', orderIds: ['FO1', 'FO1'] }).code, 40001)

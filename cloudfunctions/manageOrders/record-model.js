@@ -34,37 +34,27 @@ function createMealRecordDocument({ orderId, openid, orderTime, items, remark, m
   }
 }
 
-// 旧版小程序仍会读取价格和订单状态；这些默认值只存在于响应中。
-function toLegacyCompatibleRecord(record) {
+// 历史文档原样保留在数据库中，当前响应不再暴露点餐金额和订单状态。
+function toCurrentRecord(record) {
   if (!record) return null
-
-  const items = Array.isArray(record.items)
+  const currentRecord = { ...record }
+  delete currentRecord.status
+  delete currentRecord.completedTime
+  delete currentRecord.totalPrice
+  currentRecord.items = Array.isArray(record.items)
     ? record.items.map(item => {
-      const price = Number(item.price)
-      const safePrice = Number.isFinite(price) ? price : 0
-      const subtotal = Number(item.subtotal)
-      return {
-        ...item,
-        price: safePrice,
-        subtotal: Number.isFinite(subtotal)
-          ? subtotal
-          : parseFloat((safePrice * (Number(item.quantity) || 0)).toFixed(2))
-      }
+      const currentItem = { ...item }
+      delete currentItem.price
+      delete currentItem.subtotal
+      return currentItem
     })
     : []
-  const totalPrice = Number(record.totalPrice)
-
-  return {
-    ...record,
-    status: record.status || 'completed',
-    items,
-    totalPrice: Number.isFinite(totalPrice) ? totalPrice : 0
-  }
+  return currentRecord
 }
 
 module.exports = {
   createCookedItemSnapshot,
   createExternalItemSnapshot,
   createMealRecordDocument,
-  toLegacyCompatibleRecord
+  toCurrentRecord
 }

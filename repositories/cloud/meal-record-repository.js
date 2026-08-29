@@ -57,7 +57,7 @@ function createMealRecordRepository(client) {
 
 function normalizeRecord(record) {
   if (!record || typeof record !== 'object') return null
-  return {
+  const normalized = {
     ...record,
     recordId: record.recordId || record.orderId || record._id || '',
     recordedAt: Number(record.recordedAt || record.orderTime) || 0,
@@ -66,6 +66,17 @@ function normalizeRecord(record) {
       dishId: item.dishId || item.id || null
     })) : []
   }
+  delete normalized.orderId
+  delete normalized.orderTime
+  delete normalized.status
+  delete normalized.completedTime
+  delete normalized.totalPrice
+  normalized.items.forEach(item => {
+    delete item.foodId
+    delete item.price
+    delete item.subtotal
+  })
+  return normalized
 }
 
 module.exports = {

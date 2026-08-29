@@ -13,7 +13,7 @@ function createMealListRepository(client) {
     },
 
     async getSummary() {
-      const result = await callLegacyProtocol('total')
+      const result = await callLegacyProtocol('summary')
       return { count: Number(result.data && result.data.count) || 0 }
     },
 
@@ -40,10 +40,13 @@ function createMealListRepository(client) {
 }
 
 function normalizeItem(item) {
-  return {
+  const normalized = {
     ...item,
     dishId: Number(item.dishId || item.foodId || item.id)
   }
+  delete normalized.foodId
+  delete normalized.price
+  return normalized
 }
 
 module.exports = {

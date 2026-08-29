@@ -2,12 +2,12 @@ const test = require('node:test')
 const assert = require('node:assert/strict')
 const { createMealListService, getDishId } = require('../services/meal-list-service')
 
-test('饮食清单 service 按份数汇总且不依赖价格字段', async () => {
+test('饮食清单 service 按份数汇总', async () => {
   const service = createMealListService({
-    async listItems() { return [{ dishId: 1, quantity: 2, price: 99 }, { dishId: 2, quantity: 1 }] }
+    async listItems() { return [{ dishId: 1, quantity: 2 }, { dishId: 2, quantity: 1 }] }
   })
   assert.deepEqual(await service.loadMealList(), {
-    items: [{ dishId: 1, quantity: 2, price: 99 }, { dishId: 2, quantity: 1 }],
+    items: [{ dishId: 1, quantity: 2 }, { dishId: 2, quantity: 1 }],
     count: 3
   })
 })

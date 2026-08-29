@@ -2,7 +2,7 @@ const test = require('node:test')
 const assert = require('node:assert/strict')
 const {
   createMealListDocument,
-  toLegacyCompatibleItem
+  toCurrentMealListItem
 } = require('../cloudfunctions/manageCart/meal-list-model')
 
 test('今日饮食清单新文档不再持久化价格字段', () => {
@@ -18,10 +18,10 @@ test('今日饮食清单新文档不再持久化价格字段', () => {
   assert.equal(Object.hasOwn(document, 'price'), false)
 })
 
-test('今日饮食清单响应为旧客户端补充默认价格且不修改原对象', () => {
-  const item = { foodId: 13, quantity: 1 }
-  const compatible = toLegacyCompatibleItem(item)
+test('今日饮食清单响应过滤历史价格且不修改原对象', () => {
+  const item = { foodId: 13, quantity: 1, price: 18 }
+  const current = toCurrentMealListItem(item)
 
-  assert.equal(compatible.price, 0)
-  assert.equal(Object.hasOwn(item, 'price'), false)
+  assert.equal(Object.hasOwn(current, 'price'), false)
+  assert.equal(item.price, 18)
 })

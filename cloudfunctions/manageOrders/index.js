@@ -2,7 +2,6 @@ const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 const _ = db.command
-const $ = db.command.aggregate
 const { validateOrderEvent } = require('./validation')
 const { runCloudRequest } = require('./runtime')
 const { fetchOrderPage, fetchAllOrders } = require('./pagination')
@@ -10,7 +9,7 @@ const {
   createCookedItemSnapshot,
   createExternalItemSnapshot,
   createMealRecordDocument,
-  toLegacyCompatibleRecord
+  toCurrentRecord
 } = require('./record-model')
 
 async function handleRequest(event, OPENID) {
@@ -18,7 +17,7 @@ async function handleRequest(event, OPENID) {
   const validationError = validateOrderEvent(event)
   if (validationError) return validationError
 
-  // 保存饮食记录（orders 集合和旧字段暂用于历史数据兼容）
+  // 保存饮食记录（orders 集合和协议 ID 暂用于历史数据兼容）
   if (action === 'create') {
     const { items, remark, mealType, venue } = event
     let trustedItems
@@ -43,7 +42,7 @@ async function handleRequest(event, OPENID) {
       venue
     })
     await db.collection('orders').add({ data: orderData })
-    return { code: 0, data: toLegacyCompatibleRecord(orderData) }
+    return { code: 0, data: toCurrentRecord(orderData) }
   }
 
   // 获取当前用户饮食记录列表
@@ -59,7 +58,7 @@ async function handleRequest(event, OPENID) {
       code: 0,
       data: {
         ...page,
-        items: page.items.map(toLegacyCompatibleRecord)
+        items: page.items.map(toCurrentRecord)
       }
     }
   }
@@ -75,25 +74,14 @@ async function handleRequest(event, OPENID) {
         orderTime: _.gte(startTime).and(_.lt(endTime))
       }
     })
-    return { code: 0, data: data.map(toLegacyCompatibleRecord) }
+    return { code: 0, data: data.map(toCurrentRecord) }
   }
 
   // 获取饮食记录详情
   if (action === 'detail') {
     const { orderId } = event
     const { data } = await db.collection('orders').where({ orderId, _openid: OPENID }).get()
-    return { code: 0, data: toLegacyCompatibleRecord(data[0] || null) }
-  }
-
-  // 旧版本兼容：更新已废弃的状态字段
-  if (action === 'updateStatus') {
-    const { orderId, status } = event
-    const updateData = { status }
-    if (status === 'completed') {
-      updateData.completedTime = Date.now()
-    }
-    await db.collection('orders').where({ orderId, _openid: OPENID }).update({ data: updateData })
-    return { code: 0, message: '更新成功' }
+    return { code: 0, data: toCurrentRecord(data[0] || null) }
   }
 
   // 删除饮食记录
@@ -101,18 +89,6 @@ async function handleRequest(event, OPENID) {
     const { orderId } = event
     await db.collection('orders').where({ orderId, _openid: OPENID }).remove()
     return { code: 0, message: '删除成功' }
-  }
-
-  // 旧版本兼容：批量更新已废弃的状态字段
-  if (action === 'batchComplete') {
-    const { orderIds } = event
-    const updatePromises = orderIds.map(orderId =>
-      db.collection('orders').where({ orderId, _openid: OPENID }).update({
-        data: { status: 'completed', completedTime: Date.now() }
-      })
-    )
-    await Promise.all(updatePromises)
-    return { code: 0, message: '批量完成成功' }
   }
 
   // 批量删除
@@ -123,31 +99,6 @@ async function handleRequest(event, OPENID) {
     )
     await Promise.all(deletePromises)
     return { code: 0, message: '批量删除成功' }
-  }
-
-  // 旧版本兼容：读取包含历史价格字段的统计
-  if (action === 'summary') {
-    const collection = db.collection('orders')
-    const [countResult, amountResult] = await Promise.all([
-      collection.where({ _openid: OPENID }).count(),
-      collection.aggregate()
-        .match({ _openid: OPENID })
-        .group({ _id: null, totalAmount: $.sum('$totalPrice') })
-        .end()
-    ])
-    const total = countResult.total || 0
-    const totalAmount = amountResult.list && amountResult.list[0]
-      ? Number(amountResult.list[0].totalAmount) || 0
-      : 0
-    return {
-      code: 0,
-      data: {
-        total,
-        pendingCount: 0,
-        completedCount: total,
-        totalAmount: parseFloat(totalAmount.toFixed(2))
-      }
-    }
   }
 
   return { code: -1, message: '未知操作' }
