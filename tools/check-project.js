@@ -83,6 +83,53 @@ function checkPages() {
   return pages.length
 }
 
+function checkPackageIgnores() {
+  const config = JSON.parse(fs.readFileSync(path.join(ROOT, 'project.config.json'), 'utf8'))
+  const ignoredItems = (((config || {}).packOptions || {}).ignore || [])
+  const normalizeIgnoreValue = value => value.replaceAll('\\', '/').replace(/^\.\//, '').replace(/\/$/, '')
+  const ignoredFolders = new Set(ignoredItems
+    .filter(item => item && item.type === 'folder' && typeof item.value === 'string')
+    .map(item => normalizeIgnoreValue(item.value)))
+  const ignoredFiles = new Set(ignoredItems
+    .filter(item => item && item.type === 'file' && typeof item.value === 'string')
+    .map(item => normalizeIgnoreValue(item.value)))
+  const requiredFolders = [
+    'images/dishes',
+    'docs',
+    'tests',
+    'tools',
+    '.claude',
+    '.cloudbase',
+    '.codebuddy',
+    '.codex',
+    '.rules',
+    'rules',
+    'codebuddy-plugin'
+  ]
+  const requiredFiles = [
+    '.env',
+    '.env.local',
+    '.env.example',
+    '.mcp.json',
+    'project.private.config.json',
+    '.gitignore',
+    '.gitmessage',
+    'AGENTS.md',
+    'CLAUDE.md',
+    'CODEBUDDY.md',
+    'README.md',
+    'package.json',
+    'cloudbaserc.json'
+  ]
+  requiredFolders.forEach(folder => {
+    if (!ignoredFolders.has(folder)) failures.push(`开发目录未从小程序上传包排除：${folder}`)
+  })
+  requiredFiles.forEach(file => {
+    if (!ignoredFiles.has(file)) failures.push(`开发文件未从小程序上传包排除：${file}`)
+  })
+  return requiredFolders.length + requiredFiles.length
+}
+
 function checkNavigationRoutes() {
   const appConfig = JSON.parse(fs.readFileSync(path.join(ROOT, 'app.json'), 'utf8'))
   const registered = new Set(Array.isArray(appConfig.pages) ? appConfig.pages : [])
@@ -173,6 +220,7 @@ const counts = {
   javascript: checkJavaScript(),
   json: checkJson(),
   pages: checkPages(),
+  packageIgnores: checkPackageIgnores(),
   routes: checkNavigationRoutes(),
   handlers: checkWxmlHandlers(),
   selectors: checkStyles()
@@ -182,5 +230,5 @@ if (failures.length > 0) {
   failures.forEach(message => console.error(`错误：${message}`))
   process.exitCode = 1
 } else {
-  console.log(`项目检查通过：${counts.javascript} 个 JS、${counts.json} 个 JSON、${counts.pages} 个注册页面、${counts.routes} 条导航、${counts.handlers} 个事件处理器、${counts.selectors} 个样式选择器`)
+  console.log(`项目检查通过：${counts.javascript} 个 JS、${counts.json} 个 JSON、${counts.pages} 个注册页面、${counts.packageIgnores} 个打包排除项、${counts.routes} 条导航、${counts.handlers} 个事件处理器、${counts.selectors} 个样式选择器`)
 }
