@@ -4,13 +4,14 @@ const db = cloud.database()
 const _ = db.command
 const { validateOrderEvent } = require('./validation')
 const { runCloudRequest } = require('./runtime')
-const { fetchOrderPage, fetchAllOrders } = require('./pagination')
+const { fetchOrderPage, fetchDeletedOrderPage, fetchAllOrders } = require('./pagination')
 const {
   createCookedItemSnapshot,
   createExternalItemSnapshot,
   createMealRecordDocument,
   isRecordDeleted,
-  toCurrentRecord
+  toCurrentRecord,
+  toDeletedRecord
 } = require('./record-model')
 
 async function handleRequest(event, OPENID) {
@@ -61,6 +62,24 @@ async function handleRequest(event, OPENID) {
       data: {
         ...page,
         items: page.items.map(toCurrentRecord)
+      }
+    }
+  }
+
+  // 获取软删除记录，按删除时间稳定倒序分页，供“最近删除”逐条恢复
+  if (action === 'deletedList') {
+    const page = await fetchDeletedOrderPage({
+      collection: db.collection('orders'),
+      command: _,
+      baseCondition: { _openid: OPENID, deletedAt: _.gt(0) },
+      cursor: event.cursor || null,
+      limit: event.limit
+    })
+    return {
+      code: 0,
+      data: {
+        ...page,
+        items: page.items.map(toDeletedRecord)
       }
     }
   }

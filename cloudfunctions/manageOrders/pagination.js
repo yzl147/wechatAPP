@@ -21,6 +21,21 @@ function buildCursorCondition(command, cursor) {
   ])
 }
 
+function createDeletedCursor(record) {
+  if (!record) return null
+  return { deletedAt: record.deletedAt, id: record._id }
+}
+
+function buildDeletedCursorCondition(command, cursor) {
+  return command.or([
+    { deletedAt: command.lt(cursor.deletedAt) },
+    command.and([
+      { deletedAt: command.eq(cursor.deletedAt) },
+      { _id: command.lt(cursor.id) }
+    ])
+  ])
+}
+
 async function fetchOrderPage({ collection, command, baseCondition, cursor, limit, includeRecord = () => true }) {
   const pageSize = normalizePageSize(limit)
   const fetchSize = pageSize + 1
@@ -59,6 +74,27 @@ async function fetchOrderPage({ collection, command, baseCondition, cursor, limi
   }
 }
 
+async function fetchDeletedOrderPage({ collection, command, baseCondition, cursor, limit }) {
+  const pageSize = normalizePageSize(limit)
+  const condition = cursor
+    ? command.and([baseCondition, buildDeletedCursorCondition(command, cursor)])
+    : baseCondition
+  const { data } = await collection
+    .where(condition)
+    .orderBy('deletedAt', 'desc')
+    .orderBy('_id', 'desc')
+    .limit(pageSize + 1)
+    .get()
+  const records = Array.isArray(data) ? data : []
+  const hasMore = records.length > pageSize
+  const items = records.slice(0, pageSize)
+  return {
+    items,
+    hasMore,
+    nextCursor: hasMore ? createDeletedCursor(items[items.length - 1]) : null
+  }
+}
+
 async function fetchAllOrders(options) {
   const allItems = []
   let cursor = null
@@ -80,6 +116,9 @@ module.exports = {
   normalizePageSize,
   createCursor,
   buildCursorCondition,
+  createDeletedCursor,
+  buildDeletedCursorCondition,
   fetchOrderPage,
+  fetchDeletedOrderPage,
   fetchAllOrders
 }

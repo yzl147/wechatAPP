@@ -12,7 +12,7 @@
 - `pages/index/`、`pages/detail/`：菜谱列表与详情。
 - `pages/cart/`：今日饮食清单，目录名为历史路由兼容名称。
 - `pages/shopping-list/`、`pages/inventory/`：采购清单与食材库存。
-- `pages/meal-record/`、`pages/orders/`、`pages/order-detail/`：饮食记录填写、浏览与详情。
+- `pages/meal-record/`、`pages/orders/`、`pages/order-detail/`、`pages/record-trash/`：饮食记录填写、浏览、详情与最近删除。
 - `pages/life-lists/`、`pages/life-list-detail/`：生活清单。
 - `pages/stats/`：本月回顾。
 - `pages/meal-roulette/`、`pages/meal-candidates/`：今天吃什么与候选管理。
@@ -34,7 +34,7 @@
 - 收藏、库存、采购状态、生活清单和候选餐单通过 `userData` 云同步，并保留版本化本地缓存。
 - `pages/cart`、`pages/orders`、`manageCart`、`manageOrders`、`carts` 和 `orders` 仅为历史兼容标识，不应扩散到新业务术语。
 - 当前协议不再使用价格、金额和订单状态；历史数据库字段在读取边界过滤，不批量改写或删除。
-- 饮食记录使用 `deletedAt` 软删除；列表和月份查询跳过删除记录，单条删除可从详情页撤销，不得恢复为物理删除。
+- 饮食记录使用 `deletedAt` 软删除；列表和月份查询跳过删除记录，删除后可从详情页撤销或从“最近删除”逐条恢复，不得恢复为物理删除。
 - 数据字段、云函数或集合重命名前，必须提供兼容、迁移、验证和回滚方案。
 
 ## 开发与验证

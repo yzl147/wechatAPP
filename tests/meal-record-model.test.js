@@ -5,7 +5,8 @@ const {
   createExternalItemSnapshot,
   createMealRecordDocument,
   isRecordDeleted,
-  toCurrentRecord
+  toCurrentRecord,
+  toDeletedRecord
 } = require('../cloudfunctions/manageOrders/record-model')
 
 test('新饮食记录文档不再持久化价格金额和订单状态', () => {
@@ -66,4 +67,18 @@ test('软删除状态兼容旧记录和已经恢复的记录', () => {
   assert.equal(isRecordDeleted({ orderId: 'FO1' }), false)
   assert.equal(isRecordDeleted({ orderId: 'FO1', deletedAt: null }), false)
   assert.equal(isRecordDeleted({ orderId: 'FO1', deletedAt: 1788000000000 }), true)
+})
+
+test('最近删除响应保留删除时间并继续过滤历史字段', () => {
+  const deleted = toDeletedRecord({
+    orderId: 'FO1',
+    orderTime: 100,
+    deletedAt: 1788000000000,
+    totalPrice: 18,
+    items: [{ id: 13, name: '番茄炒蛋', price: 18 }]
+  })
+
+  assert.equal(deleted.deletedAt, 1788000000000)
+  assert.equal(Object.hasOwn(deleted, 'totalPrice'), false)
+  assert.equal(Object.hasOwn(deleted.items[0], 'price'), false)
 })

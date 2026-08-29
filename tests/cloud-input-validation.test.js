@@ -76,6 +76,10 @@ test('饮食记录分页和日期范围参数受到限制', () => {
   assert.equal(validateOrderEvent({ action: 'list', limit: 20, cursor }), null)
   assert.equal(validateOrderEvent({ action: 'list', limit: 51 }).code, 40001)
   assert.equal(validateOrderEvent({ action: 'list', cursor: { orderTime: 'bad', id: 'id' } }).code, 40001)
+  const deletedCursor = { deletedAt: 1787800000000, id: 'document_id_001' }
+  assert.equal(validateOrderEvent({ action: 'deletedList', limit: 20, cursor: deletedCursor }), null)
+  assert.equal(validateOrderEvent({ action: 'deletedList', cursor: { deletedAt: 0, id: 'id' } }).code, 40001)
+  assert.equal(validateOrderEvent({ action: 'deletedList', cursor }).code, 40001)
 
   const startTime = new Date(2026, 7, 1).getTime()
   const endTime = new Date(2026, 8, 1).getTime()

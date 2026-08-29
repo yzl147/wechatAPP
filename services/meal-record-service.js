@@ -3,6 +3,7 @@ const mealRecordRepository = require('../repositories/cloud/meal-record-reposito
 function createMealRecordService(repository) {
   return {
     getPage(options) { return repository.listPage(options) },
+    getDeletedPage(options) { return repository.listDeletedPage(options) },
     getRange(startTime, endTime) { return repository.listRange(startTime, endTime) },
     getRecord(recordId) { return repository.getRecord(recordId) },
     saveCookedMeal(mealList, remark = '') { return repository.createCookedRecord(mealList, remark) },

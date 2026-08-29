@@ -171,6 +171,10 @@ Page({
     wx.navigateTo({ url: '/pages/meal-record/meal-record' })
   },
 
+  goToDeletedRecords() {
+    wx.navigateTo({ url: '/pages/record-trash/record-trash' })
+  },
+
   buildCalendar() {
     if (this.calendarYear === undefined) return
     const recordDates = new Set(this.data.monthRecords.map(item => formatDate(item.recordedAt)))
@@ -272,7 +276,7 @@ Page({
     if (!count || batchPending) return
     wx.showModal({
       title: '删除饮食记录',
-      content: `确定删除选中的 ${count} 条记录吗？批量删除后暂时无法在页面撤销。`,
+      content: `确定删除选中的 ${count} 条记录吗？删除后可在“最近删除”中恢复。`,
       confirmColor: '#c43d38',
       success: async (result) => {
         if (!result.confirm) return

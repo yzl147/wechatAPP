@@ -14,6 +14,7 @@
     "pages/shopping-list/shopping-list",
     "pages/inventory/inventory",
     "pages/order-detail/order-detail",
+    "pages/record-trash/record-trash",
     "pages/orders/orders"
   ],
   "window": {

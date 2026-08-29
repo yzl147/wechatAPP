@@ -16,7 +16,7 @@
 1. 浏览菜谱，按分类筛选、收藏并查看做法；收藏可跨设备同步。
 2. 将想做的菜加入“今日清单”，可调整份数或删除。
 3. 支持自己做、外出吃和点外卖三种饮食记录方式；外出和外卖可快速填写店铺/地点与菜品。
-4. 回顾某一天吃了什么；自己做的记录可一键复用一餐，单条饮食记录删除后可在详情页撤销。
+4. 回顾某一天吃了什么；自己做的记录可一键复用一餐，删除的饮食记录可在详情页撤销或从“最近删除”恢复。
 5. 菜品图片在运行时从云存储加载；仓库中的本地图片保留为数据源，不打包进小程序。
 
 ## 功能规划
@@ -69,11 +69,12 @@
 | `pages/orders/` | 饮食记录列表与快速新增入口；目录名为历史路由兼容名称 |
 | `pages/meal-record/` | 外出用餐、外卖的快速记录表单 |
 | `pages/order-detail/` | 单条饮食记录详情；目录名为历史路由兼容名称 |
+| `pages/record-trash/` | 最近删除的饮食记录与逐条恢复 |
 | `cloudfunctions/manageDishes/` | 菜品数据与云存储图片映射 |
 | `repositories/cloud/meal-list-repository.js` | 隔离今日饮食清单的数据访问及旧云协议 |
 | `services/meal-list-service.js` | 今日饮食清单的页面无关业务接口 |
 | `repositories/cloud/meal-record-repository.js` | 隔离饮食记录的数据访问及旧云协议 |
-| `services/meal-record-service.js` | 饮食记录的保存、查询和删除接口 |
+| `services/meal-record-service.js` | 饮食记录的保存、查询、软删除和恢复接口 |
 | `cloudfunctions/manageCart/` | 今日饮食清单云函数；函数名和 `carts` 集合暂为旧数据兼容名称 |
 | `cloudfunctions/manageOrders/` | 饮食记录云函数；函数名和 `orders` 集合暂为旧数据兼容名称 |
 | `utils/` | 云调用、版本化本地缓存及同步等通用能力 |

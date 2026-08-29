@@ -16,6 +16,16 @@ function createMealRecordRepository(client) {
       }
     },
 
+    async listDeletedPage({ cursor = null, limit = 20 } = {}) {
+      const result = await callLegacyProtocol('deletedList', { cursor, limit })
+      const page = result.data || {}
+      return {
+        items: Array.isArray(page.items) ? page.items.map(normalizeDeletedRecord).filter(Boolean) : [],
+        nextCursor: page.nextCursor || null,
+        hasMore: !!page.hasMore
+      }
+    },
+
     async listRange(startTime, endTime) {
       const result = await callLegacyProtocol('range', { startTime, endTime })
       return Array.isArray(result.data) ? result.data.map(normalizeRecord) : []
@@ -91,8 +101,15 @@ function normalizeRecord(record) {
   return normalized
 }
 
+function normalizeDeletedRecord(record) {
+  const normalized = normalizeRecord(record)
+  if (!normalized) return null
+  return { ...normalized, deletedAt: Number(record.deletedAt) || 0 }
+}
+
 module.exports = {
   ...createMealRecordRepository(cloudClient),
   createMealRecordRepository,
-  normalizeRecord
+  normalizeRecord,
+  normalizeDeletedRecord
 }

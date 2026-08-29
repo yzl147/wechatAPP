@@ -42,7 +42,7 @@
 .quick-entry__content, .calendar-header, .calendar-footer, .day-heading, .list-toolbar, .select-bar { justify-content: space-between; }
 .quick-entry__title { color: var(--color-meal); font-size: var(--font-section-title); font-weight: 700; }
 .quick-entry__description { margin-top: var(--space-xs); color: var(--color-text-secondary); font-size: var(--font-caption); line-height: 1.45; }
-.quick-entry__action, .manage-action, .today-action, .cancel-action {
+.quick-entry__action, .manage-action, .trash-action, .today-action, .cancel-action {
   display: flex;
   min-width: var(--tap-min-size);
   min-height: var(--tap-min-size);
@@ -52,6 +52,8 @@
   font-size: var(--font-body);
   font-weight: 600;
 }
+.list-toolbar__actions { display: flex; align-items: center; gap: var(--space-sm); }
+.trash-action { color: var(--color-text-secondary); }
 
 .month-action {
   display: flex;

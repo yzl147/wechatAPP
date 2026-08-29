@@ -19,7 +19,7 @@
 
 `dishes`、`carts` 与 `orders` 的当前写入和响应不再使用 `price/subtotal/totalPrice/status` 等点餐字段；历史文档中的旧字段原样保留在数据库中，并在读取边界被过滤。不要批量删除旧数据或把这些字段重新写回数据库。
 
-饮食记录删除使用 `deletedAt` 软删除；列表和月份查询在分页层跳过已删除记录，单条记录可从详情页撤销。不要改回直接移除 `orders` 文档。
+饮食记录删除使用 `deletedAt` 软删除；列表和月份查询在分页层跳过已删除记录，删除后可从详情页撤销或从“最近删除”逐条恢复。不要改回直接移除 `orders` 文档。
 
 ## 页面结构
 
@@ -28,7 +28,7 @@
 - `pages/cart/`：今日饮食清单。
 - `pages/shopping-list/`、`pages/inventory/`：采购清单与库存。
 - `pages/meal-record/`：外出吃和外卖记录表单。
-- `pages/orders/`、`pages/order-detail/`：饮食与生活记录浏览、详情。
+- `pages/orders/`、`pages/order-detail/`、`pages/record-trash/`：饮食与生活记录浏览、详情和最近删除。
 - `pages/life-lists/`、`pages/life-list-detail/`：生活清单。
 - `pages/stats/`：月度回顾。
 - `pages/meal-roulette/`、`pages/meal-candidates/`：今天吃什么与候选管理。

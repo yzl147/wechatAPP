@@ -31,6 +31,20 @@ function validateListEvent(event) {
   return null
 }
 
+function validateDeletedListEvent(event) {
+  if (event.limit !== undefined && (!Number.isInteger(event.limit) || event.limit < 1 || event.limit > MAX_LIST_SIZE)) {
+    return validationError(`每页记录数量必须是 1 到 ${MAX_LIST_SIZE}`, 'limit')
+  }
+  if (event.cursor === undefined || event.cursor === null) return null
+  const cursor = event.cursor
+  if (!cursor || typeof cursor !== 'object' || Array.isArray(cursor) ||
+      !Number.isSafeInteger(cursor.deletedAt) || cursor.deletedAt <= 0 ||
+      typeof cursor.id !== 'string' || !/^[A-Za-z0-9_-]{1,64}$/.test(cursor.id)) {
+    return validationError('分页游标不正确', 'cursor')
+  }
+  return null
+}
+
 function validateRangeEvent(event) {
   const { startTime, endTime } = event
   if (!Number.isSafeInteger(startTime) || !Number.isSafeInteger(endTime) || startTime < 0 || endTime <= startTime) {
@@ -86,10 +100,11 @@ function validateOrderEvent(event) {
   if (!event || typeof event !== 'object' || Array.isArray(event)) {
     return validationError('请求参数格式不正确', 'event')
   }
-  const actions = ['create', 'list', 'range', 'detail', 'delete', 'restore', 'batchDelete']
+  const actions = ['create', 'list', 'deletedList', 'range', 'detail', 'delete', 'restore', 'batchDelete']
   if (!actions.includes(event.action)) return validationError('操作类型不正确', 'action')
   if (event.action === 'create') return validateCreateEvent(event)
   if (event.action === 'list') return validateListEvent(event)
+  if (event.action === 'deletedList') return validateDeletedListEvent(event)
   if (event.action === 'range') return validateRangeEvent(event)
   if (['detail', 'delete', 'restore'].includes(event.action) && !isOrderId(event.orderId)) {
     return validationError('记录 ID 不正确', 'orderId')

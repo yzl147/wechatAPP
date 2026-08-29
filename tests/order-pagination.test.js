@@ -3,7 +3,9 @@ const assert = require('node:assert/strict')
 const {
   createCursor,
   fetchOrderPage,
-  fetchAllOrders
+  fetchAllOrders,
+  createDeletedCursor,
+  fetchDeletedOrderPage
 } = require('../cloudfunctions/manageOrders/pagination')
 
 function createCommandRecorder() {
@@ -113,4 +115,41 @@ test('分页跳过软删除记录并继续扫描到完整可见页', async () =>
   assert.equal(page.hasMore, true)
   assert.deepEqual(page.nextCursor, createCursor(records[3]))
   assert.deepEqual(collection.calls.limit, [3, 3])
+})
+
+test('最近删除按删除时间分页并生成独立游标', async () => {
+  const records = createRecords(4).map((record, index) => ({
+    ...record,
+    deletedAt: 300 - index
+  }))
+  const collection = createQueuedCollection([records])
+  const page = await fetchDeletedOrderPage({
+    collection,
+    command: createCommandRecorder(),
+    baseCondition: { _openid: 'user', deletedAt: { op: 'gt', value: 0 } },
+    limit: 3
+  })
+
+  assert.deepEqual(page.items.map(item => item.orderId), ['FO0', 'FO1', 'FO2'])
+  assert.equal(page.hasMore, true)
+  assert.deepEqual(page.nextCursor, createDeletedCursor(records[2]))
+  assert.deepEqual(collection.calls.orderBy, [['deletedAt', 'desc'], ['_id', 'desc']])
+  assert.deepEqual(collection.calls.limit, [4])
+})
+
+test('最近删除续页使用 deletedAt 和文档 ID 作为稳定条件', async () => {
+  const records = createRecords(2).map(record => ({ ...record, deletedAt: 100 }))
+  const collection = createQueuedCollection([records])
+  const page = await fetchDeletedOrderPage({
+    collection,
+    command: createCommandRecorder(),
+    baseCondition: { _openid: 'user' },
+    cursor: { deletedAt: 101, id: 'previous_id' },
+    limit: 20
+  })
+
+  assert.equal(collection.calls.where[0].op, 'and')
+  assert.equal(collection.calls.where[0].values[1].op, 'or')
+  assert.equal(page.hasMore, false)
+  assert.equal(page.nextCursor, null)
 })

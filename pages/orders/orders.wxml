@@ -110,7 +110,10 @@
     <block wx:else>
       <view class="list-toolbar">
         <view><text class="section-title">全部饮食记录</text><text class="section-description">按时间从近到远排列</text></view>
-        <text class="manage-action" wx:if="{{!selectMode && displayRecords.length > 0}}" bindtap="onEnterManage">管理</text>
+        <view class="list-toolbar__actions" wx:if="{{!selectMode}}">
+          <text class="trash-action" bindtap="goToDeletedRecords">最近删除</text>
+          <text class="manage-action" wx:if="{{displayRecords.length > 0}}" bindtap="onEnterManage">管理</text>
+        </view>
       </view>
 
       <view class="select-bar" wx:if="{{selectMode}}">

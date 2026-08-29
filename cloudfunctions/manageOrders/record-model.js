@@ -58,10 +58,17 @@ function toCurrentRecord(record) {
   return currentRecord
 }
 
+function toDeletedRecord(record) {
+  const currentRecord = toCurrentRecord(record)
+  if (!currentRecord) return null
+  return { ...currentRecord, deletedAt: Number(record.deletedAt) || 0 }
+}
+
 module.exports = {
   createCookedItemSnapshot,
   createExternalItemSnapshot,
   createMealRecordDocument,
   isRecordDeleted,
-  toCurrentRecord
+  toCurrentRecord,
+  toDeletedRecord
 }
