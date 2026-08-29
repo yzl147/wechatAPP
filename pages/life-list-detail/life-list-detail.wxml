@@ -1,11 +1,56 @@
-<view class="detail-page" wx:if="{{list}}">
-  <view class="progress-card"><text class="progress-num">{{list.doneCount}} / {{list.totalCount}}</text><text>{{list.repeatText}}{{list.lastCompletedText ? ' · ' + list.lastCompletedText : ''}}</text></view>
-  <view class="add-row"><input placeholder="添加一个项目" value="{{newItem}}" bindinput="onNewItemInput" confirm-type="done" bindconfirm="onAddItem" /><text bindtap="onAddItem">添加</text></view>
-  <view class="item-card {{item.done ? 'done' : ''}}" wx:for="{{list.items}}" wx:key="id">
-    <view class="item-check" bindtap="onToggleItem" data-id="{{item.id}}">{{item.done ? '✓' : ''}}</view>
-    <text class="item-text" bindtap="onToggleItem" data-id="{{item.id}}">{{item.text}}</text>
-    <text class="remove" bindtap="onRemoveItem" data-id="{{item.id}}">×</text>
-  </view>
-  <view class="save-template" bindtap="onSaveAsTemplate">保存为我的模板</view>
-  <view class="delete-list" bindtap="onDeleteList">删除这张清单</view>
+<view class="detail-page">
+  <loading-state wx:if="{{loadStatus === 'loading'}}" text="正在加载清单" />
+  <error-state wx:elif="{{loadStatus === 'error'}}" title="清单加载失败" description="请检查本地数据或网络后重试" bind:retry="onRetryLoad" />
+  <empty-state wx:elif="{{loadStatus === 'empty'}}" symbol="事" title="清单不存在" description="这张清单可能已在其他设备删除" actionText="返回生活清单" bind:action="onBackToLists" />
+
+  <block wx:else>
+    <view class="page-intro"><text class="page-title">{{list.title}}</text><text class="page-description">逐项完成后会自动保留本次完成记录</text></view>
+
+    <view class="progress-card">
+      <app-card variant="life">
+        <view class="progress-heading"><view><text class="progress-value-text">{{progressPercent}}%</text><text class="progress-label">{{list.isCompleted ? '本轮已完成' : (list.totalCount ? '还剩 ' + remainingCount + ' 项' : '等待添加项目')}}</text></view><text class="repeat-tag">{{list.repeatText}}</text></view>
+        <view class="progress-track"><view class="progress-value" style="width: {{progressPercent}}%;"></view></view>
+        <view class="progress-meta"><text>已完成 {{list.doneCount}} / {{list.totalCount}} 项</text><text wx:if="{{list.lastCompletedText}}">{{list.lastCompletedText}}</text></view>
+      </app-card>
+    </view>
+
+    <view class="add-card">
+      <app-card>
+        <text class="section-title">添加项目</text>
+        <view class="add-row">
+          <input class="add-input" placeholder="输入一件要完成的事" value="{{newItem}}" bindinput="onNewItemInput" confirm-type="done" bindconfirm="onAddItem" maxlength="40" />
+          <view class="add-action {{addPending || mutationPendingId || templatePending || deletePending ? 'action-disabled' : ''}}" bindtap="onAddItem" aria-role="button">{{addPending ? '添加中…' : '添加'}}</view>
+        </view>
+      </app-card>
+    </view>
+
+    <view class="section-heading"><view><text class="section-title">清单项目</text><text class="section-description">点击项目可切换完成状态</text></view><text class="section-count">{{list.totalCount}} 项</text></view>
+
+    <empty-state wx:if="{{list.items.length === 0}}" symbol="项" title="还没有清单项目" description="在上方添加第一件要完成的事" />
+
+    <view class="item-list" wx:else>
+      <view class="item-card" wx:for="{{list.items}}" wx:key="id">
+        <app-card variant="{{item.done ? 'life' : 'default'}}">
+          <view class="item-content">
+            <view class="item-toggle" bindtap="onToggleItem" data-id="{{item.id}}">
+              <text class="item-check {{item.done ? 'item-check--done' : ''}}">{{item.done ? '✓' : ''}}</text>
+              <view class="item-copy"><text class="item-text {{item.done ? 'item-text--done' : ''}}">{{item.text}}</text><text class="item-state">{{mutationPendingId === item.id ? '更新中…' : (item.done ? '已完成' : '待完成')}}</text></view>
+            </view>
+            <view class="remove-action {{mutationPendingId || addPending || templatePending || deletePending ? 'action-disabled-text' : ''}}" catchtap="onRemoveItem" data-id="{{item.id}}" aria-role="button">删除</view>
+          </view>
+        </app-card>
+      </view>
+    </view>
+
+    <view class="manage-card">
+      <app-card>
+        <text class="section-title">管理清单</text>
+        <text class="manage-description">保存模板便于以后复用；删除清单不会影响已经保存的历史完成记录。</text>
+        <view class="manage-actions">
+          <view class="template-save {{templatePending || deletePending || mutationPendingId || addPending ? 'action-disabled-text' : ''}}" bindtap="onSaveAsTemplate" aria-role="button">{{templatePending ? '保存中…' : '保存为我的模板'}}</view>
+          <view class="list-delete {{deletePending || templatePending || mutationPendingId || addPending ? 'action-disabled-text' : ''}}" bindtap="onDeleteList" aria-role="button">{{deletePending ? '删除中…' : '删除这张清单'}}</view>
+        </view>
+      </app-card>
+    </view>
+  </block>
 </view>

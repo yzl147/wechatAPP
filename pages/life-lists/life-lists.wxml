@@ -1,30 +1,90 @@
 <view class="lists-page">
-  <view class="create-card">
-    <text class="create-title">新建清单</text>
-    <input class="title-input" placeholder="例如：周末大扫除" value="{{title}}" bindinput="onTitleInput" maxlength="20" />
-    <textarea class="items-input" placeholder="清单项目（每行一项，可选）" value="{{itemsText}}" bindinput="onItemsInput" maxlength="300" auto-height />
-    <picker mode="selector" range="{{repeatOptions}}" value="{{repeatIndex}}" bindchange="onRepeatChange">
-      <view class="repeat-picker">循环：{{repeatOptions[repeatIndex]}} <text>›</text></view>
-    </picker>
-    <view class="create-btn" bindtap="onCreateList">创建清单</view>
-  </view>
-
-  <view class="section-title">常用模板</view>
-  <view class="template-grid">
-    <view class="template-card" wx:for="{{templates}}" wx:key="*this" bindtap="onUseTemplate" data-index="{{index}}"><text>{{item}}</text></view>
-  </view>
-
-  <block wx:if="{{customTemplates.length > 0}}">
-    <view class="section-title">我的模板</view>
-    <view class="custom-template" wx:for="{{customTemplates}}" wx:key="id" bindtap="onUseCustomTemplate" data-id="{{item.id}}"><text>{{item.title}}</text><text>使用 ›</text></view>
-  </block>
-
-  <view class="section-title">我的清单</view>
-  <view class="empty-state" wx:if="{{lists.length === 0}}">暂时还没有生活清单</view>
-  <block wx:if="{{lists.length > 0}}">
-    <view class="list-card" wx:for="{{lists}}" wx:key="id" bindtap="onListTap" data-id="{{item.id}}">
-      <view><text class="list-name">{{item.title}}</text><text class="list-progress">{{item.repeatText}} · 已完成 {{item.doneCount}} / {{item.totalCount}} 项</text></view>
-      <text class="arrow">›</text>
+  <view class="page-intro">
+    <view class="page-intro__copy">
+      <text class="page-title">生活清单</text>
+      <text class="page-description">把家务、出行和周期事项整理成可以逐项完成的清单</text>
     </view>
+    <view class="create-action" bindtap="onOpenCreate" aria-role="button">新建</view>
+  </view>
+
+  <view class="create-form" wx:if="{{showCreateForm}}">
+    <app-card variant="life">
+      <view class="form-heading"><view><text class="section-title">新建清单</text><text class="section-description">先写名称，项目也可以进入详情后再添加</text></view><text class="cancel-action" bindtap="onCancelCreate">取消</text></view>
+      <view class="field-group"><text class="field-label">清单名称</text><input class="field-input" placeholder="例如：周末大扫除" value="{{title}}" bindinput="onTitleInput" maxlength="20" /></view>
+      <view class="field-group"><text class="field-label">清单项目</text><textarea class="field-textarea" placeholder="每行一项，也支持逗号分隔（可选）" value="{{itemsText}}" bindinput="onItemsInput" maxlength="300" auto-height /></view>
+      <view class="field-group">
+        <text class="field-label">重复周期</text>
+        <picker mode="selector" range="{{repeatOptions}}" value="{{repeatIndex}}" bindchange="onRepeatChange">
+          <view class="repeat-picker"><text>{{repeatOptions[repeatIndex]}}</text><text class="picker-action">选择 ›</text></view>
+        </picker>
+      </view>
+      <view class="submit-action {{createPending ? 'action-disabled' : ''}}" bindtap="onCreateList" aria-role="button">{{createPending ? '正在创建…' : '创建清单'}}</view>
+    </app-card>
+  </view>
+
+  <loading-state wx:if="{{loadStatus === 'loading'}}" text="正在加载生活清单" />
+  <error-state wx:elif="{{loadStatus === 'error'}}" title="生活清单加载失败" description="请检查本地数据或网络后重试" bind:retry="onRetryLoad" />
+
+  <block wx:else>
+    <view class="overview-card">
+      <app-card variant="life">
+        <view class="overview-content">
+          <view><text class="overview-value">{{unfinishedCount}}</text><text class="overview-label">项等待完成</text></view>
+          <view class="overview-divider"></view>
+          <view><text class="overview-value">{{lists.length}}</text><text class="overview-label">张生活清单</text></view>
+          <view class="overview-divider"></view>
+          <view><text class="overview-value">{{completedListCount}}</text><text class="overview-label">张本轮完成</text></view>
+        </view>
+      </app-card>
+    </view>
+
+    <view class="section-heading"><view><text class="section-title">我的清单</text><text class="section-description">优先展示最近调整的清单</text></view></view>
+
+    <empty-state wx:if="{{lists.length === 0}}" symbol="事" title="还没有生活清单" description="新建一张清单，或从下方模板快速开始" actionText="新建清单" bind:action="onOpenCreate" />
+
+    <view class="list-cards" wx:else>
+      <view class="list-card" wx:for="{{lists}}" wx:key="id">
+        <app-card variant="{{item.isCompleted ? 'life' : 'default'}}" interactive>
+          <view class="list-card__content" bindtap="onListTap" data-id="{{item.id}}">
+            <view class="list-card__top">
+              <view class="list-card__copy">
+                <text class="list-name">{{item.title}}</text>
+                <text class="list-status">{{item.totalCount === 0 ? '还没有项目' : (item.isCompleted ? '本轮已完成' : '还剩 ' + item.remainingCount + ' 项')}}</text>
+              </view>
+              <text class="list-arrow">›</text>
+            </view>
+            <view class="progress-track"><view class="progress-value" style="width: {{item.progressPercent}}%;"></view></view>
+            <view class="list-meta"><text>{{item.doneCount}} / {{item.totalCount}} 项</text><text>{{item.repeatText}}{{item.lastCompletedText ? ' · ' + item.lastCompletedText : ''}}</text></view>
+          </view>
+        </app-card>
+      </view>
+    </view>
+
+    <view class="section-heading template-heading"><view><text class="section-title">常用模板</text><text class="section-description">使用模板会新建一张独立清单</text></view></view>
+    <view class="template-grid">
+      <view class="template-card" wx:for="{{templates}}" wx:key="title">
+        <app-card variant="life" interactive>
+          <view class="template-content {{templatePendingKey || createPending ? 'content-disabled' : ''}}" bindtap="onUseTemplate" data-index="{{item.index}}">
+            <text class="template-name">{{item.title}}</text>
+            <text class="template-meta">{{item.itemCount}} 项 · {{item.repeatText}}</text>
+            <text class="template-action">{{templatePendingKey === 'default-' + item.index ? '创建中…' : '使用模板'}}</text>
+          </view>
+        </app-card>
+      </view>
+    </view>
+
+    <block wx:if="{{customTemplates.length > 0}}">
+      <view class="section-heading template-heading"><view><text class="section-title">我的模板</text><text class="section-description">从清单详情中保存的模板</text></view></view>
+      <view class="custom-templates">
+        <view class="custom-template" wx:for="{{customTemplates}}" wx:key="id">
+          <app-card interactive>
+            <view class="custom-template__content {{templatePendingKey || createPending ? 'content-disabled' : ''}}" bindtap="onUseCustomTemplate" data-id="{{item.id}}">
+              <view><text class="template-name">{{item.title}}</text><text class="template-meta">{{item.itemCount}} 个项目</text></view>
+              <text class="template-action">{{templatePendingKey === 'custom-' + item.id ? '创建中…' : '使用 ›'}}</text>
+            </view>
+          </app-card>
+        </view>
+      </view>
+    </block>
   </block>
 </view>
