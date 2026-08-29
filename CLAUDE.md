@@ -37,7 +37,7 @@
 - `domain`：不依赖 `wx.*` 的纯业务规则。
 - `repositories`：云端或本地数据访问与协议兼容。
 - `services`：组合完整业务流程。
-- `utils`：通用能力及尚未清理的兼容入口，不再承接新增业务模块。
+- `utils`：版本化缓存、云调用等通用能力，不承接页面业务流程。
 
 今日饮食清单的新代码统一通过 `services/meal-list-service.js`，由 `repositories/cloud/meal-list-repository.js` 隔离旧 `manageCart` 协议。不要在页面中重新直接调用该云函数。
 

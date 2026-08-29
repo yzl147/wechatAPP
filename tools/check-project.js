@@ -5,7 +5,6 @@ const { spawnSync } = require('node:child_process')
 const ROOT = path.resolve(__dirname, '..')
 const SOURCE_DIRS = ['cloudfunctions', 'components', 'data', 'domain', 'pages', 'repositories', 'services', 'utils']
 const failures = []
-const warnings = []
 
 function walk(directory, predicate) {
   if (!fs.existsSync(directory)) return []
@@ -38,8 +37,14 @@ function checkJavaScript() {
 }
 
 function checkJson() {
-  const files = walk(ROOT, file => file.endsWith('.json'))
-    .filter(file => !file.includes(`${path.sep}node_modules${path.sep}`) && !file.includes(`${path.sep}miniprogram_npm${path.sep}`))
+  const rootFiles = ['app.json', 'cloudbaserc.json', 'package.json', 'project.config.json', 'sitemap.json']
+    .map(file => path.join(ROOT, file))
+    .filter(fs.existsSync)
+  const files = [
+    ...rootFiles,
+    ...['cloudfunctions', 'components', 'pages']
+      .flatMap(directory => walk(path.join(ROOT, directory), file => file.endsWith('.json')))
+  ]
   files.forEach(file => {
     try {
       JSON.parse(fs.readFileSync(file, 'utf8').replace(/^\uFEFF/, ''))
@@ -67,7 +72,7 @@ function checkPages() {
   const pageWxmlFiles = walk(path.join(ROOT, 'pages'), file => file.endsWith('.wxml'))
   pageWxmlFiles.forEach(file => {
     const route = relative(file).replace(/\.wxml$/, '')
-    if (!registered.has(route)) warnings.push(`页面未在 app.json 注册：${route}`)
+    if (!registered.has(route)) failures.push(`页面未在 app.json 注册：${route}`)
   })
 
   const tabPages = (((appConfig || {}).tabBar || {}).list || []).map(item => item.pagePath)
@@ -76,6 +81,64 @@ function checkPages() {
   })
 
   return pages.length
+}
+
+function checkNavigationRoutes() {
+  const appConfig = JSON.parse(fs.readFileSync(path.join(ROOT, 'app.json'), 'utf8'))
+  const registered = new Set(Array.isArray(appConfig.pages) ? appConfig.pages : [])
+  const files = walk(path.join(ROOT, 'pages'), file => file.endsWith('.js'))
+  const navigationPattern = /wx\.(?:navigateTo|redirectTo|switchTab|reLaunch)\s*\(\s*\{\s*url\s*:\s*([`'"])(\/pages\/[^`'"]+)\1/g
+  let routeCount = 0
+
+  files.forEach(file => {
+    const source = fs.readFileSync(file, 'utf8')
+    for (const match of source.matchAll(navigationPattern)) {
+      routeCount += 1
+      const route = match[2].split('?')[0].replace(/^\//, '')
+      if (!registered.has(route)) failures.push(`导航目标未在 app.json 注册：${relative(file)} -> ${route}`)
+    }
+  })
+
+  return routeCount
+}
+
+function checkStyles() {
+  const styleFiles = ['pages', 'components']
+    .flatMap(directory => walk(path.join(ROOT, directory), file => file.endsWith('.wxss')))
+  let selectorCount = 0
+
+  styleFiles.forEach(styleFile => {
+    const base = styleFile.replace(/\.wxss$/, '')
+    const sources = ['.wxml', '.js']
+      .map(extension => `${base}${extension}`)
+      .filter(fs.existsSync)
+      .map(file => fs.readFileSync(file, 'utf8'))
+      .join('\n')
+    const style = fs.readFileSync(styleFile, 'utf8')
+    const classes = new Set([...style.matchAll(/(?<![\w-])\.([A-Za-z_][\w-]*)/g)].map(match => match[1]))
+
+    classes.forEach(className => {
+      selectorCount += 1
+      const modifierPrefix = className.includes('--') ? `${className.split('--')[0]}--` : ''
+      const isUsed = sources.includes(className) || (modifierPrefix && sources.includes(modifierPrefix))
+      if (!isUsed) failures.push(`样式选择器未被同名页面或组件使用：${relative(styleFile)} -> .${className}`)
+    })
+  })
+
+  const appStyle = path.join(ROOT, 'app.wxss')
+  const globalSources = ['pages', 'components']
+    .flatMap(directory => walk(path.join(ROOT, directory), file => file.endsWith('.wxml') || file.endsWith('.js')))
+    .map(file => fs.readFileSync(file, 'utf8'))
+    .join('\n')
+  const globalClasses = new Set([
+    ...fs.readFileSync(appStyle, 'utf8').matchAll(/(?<![\w-])\.([A-Za-z_][\w-]*)/g)
+  ].map(match => match[1]))
+  globalClasses.forEach(className => {
+    selectorCount += 1
+    if (!globalSources.includes(className)) failures.push(`全局样式选择器未被使用：app.wxss -> .${className}`)
+  })
+
+  return selectorCount
 }
 
 function checkWxmlHandlers() {
@@ -110,13 +173,14 @@ const counts = {
   javascript: checkJavaScript(),
   json: checkJson(),
   pages: checkPages(),
-  handlers: checkWxmlHandlers()
+  routes: checkNavigationRoutes(),
+  handlers: checkWxmlHandlers(),
+  selectors: checkStyles()
 }
 
-warnings.forEach(message => console.warn(`警告：${message}`))
 if (failures.length > 0) {
   failures.forEach(message => console.error(`错误：${message}`))
   process.exitCode = 1
 } else {
-  console.log(`项目检查通过：${counts.javascript} 个 JS、${counts.json} 个 JSON、${counts.pages} 个注册页面、${counts.handlers} 个事件处理器`)
+  console.log(`项目检查通过：${counts.javascript} 个 JS、${counts.json} 个 JSON、${counts.pages} 个注册页面、${counts.routes} 条导航、${counts.handlers} 个事件处理器、${counts.selectors} 个样式选择器`)
 }

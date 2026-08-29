@@ -76,7 +76,7 @@
 | `services/meal-record-service.js` | 饮食记录的保存、查询和删除接口 |
 | `cloudfunctions/manageCart/` | 今日饮食清单云函数；函数名和 `carts` 集合暂为旧数据兼容名称 |
 | `cloudfunctions/manageOrders/` | 饮食记录云函数；函数名和 `orders` 集合暂为旧数据兼容名称 |
-| `utils/` | 兼容入口、日期和版本化本地缓存等通用能力 |
+| `utils/` | 云调用、版本化本地缓存及同步等通用能力 |
 
 ## 开发约定
 
