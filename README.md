@@ -77,6 +77,7 @@
 | `cloudfunctions/manageCart/` | 今日饮食清单云函数；函数名和 `carts` 集合暂为旧数据兼容名称 |
 | `cloudfunctions/manageOrders/` | 饮食记录云函数；函数名和 `orders` 集合暂为旧数据兼容名称 |
 | `utils/` | 云调用、版本化本地缓存及同步等通用能力 |
+| `docs/README.md` | 实施文档索引、路线图状态与剩余工作 |
 
 ## 开发约定
 
@@ -87,3 +88,4 @@
 - 提交信息遵循仓库根目录 `.gitmessage`：`type` 和 `scope` 使用英文，其余内容使用中文。
 - 本机环境变量从 `.env.example` 复制到 `.env.local` 后填写；微信开发者工具生成的 `project.private.config.json`、CloudBase 本地状态和个人 AI 工具配置不得提交。
 - 提交前运行 `npm run check`，其中仓库卫生检查会阻止本机配置和工具生成目录重新进入版本库。
+- 当前不引入 TDesign，优先复用现有设计令牌和公共组件；出现明确的复杂通用交互需求后再单独评估。
