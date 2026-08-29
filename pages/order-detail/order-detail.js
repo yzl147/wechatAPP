@@ -1,5 +1,5 @@
 const orderUtil = require('../../utils/order')
-const cartUtil = require('../../utils/cart')
+const mealListService = require('../../services/meal-list-service')
 const cloudUtil = require('../../utils/cloud')
 
 Page({
@@ -101,7 +101,7 @@ Page({
     wx.showLoading({ title: '加入清单中...' })
     try {
       for (const item of order.items) {
-        await cartUtil.addToCart(item, item.quantity || 1)
+        await mealListService.addDish(item, item.quantity || 1)
       }
       wx.hideLoading()
       wx.showToast({ title: '已加入今日清单', icon: 'success' })

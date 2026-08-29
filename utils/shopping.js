@@ -49,8 +49,8 @@ function setItemChecked(key, checked) {
   })
 }
 
-function createShoppingItems(cartList) {
-  return shoppingCalculator.createShoppingItems(cartList, inventoryUtil.getInventory(), getCheckedMap())
+function createShoppingItems(mealList) {
+  return shoppingCalculator.createShoppingItems(mealList, inventoryUtil.getInventory(), getCheckedMap())
 }
 
 module.exports = { syncShopping, createShoppingItems, setItemChecked }

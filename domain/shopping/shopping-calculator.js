@@ -1,16 +1,16 @@
 const { parseAmount, normalizeUnit, formatNumber } = require('./ingredient-parser')
 
-function createShoppingItems(cartList, inventory, checkedMap) {
+function createShoppingItems(mealList, inventory, checkedMap) {
   const groupedItems = {}
   const uncountableItems = []
 
-  cartList.forEach(food => {
-    const servings = food.quantity || 1
-    ;(food.ingredients || []).forEach((ingredient, index) => {
+  mealList.forEach(dish => {
+    const servings = dish.quantity || 1
+    ;(dish.ingredients || []).forEach((ingredient, index) => {
       const parsed = parseAmount(ingredient.amount)
-      const sourceText = servings > 1 ? `${food.name} · ${servings} 份` : food.name
+      const sourceText = servings > 1 ? `${dish.name} · ${servings} 份` : dish.name
       if (!parsed) {
-        const key = `${food.foodId || food.id}-${ingredient.name}-${index}`
+        const key = `${dish.dishId || dish.foodId || dish.id}-${ingredient.name}-${index}`
         uncountableItems.push({
           key,
           name: ingredient.name,

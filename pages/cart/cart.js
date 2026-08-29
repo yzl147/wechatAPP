@@ -1,4 +1,4 @@
-const cartUtil = require('../../utils/cart')
+const mealListService = require('../../services/meal-list-service')
 const orderUtil = require('../../utils/order')
 const shoppingUtil = require('../../utils/shopping')
 const inventoryUtil = require('../../utils/inventory')
@@ -6,9 +6,8 @@ const cloudUtil = require('../../utils/cloud')
 
 Page({
   data: {
-    cartList: [],
+    mealList: [],
     totalCount: 0,
-    totalPrice: 0,
     loadStatus: 'loading',
     shoppingLoadStatus: 'idle',
     shoppingSummaryText: '',
@@ -19,24 +18,21 @@ Page({
   },
 
   onShow() {
-    this.loadCart()
+    this.loadMealList()
   },
 
-  async loadCart({ syncShopping = true } = {}) {
-    const hasData = this.data.cartList.length > 0
+  async loadMealList({ syncShopping = true } = {}) {
+    const hasData = this.data.mealList.length > 0
     if (!hasData) this.setData({ loadStatus: 'loading' })
     try {
-      const info = await cartUtil.getCartInfo()
-      const list = info.list.map(item => ({
+      const result = await mealListService.loadMealList()
+      const list = result.items.map(item => ({
         ...item,
-        subtotal: (item.price * item.quantity).toFixed(2),
-        // 购物车项用 foodId 或 id 作为标识
-        itemId: item.foodId || item.id
+        itemId: item.dishId
       }))
       this.setData({
-        cartList: list,
-        totalCount: info.count,
-        totalPrice: info.total,
+        mealList: list,
+        totalCount: result.count,
         loadStatus: 'success'
       })
       if (list.length > 0) this.loadShoppingSummary(list, syncShopping)
@@ -48,13 +44,13 @@ Page({
     }
   },
 
-  onRetryLoad() { this.loadCart() },
+  onRetryLoad() { this.loadMealList() },
 
   showError(error, fallback) {
     wx.showToast({ title: cloudUtil.getErrorMessage(error, fallback), icon: 'none' })
   },
 
-  async loadShoppingSummary(cartList, shouldSync) {
+  async loadShoppingSummary(mealList, shouldSync) {
     const loadToken = (this._shoppingLoadToken || 0) + 1
     this._shoppingLoadToken = loadToken
     this.setData({ shoppingLoadStatus: 'loading', shoppingWarning: '' })
@@ -68,7 +64,7 @@ Page({
     }
     if (loadToken !== this._shoppingLoadToken) return
     try {
-      const items = shoppingUtil.createShoppingItems(cartList)
+      const items = shoppingUtil.createShoppingItems(mealList)
       const inStockCount = items.filter(item => item.isInStock).length
       const shoppingCount = items.length - inStockCount
       let shoppingSummaryText = `待采购 ${shoppingCount} 项，家里已有 ${inStockCount} 项`
@@ -96,8 +92,8 @@ Page({
     if (this.data.mutationPendingId || this.data.clearPending || this.data.savePending) return
     this.setData({ mutationPendingId: id })
     try {
-      await cartUtil.increaseQuantity(id)
-      await this.loadCart({ syncShopping: false })
+      await mealListService.increaseDishQuantity(id)
+      await this.loadMealList({ syncShopping: false })
     } catch (e) {
       this.showError(e, '增加数量失败，请重试')
     } finally {
@@ -111,8 +107,8 @@ Page({
     if (this.data.mutationPendingId || this.data.clearPending || this.data.savePending) return
     this.setData({ mutationPendingId: id })
     try {
-      await cartUtil.decreaseQuantity(id)
-      await this.loadCart({ syncShopping: false })
+      await mealListService.decreaseDishQuantity(id)
+      await this.loadMealList({ syncShopping: false })
     } catch (e) {
       this.showError(e, '减少数量失败，请重试')
     } finally {
@@ -120,7 +116,7 @@ Page({
     }
   },
 
-  // 删除商品
+  // 从今日饮食清单删除菜品
   onDeleteItem(e) {
     const id = Number(e.currentTarget.dataset.id)
     if (this.data.mutationPendingId || this.data.clearPending || this.data.savePending) return
@@ -131,8 +127,8 @@ Page({
         if (res.confirm) {
           this.setData({ mutationPendingId: id })
           try {
-            await cartUtil.removeFromCart(id)
-            await this.loadCart({ syncShopping: false })
+            await mealListService.removeDish(id)
+            await this.loadMealList({ syncShopping: false })
           } catch (e) {
             this.showError(e, '删除失败，请重试')
           } finally {
@@ -144,8 +140,8 @@ Page({
   },
 
   // 清空今日清单
-  onClearCart() {
-    if (this.data.cartList.length === 0 || this.data.clearPending || this.data.mutationPendingId || this.data.savePending) return
+  onClearMealList() {
+    if (this.data.mealList.length === 0 || this.data.clearPending || this.data.mutationPendingId || this.data.savePending) return
     wx.showModal({
       title: '清空今日饮食清单',
       content: '确定清空今日清单吗？',
@@ -153,8 +149,8 @@ Page({
         if (res.confirm) {
           this.setData({ clearPending: true })
           try {
-            await cartUtil.clearCart()
-            this.setData({ cartList: [], totalCount: 0, totalPrice: 0, loadStatus: 'success' })
+            await mealListService.clearMealList()
+            this.setData({ mealList: [], totalCount: 0, loadStatus: 'success' })
             this.resetShoppingSummary()
             wx.showToast({ title: '今日清单已清空', icon: 'none' })
           } catch (e) {
@@ -167,44 +163,43 @@ Page({
     })
   },
 
-  // 去结算
-  onCheckout() {
+  // 保存今日饮食记录
+  onSaveRecord() {
     if (this.data.savePending || this.data.clearPending || this.data.mutationPendingId) {
       wx.showToast({ title: '请等待当前操作完成', icon: 'none' })
       return
     }
-    if (this.data.cartList.length === 0) {
+    if (this.data.mealList.length === 0) {
       wx.showToast({ title: '清单还是空的', icon: 'none' })
       return
     }
-    this.submitOrder()
+    this.saveMealRecord()
   },
 
   goToShoppingList() {
-    if (this.data.cartList.length === 0) {
+    if (this.data.mealList.length === 0) {
       wx.showToast({ title: '先添加想做的菜吧', icon: 'none' })
       return
     }
     wx.navigateTo({ url: '/pages/shopping-list/shopping-list' })
   },
 
-  // 提交订单
-  async submitOrder() {
-    const { cartList } = this.data
+  async saveMealRecord() {
+    const { mealList } = this.data
     this.setData({ savePending: true })
     wx.showLoading({ title: '保存中...' })
-    let order = null
+    let record = null
     try {
-      order = await orderUtil.createOrder(cartList)
-      await cartUtil.clearCart()
+      record = await orderUtil.createOrder(mealList)
+      await mealListService.clearMealList()
     } catch (e) {
-      order = null
+      record = null
       this.showError(e, '保存失败，请重试')
     } finally {
       wx.hideLoading()
       this.setData({ savePending: false })
     }
-    if (order) wx.navigateTo({ url: `/pages/order-detail/order-detail?orderId=${order.orderId}` })
+    if (record) wx.navigateTo({ url: `/pages/order-detail/order-detail?orderId=${record.orderId}` })
   },
 
   // 去选菜
@@ -218,7 +213,7 @@ Page({
   onPreviewImage(e) {
     const url = e.currentTarget.dataset.url
     if (!url) return
-    const allUrls = this.data.cartList
+    const allUrls = this.data.mealList
       .map(item => item.image)
       .filter(Boolean)
     wx.previewImage({

@@ -2,7 +2,7 @@ const { createMealDecisionService, PHASES } = require('../../services/meal-decis
 const candidateService = require('../../services/meal-candidate-service')
 const dishService = require('../../services/dish-service')
 const preferenceRepository = require('../../repositories/local/meal-decision-preference-repository')
-const cartUtil = require('../../utils/cart')
+const mealListService = require('../../services/meal-list-service')
 const cloudUtil = require('../../utils/cloud')
 
 const SOURCE_DEFINITIONS = [
@@ -201,7 +201,7 @@ Page({
 
     this.setData({ addPending: true })
     try {
-      await cartUtil.addToCart({ id: dishId })
+      await mealListService.addDish({ id: dishId })
       this.setData({ addedToMealList: true })
       wx.showToast({ title: `${result.name} 已加入今日清单`, icon: 'none' })
       if (wx.vibrateShort) wx.vibrateShort({ type: 'light' })

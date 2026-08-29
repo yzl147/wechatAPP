@@ -5,7 +5,7 @@
 
   <block wx:else>
     <view class="hero-section" bindtap="onPreviewImage">
-      <image class="hero-image" src="{{food.image}}" mode="aspectFill" />
+      <image class="hero-image" src="{{dish.image}}" mode="aspectFill" />
       <view class="image-overlay"></view>
       <text class="preview-hint">点击查看大图</text>
       <view class="favorite-action {{isFavorite ? 'favorite-action--active' : ''}} {{favoritePending ? 'favorite-action--pending' : ''}}" catchtap="onToggleFavorite" aria-role="button">
@@ -16,23 +16,23 @@
     <view class="detail-content">
       <view class="detail-card">
         <app-card>
-          <text class="category-tag">{{food.category}}</text>
-          <text class="dish-title">{{food.name}}</text>
-          <text class="dish-brief">{{food.brief}}</text>
+          <text class="category-tag">{{dish.category}}</text>
+          <text class="dish-title">{{dish.name}}</text>
+          <text class="dish-brief">{{dish.brief}}</text>
           <view class="overview-grid">
-            <view class="overview-item"><text class="overview-label">做菜用时</text><text class="overview-value">{{food.time}}</text></view>
-            <view class="overview-item"><text class="overview-label">难度</text><text class="overview-value">{{food.difficulty}}</text></view>
-            <view class="overview-item"><text class="overview-label">食材</text><text class="overview-value">{{food.ingredients.length}} 种</text></view>
-            <view class="overview-item"><text class="overview-label">步骤</text><text class="overview-value">{{food.steps.length}} 步</text></view>
+            <view class="overview-item"><text class="overview-label">做菜用时</text><text class="overview-value">{{dish.time}}</text></view>
+            <view class="overview-item"><text class="overview-label">难度</text><text class="overview-value">{{dish.difficulty}}</text></view>
+            <view class="overview-item"><text class="overview-label">食材</text><text class="overview-value">{{dish.ingredients.length}} 种</text></view>
+            <view class="overview-item"><text class="overview-label">步骤</text><text class="overview-value">{{dish.steps.length}} 步</text></view>
           </view>
         </app-card>
       </view>
 
       <view class="detail-card">
         <app-card>
-          <view class="section-heading"><view><text class="section-title">所需食材</text><text class="section-description">按一份菜谱准备</text></view><text class="section-count">{{food.ingredients.length}} 种</text></view>
+          <view class="section-heading"><view><text class="section-title">所需食材</text><text class="section-description">按一份菜谱准备</text></view><text class="section-count">{{dish.ingredients.length}} 种</text></view>
           <view class="ingredient-list">
-            <view class="ingredient-item" wx:for="{{food.ingredients}}" wx:key="name" wx:for-index="idx">
+            <view class="ingredient-item" wx:for="{{dish.ingredients}}" wx:key="name" wx:for-index="idx">
               <text class="item-index">{{idx + 1}}</text>
               <text class="ingredient-name">{{item.name}}</text>
               <text class="ingredient-amount">{{item.amount}}</text>
@@ -43,10 +43,10 @@
 
       <view class="detail-card">
         <app-card>
-          <view class="section-heading"><view><text class="section-title">制作步骤</text><text class="section-description">按顺序完成即可</text></view><text class="section-count">{{food.steps.length}} 步</text></view>
+          <view class="section-heading"><view><text class="section-title">制作步骤</text><text class="section-description">按顺序完成即可</text></view><text class="section-count">{{dish.steps.length}} 步</text></view>
           <view class="step-list">
-            <view class="step-item" wx:for="{{food.steps}}" wx:key="title" wx:for-index="idx">
-              <view class="step-guide"><text class="step-number">{{idx + 1}}</text><view class="step-line" wx:if="{{idx < food.steps.length - 1}}"></view></view>
+            <view class="step-item" wx:for="{{dish.steps}}" wx:key="title" wx:for-index="idx">
+              <view class="step-guide"><text class="step-number">{{idx + 1}}</text><view class="step-line" wx:if="{{idx < dish.steps.length - 1}}"></view></view>
               <view class="step-copy"><text class="step-title">{{item.title}}</text><text class="step-description">{{item.desc}}</text></view>
             </view>
           </view>
@@ -55,6 +55,6 @@
     </view>
 
     <view class="bottom-space"></view>
-    <bottom-action-bar summary="准备这道菜" primaryText="加入今日清单" pendingText="正在加入…" pending="{{addPending}}" bind:primary="onAddToCart" />
+    <bottom-action-bar summary="准备这道菜" primaryText="加入今日清单" pendingText="正在加入…" pending="{{addPending}}" bind:primary="onAddToMealList" />
   </block>
 </view>

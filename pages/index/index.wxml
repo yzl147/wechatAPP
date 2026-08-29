@@ -4,8 +4,8 @@
       <text class="page-title">挑一道想做的菜</text>
       <text class="page-description">查看食材和步骤，再加入今天的饮食清单</text>
     </view>
-    <view class="today-list" bindtap="goToCart" aria-role="button">
-      <text class="today-list__count">{{cartCount}}</text>
+    <view class="today-list" bindtap="goToMealList" aria-role="button">
+      <text class="today-list__count">{{mealListCount}}</text>
       <text class="today-list__label">今日已选</text>
     </view>
   </view>
@@ -52,7 +52,7 @@
     <view class="dish-list" wx:else>
       <view class="dish-card" wx:for="{{filteredList}}" wx:key="id">
         <app-card>
-          <view class="dish-main" bindtap="onFoodTap" data-id="{{item.id}}">
+          <view class="dish-main" bindtap="onDishTap" data-id="{{item.id}}">
             <view class="dish-image-wrap" catchtap="onPreviewImage" data-url="{{item.image}}">
               <image class="dish-image" src="{{item.image}}" mode="aspectFill" lazy-load />
               <text class="image-hint">查看大图</text>
@@ -71,11 +71,11 @@
             </view>
           </view>
           <view class="dish-actions">
-            <view class="detail-action" bindtap="onFoodTap" data-id="{{item.id}}">查看食材与步骤</view>
+            <view class="detail-action" bindtap="onDishTap" data-id="{{item.id}}">查看食材与步骤</view>
             <view
               class="add-action {{addingDishId !== null ? 'add-action--disabled' : ''}}"
-              catchtap="onAddToCart"
-              data-food="{{item}}"
+              catchtap="onAddToMealList"
+              data-dish="{{item}}"
               aria-role="button"
             >{{addingDishId === item.id ? '加入中…' : '+ 加入'}}</view>
           </view>

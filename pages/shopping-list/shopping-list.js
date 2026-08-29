@@ -1,4 +1,4 @@
-const cartUtil = require('../../utils/cart')
+const mealListService = require('../../services/meal-list-service')
 const shoppingUtil = require('../../utils/shopping')
 const inventoryUtil = require('../../utils/inventory')
 const cloudUtil = require('../../utils/cloud')
@@ -24,7 +24,7 @@ Page({
     if (this.data.items.length === 0) this.setData({ loadStatus: 'loading' })
     let syncWarning = ''
     try {
-      const [, cartInfo] = await Promise.all([
+      const [, mealList] = await Promise.all([
         Promise.all([
           inventoryUtil.syncInventory().catch(error => {
             console.warn('同步库存失败，采购清单继续使用本地缓存', error && error.code)
@@ -35,10 +35,9 @@ Page({
             syncWarning = '库存或采购状态同步失败，当前显示本地缓存。'
           })
         ]),
-        cartUtil.getCartInfo()
+        mealListService.loadMealList()
       ])
-      const { list } = cartInfo
-      const items = shoppingUtil.createShoppingItems(list)
+      const items = shoppingUtil.createShoppingItems(mealList.items)
       this.updateItems(items, syncWarning)
     } catch (e) {
       console.error('加载采购清单失败', e)
@@ -94,7 +93,7 @@ Page({
     this.setData({ updatingKey: key })
     try {
       await shoppingUtil.setItemChecked(key, isInStock)
-      const items = shoppingUtil.createShoppingItems((await cartUtil.getCartInfo()).list)
+      const items = shoppingUtil.createShoppingItems((await mealListService.loadMealList()).items)
       this.updateItems(items)
     } catch (error) {
       wx.showToast({ title: cloudUtil.getErrorMessage(error, '操作失败，请重试'), icon: 'none' })

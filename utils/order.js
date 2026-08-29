@@ -21,13 +21,13 @@ function getOrdersInRange(startTime, endTime) {
 }
 
 /**
- * 创建订单（从购物车下单）
- * @param {Array} cartItems - 购物车商品列表
+ * 保存自己做的饮食记录（旧模块名和云端 action 暂作兼容）
+ * @param {Array} mealList - 今日饮食清单
  * @param {String} remark - 备注
  */
-function createOrder(cartItems, remark = '') {
-  const items = cartItems.map(item => ({
-    dishId: item.foodId || item.id,
+function createOrder(mealList, remark = '') {
+  const items = mealList.map(item => ({
+    dishId: item.dishId || item.foodId || item.id,
     quantity: item.quantity
   }))
   return callCloud('create', { items, remark, mealType: 'cook' }).then(res => res.data)

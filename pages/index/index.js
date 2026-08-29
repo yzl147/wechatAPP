@@ -1,4 +1,4 @@
-const cartUtil = require('../../utils/cart')
+const mealListService = require('../../services/meal-list-service')
 const cloudUtil = require('../../utils/cloud')
 const dishService = require('../../services/dish-service')
 
@@ -9,7 +9,7 @@ Page({
     categories: ['全部', '收藏', '荤菜', '素菜', '海鲜', '主食'],
     filteredList: [],
     favoriteIds: [],
-    cartCount: 0,
+    mealListCount: 0,
     loadStatus: 'loading',
     addingDishId: null,
     resultText: '',
@@ -22,12 +22,12 @@ Page({
 
   onLoad() {
     this.loadDishes()
-    this.updateCartBadge()
+    this.updateMealListBadge()
   },
 
   onShow() {
     this.loadFavorites()
-    this.updateCartBadge()
+    this.updateMealListBadge()
   },
 
   // 从云端加载菜品
@@ -38,7 +38,7 @@ Page({
       this._allDishes = result.dishes
       this.setData({ favoriteIds: result.favoriteIds, loadStatus: 'success' })
       if (result.syncError) console.warn('同步收藏菜谱失败，菜单页继续使用本地缓存', result.syncError.code)
-      this.filterFoods()
+      this.filterDishes()
     } catch (e) {
       console.error('加载菜品失败', e && e.code, e && e.requestId)
       this.setData({ loadStatus: 'error' })
@@ -51,19 +51,19 @@ Page({
     try {
       const result = await dishService.loadFavoriteIds()
       this.setData({ favoriteIds: result.favoriteIds })
-      this.filterFoods()
+      this.filterDishes()
       if (result.syncError) console.warn('同步收藏菜谱失败，菜单页继续使用本地缓存', result.syncError.code)
     } catch (error) {
       console.error('读取收藏菜谱缓存失败', error)
     }
   },
 
-  async updateCartBadge() {
+  async updateMealListBadge() {
     try {
-      const info = await cartUtil.getCartTotal()
-      this.setData({ cartCount: info.count })
+      const summary = await mealListService.getSummary()
+      this.setData({ mealListCount: summary.count })
     } catch (e) {
-      console.error('获取购物车统计失败', e)
+      console.error('获取饮食清单统计失败', e)
     }
   },
 
@@ -71,23 +71,23 @@ Page({
   onSearchInput(e) {
     const searchText = e.detail.value.trim()
     this.setData({ searchText })
-    this.filterFoods()
+    this.filterDishes()
   },
 
   onClearSearch() {
     this.setData({ searchText: '' })
-    this.filterFoods()
+    this.filterDishes()
   },
 
   // 分类切换
   onCategoryTap(e) {
     const category = e.currentTarget.dataset.category
     this.setData({ currentCategory: category })
-    this.filterFoods()
+    this.filterDishes()
   },
 
   // 过滤美食列表
-  filterFoods() {
+  filterDishes() {
     let list = [...this._allDishes]
     const { searchText, currentCategory, favoriteIds } = this.data
     const favoriteIdSet = new Set(favoriteIds)
@@ -118,11 +118,11 @@ Page({
 
   onResetFilters() {
     this.setData({ searchText: '', currentCategory: '全部' })
-    this.filterFoods()
+    this.filterDishes()
   },
 
   // 点击查看详情
-  onFoodTap(e) {
+  onDishTap(e) {
     const id = e.currentTarget.dataset.id
     wx.navigateTo({
       url: `/pages/detail/detail?id=${id}`
@@ -142,16 +142,16 @@ Page({
     })
   },
 
-  // 加入购物车（从列表）
-  async onAddToCart(e) {
-    const food = e.currentTarget.dataset.food
-    if (!food || this.data.addingDishId !== null) return
-    this.setData({ addingDishId: food.id })
+  // 从菜谱列表加入今日饮食清单
+  async onAddToMealList(e) {
+    const dish = e.currentTarget.dataset.dish
+    if (!dish || this.data.addingDishId !== null) return
+    this.setData({ addingDishId: dish.id })
     try {
-      const result = await cartUtil.addToCart(food)
-      this.setData({ cartCount: result.count })
+      const result = await mealListService.addDish(dish)
+      this.setData({ mealListCount: result.count })
       wx.showToast({
-        title: `${food.name} 已加入今日清单`,
+        title: `${dish.name} 已加入今日清单`,
         icon: 'none'
       })
     } catch (e) {
@@ -161,7 +161,7 @@ Page({
     }
   },
 
-  goToCart() {
+  goToMealList() {
     wx.switchTab({ url: '/pages/cart/cart' })
   }
 })

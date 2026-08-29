@@ -1,4 +1,4 @@
-const cartUtil = require('../../utils/cart')
+const mealListService = require('../../services/meal-list-service')
 const lifeListUtil = require('../../utils/life-list')
 
 Page({
@@ -22,10 +22,10 @@ Page({
   async loadMealOverview() {
     this.setData({ mealLoadStatus: 'loading' })
     try {
-      const cartInfo = await cartUtil.getCartTotal()
+      const mealListSummary = await mealListService.getSummary()
       this.setData({
-        mealCount: cartInfo.count || 0,
-        mealStatusText: cartInfo.count ? `今日已选 ${cartInfo.count} 份` : '去挑选今天想做的菜',
+        mealCount: mealListSummary.count || 0,
+        mealStatusText: mealListSummary.count ? `今日已选 ${mealListSummary.count} 份` : '去挑选今天想做的菜',
         mealLoadStatus: 'success'
       })
     } catch (e) {

@@ -6,21 +6,21 @@
 
   <loading-state wx:if="{{loadStatus === 'loading'}}" text="正在加载今日饮食清单..." />
   <error-state wx:elif="{{loadStatus === 'error'}}" title="今日饮食清单加载失败" description="请检查网络后重新加载" bind:retry="onRetryLoad" />
-  <empty-state wx:elif="{{cartList.length === 0}}" symbol="饮" title="今天还没有选菜" description="从菜谱中挑几道想做的菜，再回来准备食材。" actionText="去选菜" bind:action="goToIndex" />
+  <empty-state wx:elif="{{mealList.length === 0}}" symbol="饮" title="今天还没有选菜" description="从菜谱中挑几道想做的菜，再回来准备食材。" actionText="去选菜" bind:action="goToIndex" />
 
   <block wx:else>
     <view class="section-header">
       <view>
         <text class="section-title">今天准备做什么？</text>
-        <text class="section-caption">共 {{cartList.length}} 道菜，{{totalCount}} 份</text>
+        <text class="section-caption">共 {{mealList.length}} 道菜，{{totalCount}} 份</text>
       </view>
-      <text class="clear-action {{clearPending || mutationPendingId || savePending ? 'action-disabled' : ''}}" bindtap="onClearCart" aria-role="button" aria-disabled="{{clearPending || mutationPendingId || savePending}}">
+      <text class="clear-action {{clearPending || mutationPendingId || savePending ? 'action-disabled' : ''}}" bindtap="onClearMealList" aria-role="button" aria-disabled="{{clearPending || mutationPendingId || savePending}}">
         {{clearPending ? '正在清空...' : '清空清单'}}
       </text>
     </view>
 
     <view class="dish-list">
-      <app-card wx:for="{{cartList}}" wx:key="_id">
+      <app-card wx:for="{{mealList}}" wx:key="_id">
         <view class="dish-main">
           <view class="dish-image-wrap" catchtap="onPreviewImage" data-url="{{item.image}}">
             <image class="dish-image" src="{{item.image}}" mode="aspectFill" lazy-load />
@@ -74,6 +74,6 @@
       </app-card>
     </view>
 
-    <bottom-action-bar summary="已选 {{totalCount}} 份" primaryText="保存今日记录" pendingText="正在保存..." pending="{{savePending}}" bind:primary="onCheckout" />
+    <bottom-action-bar summary="已选 {{totalCount}} 份" primaryText="保存今日记录" pendingText="正在保存..." pending="{{savePending}}" bind:primary="onSaveRecord" />
   </block>
 </view>

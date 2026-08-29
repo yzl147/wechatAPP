@@ -1,73 +1,53 @@
-const cloudUtil = require('./cloud')
+// 旧模块名仅用于兼容历史引用；新代码统一使用 services/meal-list-service。
+const mealListService = require('../services/meal-list-service')
 
 /**
- * 调用云函数
- */
-function callCloud(action, data = {}) {
-  return cloudUtil.callFunction('manageCart', { action, ...data })
-}
-
-/**
- * 获取购物车列表及统计
+ * @deprecated 使用 mealListService.loadMealList。
  */
 function getCartInfo() {
-  return callCloud('get').then(res => {
-    const list = res.data || []
-    let totalCount = 0
-    let totalPrice = 0
-    list.forEach(item => {
-      totalCount += item.quantity || 0
-      totalPrice += (item.price || 0) * (item.quantity || 0)
-    })
-    return {
-      list,
-      count: totalCount,
-      total: parseFloat(totalPrice.toFixed(2))
-    }
-  })
+  return mealListService.loadMealList().then(result => ({ list: result.items, count: result.count, total: 0 }))
 }
 
 /**
- * 获取购物车简要统计（用于底部栏角标）
+ * @deprecated 使用 mealListService.getSummary。
  */
 function getCartTotal() {
-  return callCloud('total').then(res => res.data)
+  return mealListService.getSummary().then(result => ({ ...result, total: 0 }))
 }
 
 /**
- * 添加商品到购物车
+ * @deprecated 使用 mealListService.addDish。
  */
 function addToCart(food, quantity = 1) {
-  const dishId = food && (food.foodId || food.id)
-  return callCloud('add', { dishId, quantity }).then(() => getCartTotal())
+  return mealListService.addDish(food, quantity).then(result => ({ ...result, total: 0 }))
 }
 
 /**
- * 减少商品数量
+ * @deprecated 使用 mealListService.decreaseDishQuantity。
  */
 function decreaseQuantity(foodId) {
-  return callCloud('decrease', { foodId }).then(() => getCartTotal())
+  return mealListService.decreaseDishQuantity(foodId).then(result => ({ ...result, total: 0 }))
 }
 
 /**
- * 增加商品数量
+ * @deprecated 使用 mealListService.increaseDishQuantity。
  */
 function increaseQuantity(foodId) {
-  return callCloud('increase', { foodId }).then(() => getCartTotal())
+  return mealListService.increaseDishQuantity(foodId).then(result => ({ ...result, total: 0 }))
 }
 
 /**
- * 删除单个商品
+ * @deprecated 使用 mealListService.removeDish。
  */
 function removeFromCart(foodId) {
-  return callCloud('remove', { foodId }).then(() => getCartTotal())
+  return mealListService.removeDish(foodId).then(result => ({ ...result, total: 0 }))
 }
 
 /**
- * 清空购物车
+ * @deprecated 使用 mealListService.clearMealList。
  */
 function clearCart() {
-  return callCloud('clear').then(() => ({ count: 0, total: 0 }))
+  return mealListService.clearMealList().then(() => ({ count: 0, total: 0 }))
 }
 
 module.exports = {

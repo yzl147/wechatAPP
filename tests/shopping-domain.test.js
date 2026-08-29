@@ -12,11 +12,11 @@ test('食材数量解析统一常见中英文单位', () => {
 })
 
 test('多道菜与份数会合并需求，库存充足时无需采购', () => {
-  const cart = [
+  const mealList = [
     { id: 1, name: '番茄炒蛋', quantity: 2, ingredients: [{ name: '鸡蛋', amount: '2个' }] },
     { id: 2, name: '蛋花汤', quantity: 1, ingredients: [{ name: '鸡蛋', amount: '1个' }] }
   ]
-  const result = createShoppingItems(cart, [{ name: '鸡蛋', quantity: 6, unit: '个' }], {})
+  const result = createShoppingItems(mealList, [{ name: '鸡蛋', quantity: 6, unit: '个' }], {})
 
   assert.deepEqual(result, [{
     key: '鸡蛋-个',
@@ -30,8 +30,8 @@ test('多道菜与份数会合并需求，库存充足时无需采购', () => {
 })
 
 test('库存部分不足时显示准确缺口并保持待采购状态', () => {
-  const cart = [{ id: 1, name: '番茄炒蛋', quantity: 1, ingredients: [{ name: '鸡蛋', amount: '3个' }] }]
-  const result = createShoppingItems(cart, [{ name: '鸡蛋', quantity: 1, unit: '个' }], {})[0]
+  const mealList = [{ id: 1, name: '番茄炒蛋', quantity: 1, ingredients: [{ name: '鸡蛋', amount: '3个' }] }]
+  const result = createShoppingItems(mealList, [{ name: '鸡蛋', quantity: 1, unit: '个' }], {})[0]
 
   assert.equal(result.amount, '需购 2个')
   assert.equal(result.stockText, '家有 1个，还差 2个')
@@ -40,8 +40,8 @@ test('库存部分不足时显示准确缺口并保持待采购状态', () => {
 })
 
 test('无法计量的食材保留原文字并支持手动确认', () => {
-  const cart = [{ foodId: 9, name: '清蒸鱼', quantity: 1, ingredients: [{ name: '盐', amount: '适量' }] }]
-  const result = createShoppingItems(cart, [], { '9-盐-0': true })[0]
+  const mealList = [{ dishId: 9, name: '清蒸鱼', quantity: 1, ingredients: [{ name: '盐', amount: '适量' }] }]
+  const result = createShoppingItems(mealList, [], { '9-盐-0': true })[0]
 
   assert.deepEqual(result, {
     key: '9-盐-0',

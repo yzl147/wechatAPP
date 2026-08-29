@@ -1,10 +1,10 @@
-const cartUtil = require('../../utils/cart')
+const mealListService = require('../../services/meal-list-service')
 const cloudUtil = require('../../utils/cloud')
 const dishService = require('../../services/dish-service')
 
 Page({
   data: {
-    food: null,
+    dish: null,
     isFavorite: false,
     dishId: null,
     loadStatus: 'loading',
@@ -31,13 +31,13 @@ Page({
     this.setData({ loadStatus: 'loading' })
     try {
       const result = await dishService.loadDetail(id)
-      const food = result.dish
-      if (food) {
-        wx.setNavigationBarTitle({ title: food.name })
-        this.setData({ food, isFavorite: food.isFavorite, loadStatus: 'success' })
+      const dish = result.dish
+      if (dish) {
+        wx.setNavigationBarTitle({ title: dish.name })
+        this.setData({ dish, isFavorite: dish.isFavorite, loadStatus: 'success' })
         if (result.syncError) console.warn('同步收藏状态失败，详情页继续使用本地缓存', result.syncError.code)
       } else {
-        this.setData({ food: null, loadStatus: 'empty' })
+        this.setData({ dish: null, loadStatus: 'empty' })
       }
     } catch (e) {
       console.error('加载菜品详情失败', e && e.code, e && e.requestId)
@@ -47,12 +47,12 @@ Page({
 
   onRetryLoad() { this.loadDishDetail(this.data.dishId) },
 
-  async loadFavoriteStatus(foodId) {
+  async loadFavoriteStatus(dishId) {
     const loadToken = (this._favoriteLoadToken || 0) + 1
     this._favoriteLoadToken = loadToken
     try {
       const result = await dishService.loadFavoriteIds()
-      if (loadToken === this._favoriteLoadToken) this.setData({ isFavorite: result.favoriteIds.includes(Number(foodId)) })
+      if (loadToken === this._favoriteLoadToken) this.setData({ isFavorite: result.favoriteIds.includes(Number(dishId)) })
       if (result.syncError) console.warn('同步收藏状态失败，详情页继续使用本地缓存', result.syncError.code)
     } catch (error) {
       console.error('读取收藏状态缓存失败', error)
@@ -60,13 +60,13 @@ Page({
   },
 
   async onToggleFavorite() {
-    const { food, isFavorite, favoritePending } = this.data
-    if (!food || favoritePending) return
+    const { dish, isFavorite, favoritePending } = this.data
+    if (!dish || favoritePending) return
     this.setData({ favoritePending: true })
     this._favoriteLoadToken = (this._favoriteLoadToken || 0) + 1
     try {
       const nextStatus = !isFavorite
-      const result = await dishService.setFavorite(food.id, nextStatus)
+      const result = await dishService.setFavorite(dish.id, nextStatus)
       this.setData({ isFavorite: result.isFavorite })
       wx.showToast({ title: result.isFavorite ? '已收藏菜谱' : '已取消收藏', icon: 'none' })
     } catch (e) {
@@ -76,16 +76,16 @@ Page({
     }
   },
 
-  // 加入购物车
-  async onAddToCart() {
-    const { food, addPending } = this.data
-    if (!food || addPending) return
+  // 加入今日饮食清单
+  async onAddToMealList() {
+    const { dish, addPending } = this.data
+    if (!dish || addPending) return
 
     this.setData({ addPending: true })
     try {
-      await cartUtil.addToCart(food)
+      await mealListService.addDish(dish)
       wx.showToast({
-        title: `${food.name} 已加入今日清单`,
+        title: `${dish.name} 已加入今日清单`,
         icon: 'none'
       })
       if (wx.vibrateShort) {
@@ -106,11 +106,11 @@ Page({
 
   // 预览菜品图片
   onPreviewImage() {
-    const { food } = this.data
-    if (!food || !food.image) return
+    const { dish } = this.data
+    if (!dish || !dish.image) return
     wx.previewImage({
-      current: food.image,
-      urls: [food.image]
+      current: dish.image,
+      urls: [dish.image]
     })
   }
 })

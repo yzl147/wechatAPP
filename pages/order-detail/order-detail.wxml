@@ -16,7 +16,7 @@
       <text class="order-time">{{order._timeText}}</text>
     </view>
 
-    <!-- 商品明细 -->
+    <!-- 菜品明细 -->
     <view class="section">
       <view class="section-header">
         <view class="section-title-bar"></view>

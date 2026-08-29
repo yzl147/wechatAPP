@@ -9,13 +9,13 @@ async function handleRequest(event, OPENID) {
   const validationError = validateCartEvent(event)
   if (validationError) return validationError
 
-  // 获取购物车
+  // 获取今日饮食清单（集合名 carts 为旧版本兼容字段）
   if (action === 'get') {
     const { data } = await db.collection('carts').where({ _openid: OPENID }).get()
     return { code: 0, data }
   }
 
-  // 获取购物车统计
+  // 获取今日饮食清单份数
   if (action === 'total') {
     const { data } = await db.collection('carts').where({ _openid: OPENID }).get()
     let count = 0, total = 0
@@ -100,14 +100,14 @@ async function handleRequest(event, OPENID) {
     return { code: 0, message: '减少成功' }
   }
 
-  // 删除单个商品
+  // 删除单道菜
   if (action === 'remove') {
     const { foodId } = event
     await db.collection('carts').where({ _openid: OPENID, foodId }).remove()
     return { code: 0, message: '删除成功' }
   }
 
-  // 清空购物车
+  // 清空今日饮食清单
   if (action === 'clear') {
     await db.collection('carts').where({ _openid: OPENID }).remove()
     return { code: 0, message: '清空成功' }
