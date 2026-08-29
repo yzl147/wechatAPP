@@ -1,37 +1,64 @@
 <view class="inventory-page">
-  <view class="form-card">
-    <view class="form-title">添加食材</view>
-    <input class="name-input" placeholder="例如：鸡蛋" value="{{name}}" bindinput="onNameInput" maxlength="20" />
-    <view class="form-row">
-      <input class="small-input" type="digit" placeholder="数量" value="{{quantity}}" bindinput="onQuantityInput" />
-      <input class="small-input unit-input" placeholder="单位，如 个、袋" value="{{unit}}" bindinput="onUnitInput" maxlength="8" />
-      <picker mode="date" value="{{expiryDate}}" start="{{today}}" bindchange="onExpiryChange">
-        <view class="date-picker {{expiryDate ? 'has-value' : ''}}">{{expiryDate || '保质日期（可选）'}}</view>
-      </picker>
-    </view>
-    <view class="add-btn" bindtap="onAddItem">加入库存</view>
+  <view class="page-intro">
+    <view class="page-intro__copy"><text class="page-title">食材库存</text><text class="page-description">记录家里现有食材，优先使用临期库存并减少重复采购</text></view>
+    <view class="open-form-action" bindtap="onOpenAddForm" aria-role="button">添加</view>
   </view>
 
-  <view class="list-title">我的库存 <text>{{items.length}} 项</text></view>
-  <view class="empty-state" wx:if="{{items.length === 0}}">
-    <text class="empty-icon">🥕</text>
-    <text>还没有记录食材</text>
-  </view>
-
-  <view class="inventory-list" wx:else>
-    <view class="inventory-item" wx:for="{{items}}" wx:key="id">
-      <view class="item-main">
-        <text class="item-name">{{item.name}}</text>
-        <text class="expiry-tag {{item.expiry.type}}">{{item.expiry.text}}</text>
+  <view class="add-form" wx:if="{{showAddForm}}">
+    <app-card variant="life">
+      <view class="form-heading"><view><text class="section-title">添加食材</text><text class="section-description">名称和单位应与菜谱中的写法尽量一致</text></view><text class="cancel-action" bindtap="onCancelAddForm">取消</text></view>
+      <view class="field-group"><text class="field-label">食材名称</text><input class="field-input" placeholder="例如：鸡蛋" value="{{name}}" bindinput="onNameInput" maxlength="20" /></view>
+      <view class="field-row">
+        <view class="field-group field-group--half"><text class="field-label">数量</text><input class="field-input" type="digit" placeholder="例如：6" value="{{quantity}}" bindinput="onQuantityInput" /></view>
+        <view class="field-group field-group--half"><text class="field-label">单位</text><input class="field-input" placeholder="个、袋、克" value="{{unit}}" bindinput="onUnitInput" maxlength="8" /></view>
       </view>
-      <view class="item-bottom">
-        <view class="quantity-control">
-          <view class="qty-btn" bindtap="onDecrease" data-id="{{item.id}}">−</view>
-          <text class="quantity">{{item.quantity}} {{item.unit}}</text>
-          <view class="qty-btn plus" bindtap="onIncrease" data-id="{{item.id}}">＋</view>
+      <view class="field-group">
+        <text class="field-label">保质日期（可选）</text>
+        <view class="date-row">
+          <picker class="date-picker-wrap" mode="date" value="{{expiryDate}}" start="{{today}}" bindchange="onExpiryChange"><view class="date-picker {{expiryDate ? 'date-picker--selected' : ''}}">{{expiryDate || '选择日期'}}</view></picker>
+          <view class="clear-date" wx:if="{{expiryDate}}" bindtap="onClearExpiry">清除</view>
         </view>
-        <text class="delete-btn" bindtap="onDelete" data-id="{{item.id}}">删除</text>
+      </view>
+      <view class="submit-action {{addPending || mutationPendingId || deletePendingId ? 'action-disabled' : ''}}" bindtap="onAddItem" aria-role="button">{{addPending ? '正在保存…' : '加入库存'}}</view>
+    </app-card>
+  </view>
+
+  <loading-state wx:if="{{loadStatus === 'loading'}}" text="正在加载食材库存" />
+  <error-state wx:elif="{{loadStatus === 'error'}}" title="食材库存加载失败" description="请检查本地数据或网络后重试" bind:retry="onRetryLoad" />
+
+  <block wx:else>
+    <view class="warning-card" wx:if="{{syncWarning}}"><app-card variant="warning"><text class="warning-text">{{syncWarning}}</text></app-card></view>
+
+    <view class="overview-card">
+      <app-card variant="life">
+        <view class="overview-content">
+          <view><text class="overview-value">{{items.length}}</text><text class="overview-label">项库存</text></view>
+          <view class="overview-divider"></view>
+          <view><text class="overview-value">{{attentionCount}}</text><text class="overview-label">项临期或过期</text></view>
+          <view class="overview-divider"></view>
+          <view><text class="overview-value overview-value--danger">{{expiredCount}}</text><text class="overview-label">项已过期</text></view>
+        </view>
+      </app-card>
+    </view>
+
+    <view class="section-heading"><view><text class="section-title">我的库存</text><text class="section-description">临期和过期食材会优先排列</text></view><text class="section-count">{{items.length}} 项</text></view>
+
+    <empty-state wx:if="{{items.length === 0}}" symbol="库" title="还没有记录食材" description="添加家中常备食材，采购清单就能自动计算缺口" actionText="添加食材" bind:action="onOpenAddForm" />
+
+    <view class="inventory-list" wx:else>
+      <view class="inventory-item" wx:for="{{items}}" wx:key="id">
+        <app-card variant="{{item.expiry.type === 'expired' || item.expiry.type === 'expiring' ? 'warning' : 'default'}}">
+          <view class="item-heading"><view class="item-copy"><text class="item-name">{{item.name}}</text><text class="item-updating" wx:if="{{mutationPendingId === item.id || deletePendingId === item.id}}">正在更新…</text></view><text class="expiry-tag expiry-tag--{{item.expiry.type}}">{{item.expiry.text}}</text></view>
+          <view class="item-actions">
+            <view class="quantity-control {{mutationPendingId || addPending || deletePendingId ? 'quantity-control--disabled' : ''}}">
+              <view class="quantity-action {{item.quantity <= 0 ? 'quantity-action--disabled' : ''}}" bindtap="onDecrease" data-id="{{item.id}}" aria-role="button">−</view>
+              <text class="quantity-value">{{item.quantity}} {{item.unit}}</text>
+              <view class="quantity-action quantity-action--increase" bindtap="onIncrease" data-id="{{item.id}}" aria-role="button">＋</view>
+            </view>
+            <view class="delete-action {{mutationPendingId || addPending || deletePendingId ? 'delete-action--disabled' : ''}}" bindtap="onDelete" data-id="{{item.id}}" aria-role="button">删除</view>
+          </view>
+        </app-card>
       </view>
     </view>
-  </view>
+  </block>
 </view>

@@ -1,67 +1,67 @@
 .shopping-page {
+  box-sizing: border-box;
   min-height: 100vh;
-  box-sizing: border-box;
-  padding: 24rpx;
-  background: #f5f6fa;
+  padding: var(--space-lg) var(--space-page) calc(var(--space-xl) + env(safe-area-inset-bottom));
+  background: var(--color-background);
 }
-
-.inventory-entry { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18rpx; padding: 20rpx 24rpx; border-radius: 18rpx; background: #eef9f2; }
-.inventory-entry-title { display: block; font-size: 28rpx; font-weight: 600; color: #356045; }.inventory-entry-tip { display: block; margin-top: 7rpx; font-size: 22rpx; color: #769082; }.inventory-entry-arrow { font-size: 42rpx; color: #31a667; }
-
-.summary-card {
+.page-intro, .inventory-entry, .warning-card, .summary-card, .shopping-section { margin-bottom: var(--space-md); }
+.page-title, .page-description, .entry-title, .entry-description, .warning-text, .summary-value, .summary-label,
+.section-title, .section-description, .source-text, .stock-text { display: block; }
+.page-title { color: var(--color-text-primary); font-size: var(--font-page-title); font-weight: 700; }
+.page-description { margin-top: var(--space-xs); color: var(--color-text-secondary); font-size: var(--font-body); line-height: 1.5; }
+.inventory-entry__content, .summary-content, .item-content, .item-title-row { display: flex; align-items: center; }
+.inventory-entry__content { min-height: var(--tap-min-size); }
+.entry-symbol {
   display: flex;
+  width: 56rpx;
+  height: 56rpx;
+  flex: 0 0 56rpx;
   align-items: center;
-  justify-content: space-between;
-  padding: 30rpx 32rpx;
-  border-radius: 24rpx;
-  background: linear-gradient(135deg, #ff8a5c, #ff5b2d);
+  justify-content: center;
+  margin-right: var(--space-sm);
+  border-radius: var(--radius-sm);
+  background: var(--color-life);
   color: #fff;
-  margin-bottom: 20rpx;
+  font-size: 24rpx;
+  font-weight: 700;
 }
+.entry-copy { min-width: 0; flex: 1; }
+.entry-title { color: var(--color-text-primary); font-size: var(--font-section-title); font-weight: 700; }
+.entry-description { margin-top: 4rpx; color: var(--color-text-secondary); font-size: var(--font-caption); }
+.entry-action { margin-left: var(--space-sm); color: var(--color-life); font-size: var(--font-body); font-weight: 700; }
+.warning-text { color: var(--color-warning); font-size: var(--font-caption); line-height: 1.5; }
 
-.summary-num { font-size: 52rpx; font-weight: 800; margin-right: 12rpx; }
-.summary-label { font-size: 28rpx; }
-.summary-tip { width: 280rpx; font-size: 22rpx; line-height: 1.5; opacity: .86; text-align: right; }
-
-.list-tip { padding: 8rpx 12rpx 20rpx; color: #999; font-size: 24rpx; }
-
-.shopping-item {
-  display: flex;
-  align-items: center;
-  min-height: 110rpx;
-  margin-bottom: 16rpx;
-  padding: 18rpx 20rpx;
-  box-sizing: border-box;
-  border-radius: 18rpx;
-  background: #fff;
-}
-
+.summary-content { display: grid; grid-template-columns: 1fr 1rpx 1fr; position: relative; padding-bottom: 64rpx; text-align: center; }
+.summary-value { color: var(--color-warning); font-size: 42rpx; font-weight: 800; }
+.summary-label { margin-top: 3rpx; color: var(--color-text-secondary); font-size: 21rpx; }
+.summary-divider { width: 1rpx; height: 58rpx; background: var(--color-border); }
+.summary-copy { position: absolute; right: 0; bottom: 0; left: 0; color: var(--color-text-muted); font-size: 20rpx; line-height: 1.4; }
+.section-heading { display: flex; min-height: var(--tap-min-size); align-items: center; justify-content: space-between; }
+.section-title { color: var(--color-text-primary); font-size: var(--font-section-title); font-weight: 700; }
+.section-description { margin-top: 5rpx; color: var(--color-text-muted); font-size: var(--font-caption); }
+.shopping-item { margin-bottom: var(--space-sm); }
+.item-content { min-height: var(--tap-min-size); }
 .check-box {
-  width: 36rpx;
-  height: 36rpx;
-  line-height: 34rpx;
-  flex-shrink: 0;
-  text-align: center;
-  border: 2rpx solid #d6dbe1;
+  display: flex;
+  width: 44rpx;
+  height: 44rpx;
+  flex: 0 0 44rpx;
+  align-items: center;
+  justify-content: center;
+  margin-right: var(--space-sm);
+  border: 2rpx solid var(--color-text-disabled);
   border-radius: 50%;
   color: #fff;
   font-size: 24rpx;
+  font-weight: 700;
 }
-
-.check-box.checked { background: #26de81; border-color: #26de81; }
-.item-info { min-width: 0; flex: 1; margin-left: 20rpx; }
-.item-main { display: flex; align-items: baseline; gap: 14rpx; }
-.item-name { font-size: 30rpx; font-weight: 600; color: #333; }
-.item-amount { font-size: 24rpx; color: #ff6b35; }
-.item-source { display: block; margin-top: 8rpx; font-size: 22rpx; color: #999; }
-.stock-text { display: block; margin-top: 5rpx; font-size: 21rpx; }.stock-text.enough { color: #26a96c; }.stock-text.partial { color: #e67e22; }.stock-text.none, .stock-text.manual { color: #999; }
-.item-status { margin-left: 16rpx; flex-shrink: 0; font-size: 23rpx; color: #ff6b35; }
-.shopping-item.in-stock { opacity: .62; }
-.shopping-item.in-stock .item-name { text-decoration: line-through; }
-.shopping-item.in-stock .item-status { color: #26a96c; }
-
-.empty-state { display: flex; flex-direction: column; align-items: center; padding-top: 230rpx; }
-.empty-icon { font-size: 112rpx; }
-.empty-title { margin-top: 24rpx; font-size: 30rpx; font-weight: 600; color: #444; }
-.empty-tip { margin-top: 10rpx; font-size: 25rpx; color: #999; }
-.menu-btn { margin-top: 42rpx; padding: 18rpx 52rpx; border-radius: 40rpx; color: #fff; font-size: 28rpx; background: linear-gradient(135deg, #ff6b35, #ff4500); }
+.check-box--checked { border-color: var(--color-life); background: var(--color-life); }
+.item-copy { min-width: 0; flex: 1; }
+.item-title-row { gap: var(--space-xs); }
+.item-name { min-width: 0; overflow: hidden; color: var(--color-text-primary); font-size: var(--font-body); font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.amount-tag { flex-shrink: 0; padding: 3rpx 9rpx; border-radius: 8rpx; background: var(--color-meal-soft); color: var(--color-meal); font-size: 20rpx; }
+.source-text, .stock-text { margin-top: 5rpx; overflow: hidden; color: var(--color-text-muted); font-size: 21rpx; line-height: 1.4; text-overflow: ellipsis; white-space: nowrap; }
+.stock-text--enough { color: var(--color-success); }
+.stock-text--partial { color: var(--color-warning); }
+.stock-text--none, .stock-text--manual { color: var(--color-text-secondary); }
+.status-action { width: 126rpx; flex: 0 0 126rpx; margin-left: var(--space-sm); color: var(--color-text-secondary); font-size: 20rpx; font-weight: 700; text-align: right; }

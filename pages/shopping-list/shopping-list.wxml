@@ -1,36 +1,52 @@
 <view class="shopping-page">
-  <view class="inventory-entry" bindtap="goToInventory">
-    <view><text class="inventory-entry-title">🥬 食材库存</text><text class="inventory-entry-tip">登记库存，查看临期食材</text></view>
-    <text class="inventory-entry-arrow">›</text>
-  </view>
-  <view class="summary-card" wx:if="{{items.length > 0}}">
-    <view>
-      <text class="summary-num">{{shoppingCount}}</text>
-      <text class="summary-label">项待采购</text>
-    </view>
-    <text class="summary-tip">勾选表示家里已有，不会列入采购</text>
-  </view>
+  <view class="page-intro"><text class="page-title">食材采购清单</text><text class="page-description">根据今日选菜和家中库存，确认真正需要准备的食材</text></view>
 
-  <view class="empty-state" wx:if="{{items.length === 0}}">
-    <text class="empty-icon">🧺</text>
-    <text class="empty-title">还没有需要准备的食材</text>
-    <text class="empty-tip">先在菜谱页挑选想做的菜吧</text>
-    <view class="menu-btn" bindtap="goToMenu">去选菜</view>
-  </view>
-
-  <view class="shopping-list" wx:else>
-    <view class="list-tip">共 {{items.length}} 项食材，{{inStockCount}} 项家里已有</view>
-    <view class="shopping-item {{item.isInStock ? 'in-stock' : ''}}" wx:for="{{items}}" wx:key="key" bindtap="onToggleItem" data-key="{{item.key}}">
-      <view class="check-box {{item.isInStock ? 'checked' : ''}}">{{item.isInStock ? '✓' : ''}}</view>
-      <view class="item-info">
-        <view class="item-main">
-          <text class="item-name">{{item.name}}</text>
-          <text class="item-amount">{{item.amount}}</text>
-        </view>
-        <text class="item-source">{{item.sourceText}}</text>
-        <text class="stock-text {{item.stockState}}">{{item.stockText}}</text>
+  <view class="inventory-entry">
+    <app-card variant="life" interactive bind:tap="goToInventory">
+      <view class="inventory-entry__content">
+        <text class="entry-symbol">库</text>
+        <view class="entry-copy"><text class="entry-title">食材库存</text><text class="entry-description">登记现有数量，采购缺口会自动重新计算</text></view>
+        <text class="entry-action">管理 ›</text>
       </view>
-      <text class="item-status">{{item.isInStock ? '家里已有' : '待采购'}}</text>
-    </view>
+    </app-card>
   </view>
+
+  <loading-state wx:if="{{loadStatus === 'loading'}}" text="正在计算食材缺口" />
+  <error-state wx:elif="{{loadStatus === 'error'}}" title="采购清单加载失败" description="请检查今日饮食清单和网络后重试" bind:retry="onRetryLoad" />
+
+  <block wx:else>
+    <view class="warning-card" wx:if="{{syncWarning}}"><app-card variant="warning"><text class="warning-text">{{syncWarning}}</text></app-card></view>
+
+    <view class="summary-card" wx:if="{{items.length > 0}}">
+      <app-card variant="warning">
+        <view class="summary-content">
+          <view><text class="summary-value">{{shoppingCount}}</text><text class="summary-label">项待采购</text></view>
+          <view class="summary-divider"></view>
+          <view><text class="summary-value">{{inStockCount}}</text><text class="summary-label">项无需采购</text></view>
+          <view class="summary-copy">库存充足的食材会自动归入无需采购；其他食材可以手动确认。</view>
+        </view>
+      </app-card>
+    </view>
+
+    <empty-state wx:if="{{items.length === 0}}" symbol="备" title="还没有需要准备的食材" description="先从菜谱中选择今天准备做的菜" actionText="去选菜" bind:action="goToMenu" />
+
+    <view class="shopping-sections" wx:else>
+      <view class="shopping-section" wx:for="{{sections}}" wx:key="key" wx:for-item="section">
+        <view class="section-heading"><view><text class="section-title">{{section.title}}</text><text class="section-description">{{section.description}}</text></view></view>
+        <view class="shopping-item" wx:for="{{section.items}}" wx:key="key" wx:for-item="ingredient">
+          <app-card variant="{{ingredient.isInStock ? 'life' : 'warning'}}">
+            <view class="item-content" bindtap="onToggleItem" data-key="{{ingredient.key}}">
+              <text class="check-box {{ingredient.isInStock ? 'check-box--checked' : ''}}">{{ingredient.isInStock ? '✓' : ''}}</text>
+              <view class="item-copy">
+                <view class="item-title-row"><text class="item-name">{{ingredient.name}}</text><text class="amount-tag">{{ingredient.amount}}</text></view>
+                <text class="source-text">{{ingredient.sourceText}}</text>
+                <text class="stock-text stock-text--{{ingredient.stockState}}">{{ingredient.stockText}}</text>
+              </view>
+              <text class="status-action">{{updatingKey === ingredient.key ? '更新中…' : ingredient.statusText}}</text>
+            </view>
+          </app-card>
+        </view>
+      </view>
+    </view>
+  </block>
 </view>
