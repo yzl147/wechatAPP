@@ -3,6 +3,14 @@ node_modules/
 miniprogram_npm/
 cloudfunctions/*/node_modules/
 
+# Local environment and cloud tooling
+.env
+.env.*
+!.env.example
+project.private.config.json
+.cloudbase/
+.mcp.json
+
 # Logs and temporary files
 *.log
 logs/
@@ -13,7 +21,11 @@ temp/
 .claude/
 .codex/
 .codebuddy/
+.rules/
+rules/
+codebuddy-plugin/
 AGENTS.md
+CODEBUDDY.md
 
 # Editor and operating-system files
 .DS_Store

@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "check:repository": "node tools/check-repository.js",
     "check:project": "node tools/check-project.js",
     "test": "node --test tests/*.test.js",
-    "check": "npm run check:project && npm test"
+    "check": "npm run check:repository && npm run check:project && npm test"
   }
 }
