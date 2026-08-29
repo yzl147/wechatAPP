@@ -1,5 +1,5 @@
 <view class="completion-page" wx:if="{{record}}">
-  <view class="hero-card"><text class="hero-icon">✅</text><text class="hero-title">已完成生活清单</text><text class="hero-time">{{timeText}}</text></view>
+  <view class="hero-card"><text class="hero-symbol" aria-hidden="true">成</text><text class="hero-title">已完成生活清单</text><text class="hero-time">{{timeText}}</text></view>
   <view class="section"><text class="section-title">{{record.title}}</text><text class="section-sub">完成时的清单项目</text><view class="item-row" wx:for="{{record.items}}" wx:key="*this"><text class="check">✓</text><text>{{item}}</text></view><view class="empty-items" wx:if="{{!record.items || record.items.length === 0}}">这条旧记录未保存项目快照</view></view>
   <view class="open-list" wx:if="{{hasCurrentList}}" bindtap="openCurrentList">打开当前清单并调整 ›</view>
 </view>

@@ -13,6 +13,7 @@
 - `mealRecord`：已经保存的饮食记录。
 - `saveRecord`：把今日饮食清单保存为记录。
 - 界面、注释和新增函数不得继续使用“商品、购物车、下单、结算、订单状态”等旧点餐术语。
+- 核心导航使用统一 PNG 图标，页面功能徽标使用稳定的语义汉字并配合文字标签；系统 Emoji 只能用于不承担功能识别的轻量装饰。
 
 历史页面路由 `pages/cart`、`pages/orders`、`pages/order-detail`，云函数 `manageCart`、`manageOrders`，以及集合 `carts`、`orders` 暂时保留用于兼容已有链接和云端数据。旧名称只能出现在 repository、云函数协议或迁移说明等兼容边界中，不能扩散到新业务代码。
 
