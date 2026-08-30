@@ -12,6 +12,7 @@ function createCommandRecorder() {
   return {
     lt: value => ({ op: 'lt', value }),
     eq: value => ({ op: 'eq', value }),
+    gt: value => ({ op: 'gt', value }),
     or: values => ({ op: 'or', values }),
     and: values => ({ op: 'and', values })
   }
@@ -25,6 +26,51 @@ function createQueuedCollection(pages) {
     orderBy(field, direction) { calls.orderBy.push([field, direction]); return this },
     limit(value) { calls.limit.push(value); return this },
     async get() { return { data: pages.shift() || [] } }
+  }
+  return collection
+}
+
+function matchesCondition(record, condition) {
+  if (!condition) return true
+  if (condition.op === 'and') return condition.values.every(value => matchesCondition(record, value))
+  if (condition.op === 'or') return condition.values.some(value => matchesCondition(record, value))
+  return Object.entries(condition).every(([field, expected]) => {
+    const actual = record[field]
+    if (!expected || typeof expected !== 'object' || !expected.op) return actual === expected
+    if (expected.op === 'lt') return actual < expected.value
+    if (expected.op === 'eq') return actual === expected.value
+    if (expected.op === 'gt') return actual > expected.value
+    return false
+  })
+}
+
+function createMemoryCollection(records) {
+  const calls = { where: [], orderBy: [], limit: [] }
+  let condition = null
+  let order = []
+  let resultLimit = Infinity
+  const collection = {
+    calls,
+    where(value) { condition = value; calls.where.push(value); return this },
+    orderBy(field, direction) { order.push([field, direction]); calls.orderBy.push([field, direction]); return this },
+    limit(value) { resultLimit = value; calls.limit.push(value); return this },
+    async get() {
+      const data = records
+        .filter(record => matchesCondition(record, condition))
+        .sort((left, right) => {
+          for (const [field, direction] of order) {
+            if (left[field] === right[field]) continue
+            const comparison = left[field] < right[field] ? -1 : 1
+            return direction === 'desc' ? -comparison : comparison
+          }
+          return 0
+        })
+        .slice(0, resultLimit)
+      condition = null
+      order = []
+      resultLimit = Infinity
+      return { data }
+    }
   }
   return collection
 }
@@ -73,6 +119,41 @@ test('空数据和恰好一页时不返回下一页游标', async () => {
   assert.equal(exact.items.length, 20)
   assert.equal(exact.hasMore, false)
   assert.equal(exact.nextCursor, null)
+})
+
+test('单条和多页数据分页无重复遗漏且最终游标为空', async () => {
+  const command = createCommandRecorder()
+  const singleRecord = { ...createRecords(1)[0], _openid: 'user' }
+  const single = await fetchOrderPage({
+    collection: createMemoryCollection([singleRecord]),
+    command,
+    baseCondition: { _openid: 'user' },
+    limit: 20
+  })
+  assert.deepEqual(single, { items: [singleRecord], hasMore: false, nextCursor: null })
+
+  const records = createRecords(45).map(record => ({ ...record, _openid: 'user' }))
+  const collection = createMemoryCollection(records.slice().reverse())
+  const ids = []
+  let cursor = null
+  let pageCount = 0
+  do {
+    const page = await fetchOrderPage({
+      collection,
+      command,
+      baseCondition: { _openid: 'user' },
+      cursor,
+      limit: 20
+    })
+    ids.push(...page.items.map(item => item._id))
+    cursor = page.nextCursor
+    pageCount += 1
+  } while (cursor)
+
+  assert.equal(pageCount, 3)
+  assert.equal(ids.length, 45)
+  assert.equal(new Set(ids).size, 45)
+  assert.deepEqual(ids, records.map(record => record._id))
 })
 
 test('范围查询分批读取超过 120 条记录且不重复遗漏', async () => {
@@ -152,4 +233,50 @@ test('最近删除续页使用 deletedAt 和文档 ID 作为稳定条件', async
   assert.equal(collection.calls.where[0].values[1].op, 'or')
   assert.equal(page.hasMore, false)
   assert.equal(page.nextCursor, null)
+})
+
+test('相同记录时间和批量删除时间使用文档 ID 稳定分页', async () => {
+  const command = createCommandRecorder()
+  const activeRecords = ['id_03', 'id_01', 'id_05', 'id_02', 'id_04'].map((id, index) => ({
+    _id: id,
+    _openid: 'user',
+    orderId: `FO${index}`,
+    orderTime: 2000000000000
+  }))
+  const activeCollection = createMemoryCollection(activeRecords)
+  const activeIds = []
+  let activeCursor = null
+  do {
+    const page = await fetchOrderPage({
+      collection: activeCollection,
+      command,
+      baseCondition: { _openid: 'user' },
+      cursor: activeCursor,
+      limit: 2
+    })
+    activeIds.push(...page.items.map(item => item._id))
+    activeCursor = page.nextCursor
+  } while (activeCursor)
+
+  assert.deepEqual(activeIds, ['id_05', 'id_04', 'id_03', 'id_02', 'id_01'])
+  assert.equal(new Set(activeIds).size, activeRecords.length)
+
+  const deletedRecords = activeRecords.map(record => ({ ...record, deletedAt: 2000000000100 }))
+  const deletedCollection = createMemoryCollection(deletedRecords)
+  const deletedIds = []
+  let deletedCursor = null
+  do {
+    const page = await fetchDeletedOrderPage({
+      collection: deletedCollection,
+      command,
+      baseCondition: { _openid: 'user', deletedAt: command.gt(0) },
+      cursor: deletedCursor,
+      limit: 2
+    })
+    deletedIds.push(...page.items.map(item => item._id))
+    deletedCursor = page.nextCursor
+  } while (deletedCursor)
+
+  assert.deepEqual(deletedIds, ['id_05', 'id_04', 'id_03', 'id_02', 'id_01'])
+  assert.equal(new Set(deletedIds).size, deletedRecords.length)
 })
