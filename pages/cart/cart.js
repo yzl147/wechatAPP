@@ -204,6 +204,10 @@ Page({
 
   // 去选菜
   goToIndex() {
+    if (this.data.savePending || this.data.clearPending || this.data.mutationPendingId) {
+      wx.showToast({ title: '请等待当前操作完成', icon: 'none' })
+      return
+    }
     wx.navigateTo({
       url: '/pages/index/index'
     })

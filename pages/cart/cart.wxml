@@ -74,6 +74,14 @@
       </app-card>
     </view>
 
-    <bottom-action-bar summary="已选 {{totalCount}} 份" primaryText="保存今日记录" pendingText="正在保存..." pending="{{savePending}}" bind:primary="onSaveRecord" />
+    <bottom-action-bar
+      summary="已选 {{totalCount}} 份"
+      secondaryText="继续选菜"
+      primaryText="保存今日记录"
+      pendingText="正在保存..."
+      pending="{{savePending}}"
+      bind:secondary="goToIndex"
+      bind:primary="onSaveRecord"
+    />
   </block>
 </view>

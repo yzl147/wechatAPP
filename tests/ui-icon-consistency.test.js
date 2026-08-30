@@ -19,3 +19,9 @@ test('核心功能入口不再使用系统 Emoji 作为图标', () => {
 
   assert.deepEqual(filesWithEmoji, [])
 })
+
+test('今日饮食清单有内容时保留继续选菜入口', () => {
+  const source = fs.readFileSync(path.join(ROOT, 'pages/cart/cart.wxml'), 'utf8')
+
+  assert.match(source, /<bottom-action-bar[\s\S]*secondaryText="继续选菜"[\s\S]*bind:secondary="goToIndex"/)
+})
