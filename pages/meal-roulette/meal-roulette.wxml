@@ -113,7 +113,6 @@
           </view>
         </view>
         <view class="result-actions" wx:else>
-          <view class="primary-button" wx:if="{{acceptedResult.sourceType === 'takeout'}}" bindtap="onCopyResult" aria-role="button">复制名称</view>
           <view class="secondary-button" bindtap="onResetDecision" aria-role="button">重新决定</view>
         </view>
         <view class="reset-link" wx:if="{{acceptedResult.sourceType === 'cook'}}" bindtap="onResetDecision" aria-role="button">重新决定</view>

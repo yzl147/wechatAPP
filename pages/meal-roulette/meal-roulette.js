@@ -212,12 +212,6 @@ Page({
     }
   },
 
-  onCopyResult() {
-    const result = this.data.acceptedResult
-    if (!result) return
-    wx.setClipboardData({ data: result.name })
-  },
-
   onManageCandidates() {
     this.setData({ returningFromCandidates: true })
     wx.navigateTo({ url: '/pages/meal-candidates/meal-candidates' })
@@ -308,6 +302,5 @@ Page({
 function getCandidateActionHint(result) {
   if (!result) return ''
   if (result.sourceType === 'cook') return '可以查看做法，或加入今日饮食清单准备食材'
-  if (result.sourceType === 'takeout') return '可以复制名称，去常用外卖平台搜索'
-  return result.note || '按这个选择安排今天这一餐'
+  return '按这个选择安排今天这一餐'
 }
